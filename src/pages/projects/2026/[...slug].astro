@@ -1,0 +1,223 @@
+---
+// src/pages/2026/[slug].astro
+export const prerender = false;
+
+import Layout from "@/layouts/BlogPost.astro";
+import { supabase } from "@/lib/supabase";
+import { ProjectSchema, CATEGORIES } from "@/lib/schema";
+import { marked } from "marked";
+import createDOMPurify from "isomorphic-dompurify";
+
+const { slug } = Astro.params;
+const CURRENT_YEAR = 2026;
+
+if (!slug) return Astro.redirect("/404");
+
+// --- 資料抓取與 Debug (保留原邏輯) ---
+console.log(`[DEBUG] Fetching 2026 Project: ${slug}`);
+const { data: projectData, error: dbError } = await supabase
+  .from("projects")
+  .select("*")
+  .eq("year", CURRENT_YEAR)
+  .eq("slug", slug.split("/")[0])
+  .single();
+
+if (dbError || !projectData) {
+  console.error("DB Error:", dbError);
+  return Astro.redirect("/404");
+}
+
+// --- Zod 驗證 ---
+const result = ProjectSchema.safeParse(projectData);
+if (!result.success) {
+  console.error(
+    "❌ Zod Validation Failed:",
+    JSON.stringify(result.error.format(), null, 2),
+  );
+  return Astro.redirect("/404");
+}
+const project = result.data;
+
+// --- Markdown 渲染 ---
+const rawHtml = await marked.parse(project.content || "");
+const cleanHtml = createDOMPurify.sanitize(rawHtml);
+---
+
+<Layout
+  title={`${project.title} | ${CURRENT_YEAR}`}
+  description={project.description || ""}
+  pubDate={new Date(project.created_at)}
+>
+  <!-- 標準背景與字體設定 -->
+  <main
+    class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-12 px-4 sm:px-6"
+  >
+    <div class="max-w-5xl mx-auto">
+      <!-- Debug 資訊 (小字灰色) -->
+      <div
+        class="mb-4 text-xs font-mono text-slate-500 border-b border-slate-200 dark:border-slate-800 pb-2"
+      >
+        Status: {project.status} | ID: {project.id}
+      </div>
+
+      <!-- Header: 標題與基本資訊 -->
+      <header class="mb-8">
+        <div class="flex items-center gap-2 mb-3">
+          <span
+            class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold px-2 py-1 rounded"
+          >
+            {CURRENT_YEAR}
+          </span>
+          <span
+            class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium px-2 py-1 rounded"
+          >
+            {CATEGORIES[project.category_main]}
+          </span>
+        </div>
+
+        <h1 class="text-4xl font-extrabold tracking-tight mb-2">
+          {project.title}
+        </h1>
+
+        {
+          project.subtitle && (
+            <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">
+              {project.subtitle}
+            </p>
+          )
+        }
+
+        <div class="text-sm">
+          作者：<span class="font-semibold">@{project.author_handle}</span>
+        </div>
+      </header>
+
+      <!-- 主要連結按鈕 -->
+      <div class="flex flex-wrap gap-3 mb-10">
+        {
+          project.links.demo && (
+            <a
+              href={project.links.demo}
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition"
+            >
+              線上展示 (Demo)
+            </a>
+          )
+        }
+        {
+          project.links.github && (
+            <a
+              href={project.links.github}
+              target="_blank"
+              class="inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium rounded-md transition"
+            >
+              原始碼 (GitHub)
+            </a>
+          )
+        }
+      </div>
+
+      <!-- 內容佈局: 側邊欄與主內容 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <!-- 側邊欄 (詳細資訊) -->
+        <aside class="space-y-8 order-2 lg:order-1">
+          <section>
+            <h3
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
+            >
+              專案簡介
+            </h3>
+            <p class="text-sm leading-relaxed">{project.description}</p>
+          </section>
+
+          <section>
+            <h3
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
+            >
+              技術棧 (Tech Stack)
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {
+                project.tech_stack.map((tech) => (
+                  <span class="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs rounded shadow-sm">
+                    {tech}
+                  </span>
+                ))
+              }
+            </div>
+          </section>
+
+          <section>
+            <h3
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
+            >
+              關鍵字
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {
+                project.keywords.map((kw) => (
+                  <span class="text-blue-600 dark:text-blue-400 text-xs">
+                    #{kw}
+                  </span>
+                ))
+              }
+            </div>
+          </section>
+        </aside>
+
+        <!-- 主內容 (Markdown 與 圖片) -->
+        <article class="lg:col-span-2 order-1 lg:order-2 space-y-12">
+          <section>
+            <h3
+              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6 border-b pb-2"
+            >
+              專案詳情
+            </h3>
+            <div
+              class="prose "
+              set:html={cleanHtml}
+            />
+          </section>
+
+          {
+            project.screenshots.length > 0 && (
+              <section>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6 border-b pb-2">
+                  成果展示 (Screenshots)
+                </h3>
+                <div class="space-y-6">
+                  {project.screenshots.map((src) => (
+                    <img
+                      src={src}
+                      loading="lazy"
+                      alt="Project Screenshot"
+                      class="w-full rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
+                    />
+                  ))}
+                </div>
+              </section>
+            )
+          }
+        </article>
+      </div>
+
+      <!-- Footer: 底部統計與返回 -->
+      <footer
+        class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-sm text-slate-500"
+      >
+        <div>
+          按讚次數：<span class="font-bold text-slate-900 dark:text-slate-100"
+            >{project.like_count}</span
+          >
+        </div>
+        <a
+          href="/2026"
+          class="text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          返回列表
+        </a>
+      </footer>
+    </div>
+  </main>
+</Layout>

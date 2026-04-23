@@ -1,0 +1,54 @@
+---
+// src/components/ui/Link.astro
+import ScrambleText from "./ScrambleText.astro";
+import { ArrowUpRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  text?: string;
+  href: string;
+  scramble?: boolean;
+  class?: string;
+  showIcon?: boolean;
+  isExternal?: boolean;
+  [key: string]: any;
+}
+
+const {
+  text,
+  href,
+  scramble,
+  class: className,
+  showIcon,
+  isExternal,
+  ...rest
+} = Astro.props;
+
+const externalProps = isExternal
+  ? { target: "_blank", rel: "noopener noreferrer" }
+  : {};
+---
+
+<a
+  class={cn(
+    "inline-block items-center text-primary-400 hover:text-accent-400 transition-colors duration-200group " +
+      className,
+  )}
+  {...rest}
+  {...externalProps}
+>
+  <span class="underline underline-offset-3 inline-block">
+    {
+      text ? (
+        scramble ? (
+          <ScrambleText class="underline underline-offset-3" text={text} />
+        ) : (
+          <span>{text}</span>
+        )
+      ) : (
+        <slot />
+      )
+    }
+  </span>
+  {showIcon && <ArrowUpRight className=" inline-block -ml-2.5" />}
+</a>

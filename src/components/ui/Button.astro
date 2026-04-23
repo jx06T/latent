@@ -1,0 +1,59 @@
+---
+// src/components/ui/Button.astro
+import ScrambleText from "./ScrambleText.astro";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  text?: string;
+  variant?: "primary" | "secondary" | "outline";
+  scramble?: boolean;
+  class?: string;
+  [key: string]: any;
+}
+
+const {
+  text,
+  variant = "primary",
+  scramble,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const variantStyles = {
+  primary:
+    "bg-accent-500 text-bg hover:bg-accent-400 shadow-accent-sm border-transparent",
+  secondary: "bg-primary-800 text-ink hover:bg-primary-700 border-line-strong",
+  outline:
+    "bg-transparent text-primary-400 border-line  hover:border-line-active",
+};
+
+const baseStyles =
+  "inline-block items-center justify-center transition-all duration-200 border uppercase tracking-widest group px-4 py-2 text-lg";
+---
+
+<button class={cn(baseStyles, variantStyles[variant], className)} {...rest}>
+  <span
+    class=" mr-2 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform"
+    >[</span
+  >
+
+  <span class="relative">
+    {text ? scramble ? <ScrambleText text={text} /> : text : <slot />}
+  </span>
+
+  <span
+    class="ml-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform"
+    >]</span
+  >
+</button>
+
+<style>
+  .group:hover {
+    animation: blink 0.15s steps(2, start) 1;
+  }
+  @keyframes blink {
+    to {
+      opacity: 0.5;
+    }
+  }
+</style>

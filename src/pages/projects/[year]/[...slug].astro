@@ -1,0 +1,214 @@
+---
+import Layout from '@/layouts/BlogPost.astro';
+import { supabase } from '@/lib/supabase';
+import { ProjectSchema, CATEGORIES } from '@/lib/schema';
+import { marked } from 'marked';
+
+const { year, slug } = Astro.params;
+
+// 1. 從 Supabase 抓取資料
+const { data, error } = await supabase
+  .from('projects')
+  .select('*')
+  .eq('year', parseInt(year as string))
+  .eq('slug', slug)
+  .single();
+
+if (error || !data) {
+  console.error(error);
+  return Astro.redirect('/404');
+}
+
+// 2. 驗證資料並轉為型別
+const project = ProjectSchema.parse(data);
+
+// 3. 處理 Markdown
+const contentHtml = marked.parse(project.content || '');
+
+// 4. 動態樣式：根據年份決定顏色 (範例)
+const themeColor = project.year === 2025 ? '#00ff00' : '#ff00ff';
+---
+
+<Layout title={`${project.title} | ${project.year} 成果展`} description={project.description || ""} pubDate={new Date("2026-02-03")} updatedDate={new Date("2026-02-03")}>
+  <main class="cyber-page" style={`--theme-color: ${themeColor}`}>
+    <div class="cyber-container">
+      
+      <!-- 狀態列 (除錯用) -->
+      <div class="debug-info">
+        [ SYSTEM_STATUS: {project.status.toUpperCase()} ] [ ID: {project.id.slice(0,8)} ]
+      </div>
+
+      <!-- 標頭區 -->
+      <header class="project-header">
+        <div class="meta">
+          <span class="year-badge">{project.year}</span>
+          <span class="category-main">{CATEGORIES[project.category_main]}</span>
+          {project.category_sub.map(subId => (
+            CATEGORIES[subId as keyof typeof CATEGORIES] 
+            ? (
+              <span class="category-sub">
+                #{CATEGORIES[subId as keyof typeof CATEGORIES]}
+              </span>
+            ) 
+            : null
+
+          ))}
+        </div>
+        
+        <h1 class="glitch-text" data-text={project.title}>{project.title}</h1>
+        {project.subtitle && <p class="subtitle"> {project.subtitle}</p>}
+        
+        <div class="author-info">
+          IDENTIFIED_AUTHOR: <span class="highlight">@{project.author_handle}</span>
+        </div>
+      </header>
+
+      <hr class="cyber-divider" />
+
+      <!-- 外部連結區 -->
+      <div class="links-grid">
+        {project.links.demo && (
+          <a href={project.links.demo} target="_blank" class="cyber-button"> [ LIVE_DEMO ] </a>
+        )}
+        {project.links.github && (
+          <a href={project.links.github} target="_blank" class="cyber-button"> [ SOURCE_CODE ] </a>
+        )}
+      </div>
+
+      <!-- 核心內容區 -->
+      <div class="content-grid">
+        <aside class="sidebar">
+          <section>
+            <h3>// 簡介</h3>
+            <p>{project.description}</p>
+          </section>
+
+          <section>
+            <h3>// 技術棧</h3>
+            <div class="tag-cloud">
+              {project.tech_stack.map(tech => <span class="tag">{tech}</span>)}
+            </div>
+          </section>
+
+          <section>
+            <h3>// 關鍵字</h3>
+            <div class="tag-cloud">
+              {project.keywords.map(kw => <span class="tag kw">#{kw}</span>)}
+            </div>
+          </section>
+        </aside>
+
+        <article class="main-content">
+          <h3>// 專案詳情</h3>
+          <div class="markdown-body cyber-prose" set:html={contentHtml} />
+          
+          {project.screenshots.length > 0 && (
+            <section class="gallery">
+              <h3>// 螢幕截圖</h3>
+              <div class="screenshot-grid">
+                {project.screenshots.map(src => (
+                  <img src={src} alt="Screenshot" class="screenshot-item" />
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
+      </div>
+
+      <footer class="project-footer">
+        <div class="like-section">
+          ENERGY_LEVEL: <span class="highlight">{project.like_count}</span>
+        </div>
+        <a href="/projects" class="back-link">_RETURN_TO_DATABASE</a>
+      </footer>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  :root {
+    --bg-color: #0a0a0a;
+    --text-color: #e0e0e0;
+  }
+
+  .cyber-page {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .cyber-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    border: 1px solid var(--theme-color);
+    padding: 2rem;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+  }
+
+  .debug-info { font-size: 0.7rem; color: var(--theme-color); opacity: 0.7; margin-bottom: 1rem; }
+
+  .project-header h1 {
+    font-size: 3rem;
+    margin: 0.5rem 0;
+    color: var(--theme-color);
+    text-transform: uppercase;
+  }
+
+  .highlight { color: var(--theme-color); font-weight: bold; }
+
+  .cyber-divider { border: 0; border-top: 1px solid var(--theme-color); margin: 2rem 0; opacity: 0.3; }
+
+  .links-grid { display: flex; gap: 1rem; margin-bottom: 2rem; }
+
+  .cyber-button {
+    border: 1px solid var(--theme-color);
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: var(--theme-color);
+    transition: all 0.3s;
+  }
+
+  .cyber-button:hover {
+    background: var(--theme-color);
+    color: #000;
+    box-shadow: 0 0 15px var(--theme-color);
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .content-grid { grid-template-columns: 1fr; }
+  }
+
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag { font-size: 0.8rem; border: 1px solid #444; padding: 2px 6px; }
+  .tag.kw { color: var(--theme-color); border-color: var(--theme-color); }
+
+  .cyber-prose {
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+
+  /* 針對 Markdown 內的圖片進行美化 */
+  .cyber-prose :global(img) {
+    max-width: 100%;
+    border: 1px solid var(--theme-color);
+    margin: 1rem 0;
+  }
+
+  .screenshot-item {
+    width: 100%;
+    border: 1px solid #333;
+    margin-bottom: 1rem;
+    filter: grayscale(0.5);
+    transition: filter 0.3s;
+  }
+
+  .screenshot-item:hover { filter: grayscale(0); }
+</style>

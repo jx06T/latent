@@ -1,0 +1,132 @@
+---
+import Layout from "@/layouts/Empty.astro";
+import Button from "@/components/ui/Button.astro";
+import Link from "@/components/ui/Link.astro";
+import Tag from "@/components/ui/Tag.astro";
+import ScrambleText from "@/components/ui/ScrambleText.astro";
+import { House, List } from "lucide-react";
+
+// 強制讓 Tailwind 編譯這些類名
+const safelist = [
+  "bg-bg",
+  "bg-bg-surface",
+  "bg-bg-elevated",
+  "bg-bg-overlay",
+  "bg-primary-100",
+  "bg-primary-300",
+  "bg-primary-500",
+  "bg-primary-700",
+  "bg-primary-900",
+  "bg-accent-100",
+  "bg-accent-300",
+  "bg-accent-500",
+  "bg-accent-700",
+  "bg-accent-900",
+  "bg-success",
+  "bg-danger",
+  "bg-warning",
+  "bg-info",
+];
+
+const colorGroups = [
+  {
+    name: "Background",
+    shades: ["bg", "bg-surface", "bg-elevated", "bg-overlay"],
+  },
+  {
+    name: "Primary",
+    shades: [
+      "primary-100",
+      "primary-300",
+      "primary-500",
+      "primary-700",
+      "primary-900",
+    ],
+  },
+  {
+    name: "Accent",
+    shades: [
+      "accent-100",
+      "accent-300",
+      "accent-500",
+      "accent-700",
+      "accent-900",
+    ],
+  },
+  { name: "Semantic", shades: ["success", "danger", "warning", "info"] },
+];
+---
+
+<Layout>
+  <!-- 隱藏的 div 確保類名被掃描 (另一種白嫖 Tailwind 的方式) -->
+  <div class="hidden" class:list={safelist}></div>
+
+  <main class="max-w-5xl mx-auto p-8 space-y-16">
+    <header class="border-b border-line-strong pb-4">
+      <h1 class="text-4xl font-black text-glow-primary">
+        <ScrambleText text="系統偵錯儀表板_DEBUG" trigger="load" />
+      </h1>
+      <p class="text-ink-dim font-mono text-sm mt-2 uppercase">
+        Status: Online | Localization: ZH-TW
+      </p>
+    </header>
+
+    <section class="space-y-6">
+      <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
+        01_色樣板
+      </h2>
+      {
+        colorGroups.map((group) => (
+          <div class="space-y-2">
+            <h3 class="text-xs font-mono uppercase text-ink-muted">
+              {group.name}
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {group.shades.map((shade) => (
+                <div class="space-y-1">
+                  {/* 這裡直接寫死類名，或是確保變數在靜態分析中可見 */}
+                  <div
+                    class:list={[
+                      `h-12 w-full rounded border border-line`,
+                      `bg-${shade}`,
+                    ]}
+                  />
+                  <p class="text-[10px] font-mono text-ink-dim">{shade}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- 其餘組件展示保持不變... -->
+    <section class="space-y-8">
+      <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
+        02_組件測試
+      </h2>
+      <div class="flex flex-wrap gap-4">
+        <!-- 方式 A: 用 Prop 傳遞文字，自動 Scramble -->
+        <Button text="ENTER_SYSTEM" scramble class="text-xl" />
+
+        <!-- 方式 B: 用 Slot 輸入自定義 HTML (例如加個 Icon) -->
+        <Button variant="outline">
+          <House className=" inline size-4" />
+          <span>PROFILE</span>
+        </Button>
+        <!-- 方式 A: 一般內部連結 -->
+        <Link href="/about" text="了解更多" />
+
+        <!-- 方式 B: 外部連結 帶 Icon-->
+        <Link href="https://github.com" isExternal showIcon text="查看原始碼" />
+
+        <!-- 方式 C: 讓 Link 也能 Scramble -->
+        <Link href="/projects" text="瀏覽所有專案" scramble />
+        <div>
+          <Tag variant="main">人工智慧</Tag>
+          <Tag variant="sub">TypeScript</Tag>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

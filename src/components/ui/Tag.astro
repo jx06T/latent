@@ -1,0 +1,22 @@
+---
+// src/components/ui/Tag.astro
+import { cn } from "@/lib/utils";
+
+interface Props {
+  variant?: "main" | "sub"; // main = 橘底黑字, sub = 虛線框藍字
+  class?: string;
+}
+
+const { variant = "main", class: className } = Astro.props;
+
+const styles = {
+  main: "bg-accent-500 text-bg shadow-accent-sm",
+  sub: "border text-ink-dim  hover:border-solid-cyber transition-colors",
+};
+---
+
+<span class={cn("inline-block px-2 py-0.5 pt-1 text-base", styles[variant], className)}>
+  <slot />
+</span>
+
+
