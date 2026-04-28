@@ -1,0 +1,123 @@
+---
+// src/components/modules/LogManager.astro
+import StatusLog from "../ui/StatusLog.astro";
+---
+
+<div
+  id="log-container"
+  class="fixed z-999 flex flex-col gap-0 pointer-events-none
+         top-4 left-4 right-4 items-center
+         sm:top-auto sm:bottom-6 sm:left-6 sm:right-auto sm:items-start"
+>
+</div>
+
+<!-- 隱藏的模板，只用來作為複製的母體 -->
+<template id="log-template">
+  <StatusLog message="TEMPLATE" />
+</template>
+
+<script>
+  import gsap from "gsap";
+
+  declare global {
+    interface Window {
+      notify: (message: string, type?: "success" | "warning" | "error") => void;
+    }
+  }
+
+  window.notify = function (
+    message: string,
+    type: "success" | "warning" | "error" = "success",
+  ) {
+    const container = document.getElementById("log-container");
+    const template = document.getElementById(
+      "log-template",
+    ) as HTMLTemplateElement;
+
+    if (!container || !template) {
+      console.warn("Log container or template not found!");
+      return;
+    }
+
+    // 1. 複製模板節點
+    const clone = template.content.cloneNode(true) as DocumentFragment;
+    const logEl = clone.querySelector(".js-log-root") as HTMLElement;
+    if (!logEl) return;
+
+    // 設定可以被點擊或 hover
+    logEl.classList.add("pointer-events-auto", "mb-1.5");
+
+    // 2. 定義顏色與文字的對應表 (直接使用 Tailwind 變數名稱)
+    const config = {
+      success: { label: "OK", text: "text-success", bg: "bg-success" },
+      warning: { label: "WARN", text: "text-warning", bg: "bg-warning" },
+      error: { label: "ERR", text: "text-danger", bg: "bg-danger" },
+    };
+    const s = config[type];
+
+    // 3. 抓取所有需要替換內容的目標
+    const labelTarget = logEl.querySelector(".js-log-label");
+    const msgTarget = logEl.querySelector(".js-log-msg");
+    const timeTarget = logEl.querySelector(".js-log-time");
+    const colorTargets = logEl.querySelectorAll(
+      ".js-log-color, .js-log-color-text",
+    );
+    const bgTarget = logEl.querySelector(".js-log-bg");
+
+    // 4. 更新文字內容
+    if (msgTarget) msgTarget.textContent = message;
+    if (labelTarget) labelTarget.textContent = s.label;
+    if (timeTarget)
+      timeTarget.textContent = `+${(Math.random() * 0.1).toFixed(3)}s`;
+
+    // 5. 更新顏色狀態
+    // 預先定義所有可能的顏色類名，用於清除舊狀態
+    const allTextColors = ["text-success", "text-warning", "text-danger"];
+    const allBgColors = ["bg-success", "bg-warning", "bg-danger"];
+
+    colorTargets.forEach((el) => {
+      el.classList.remove(...allTextColors);
+      el.classList.add(s.text);
+    });
+
+    if (bgTarget) {
+      bgTarget.classList.remove(...allBgColors);
+      bgTarget.classList.add(s.bg);
+    }
+
+    // 6. 插入容器並播放動畫
+    container.appendChild(logEl);
+
+    const isMobile = window.innerWidth < 640;
+
+    gsap.fromTo(
+      logEl,
+      {
+        // 手機從上往下掉，桌機從左往右滑入
+        x: isMobile ? 0 : -50,
+        y: isMobile ? -20 : 0,
+        opacity: 0,
+        filter: "brightness(2)",
+      },
+      {
+        x: 0,
+        y: 0,
+        opacity: 1,
+        filter: "brightness(1)",
+        duration: 0.4,
+        ease: "power2.out",
+      },
+    );
+
+    setTimeout(() => {
+      gsap.to(logEl, {
+        // 消失時：桌機往左邊縮回去
+        x: isMobile ? 0 : -20,
+        y: isMobile ? -10 : 0,
+        opacity: 0,
+        duration: 0.4,
+        onComplete: () => logEl.remove(),
+      });
+    }, 4500);
+  };
+</script>

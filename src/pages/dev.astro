@@ -8,6 +8,8 @@ import { House, List } from "lucide-react";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Input from "@/components/ui/Input.astro";
 import Progress from "@/components/ui/Progress.astro";
+import StatusLog from "@/components/ui/StatusLog.astro";
+import LogManager from "@/components/modules/LogManager.astro";
 
 // 強制讓 Tailwind 編譯這些類名
 const safelist = [
@@ -87,7 +89,6 @@ const colorGroups = [
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
               {group.shades.map((shade) => (
                 <div class="space-y-1">
-                  {/* 這裡直接寫死類名，或是確保變數在靜態分析中可見 */}
                   <div
                     class:list={[
                       `h-12 w-full rounded border border-line`,
@@ -154,7 +155,7 @@ const colorGroups = [
 
       <!-- 送出按鈕 -->
       <div class="flex justify-end">
-        <Button variant="primary" text="EXECUTE_SEND" class=" text-sm" />
+        <Button variant="primary" text="EXECUTE_SEND" class="text-sm" />
       </div>
     </section>
 
@@ -164,6 +165,27 @@ const colorGroups = [
         <Progress label="CORE_TEMPERATURE" value={45} />
         <Progress label="READINESS" value={67} />
       </div>
+    </section>
+    <section>
+      <div class="flex flex-col gap-2">
+        <StatusLog type="success" message="vote registered · +1 energy" />
+        <StatusLog type="warning" message="moderation pending · review" />
+        <StatusLog type="error" message="no match found · query timeout" />
+      </div>
+      <LogManager/>
+      <Button id="like-btn" text="LIKE_PROJECT" class=" mt-2"/>
+
+      <script>
+        const testBtn = document.getElementById("like-btn");
+
+        testBtn?.addEventListener("click", () => {
+          if (typeof window.notify === "function") {
+            window.notify("數據封包同步成功", "success");
+          } else {
+            console.error("Critical: window.notify is not defined yet.");
+          }
+        });
+      </script>
     </section>
   </main>
 </Layout>
