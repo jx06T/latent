@@ -31,9 +31,10 @@ const externalProps = isExternal
 
 <a
   class={cn(
-    "inline-block items-center text-primary-400 hover:text-accent-400 transition-colors duration-200group " +
+    "inline-block cursor-pointer items-center text-primary-400 hover:text-accent-400 transition-colors duration-200group " +
       className,
   )}
+  href = {href}
   {...rest}
   {...externalProps}
 >
