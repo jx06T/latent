@@ -1,0 +1,88 @@
+---
+// src/components/ui/CyberProgress.astro
+import { cn } from "@/lib/utils";
+
+interface Props {
+  label?: string;
+  value?: number;
+  class?: string;
+}
+
+const { label = "readiness", value = 67, class: className } = Astro.props;
+---
+
+<div class={cn("w-full font-mono group cyber-progress-container", className)} data-cyber-value={value}>
+  <div class="flex justify-between items-end mb-1 px-0.5">
+    <span class="text-base uppercase tracking-widest text-ink-dim opacity-70">
+      {label}
+    </span>
+    <span class="text-base text-accent-500 tabular-nums progress-number">
+      0%
+    </span>
+  </div>
+
+  <div class="relative h-2 w-full bg-bg-elevated overflow-hidden p-[0px]">
+    <div 
+      class="progress-fill h-full bg-accent-500 shadow-accent-sm relative w-0"
+    >
+      <div class="absolute inset-0 z-10 w-full h-full segmented-mask"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initProgress() {
+    // 使用更精確的選擇器，並加上 :not(.is-initialized)
+    const containers = document.querySelectorAll('.cyber-progress-container:not(.is-initialized)');
+
+    containers.forEach(container => {
+      container.classList.add('is-initialized');
+      
+      const targetValue = parseInt(container.getAttribute('data-cyber-value') || "0");
+      const fill = container.querySelector('.progress-fill') as HTMLElement;
+      const number = container.querySelector('.progress-number') as HTMLElement;
+
+      if (!fill || !number) return;
+
+      gsap.to({ val: 0 }, {
+        val: targetValue,
+        duration: 1.5,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: container,
+          start: "top 95%",
+        },
+        onUpdate: function() {
+          const progress = Math.floor(this.targets()[0].val);
+          fill.style.width = `${progress}%`;
+          number.innerText = `${progress}%`;
+        }
+      });
+    });
+  }
+
+  // 確保在所有情況下都能執行
+  initProgress();
+  document.addEventListener('astro:page-load', initProgress);
+  // 如果你有動態插入組件的需求，可以調用這個函數
+</script>
+
+<style>
+  .segmented-mask {
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 20px,
+      var(--color-bg-elevated) 20px,
+      var(--color-bg-elevated) 22px
+    );
+  }
+  .progress-fill {
+    /* box-shadow: 0 0 12px rgba(227, 124, 70, 0.4); */
+    transition: width 0.1s linear; /* 讓數字跳動跟進度條更同步 */
+  }
+</style>

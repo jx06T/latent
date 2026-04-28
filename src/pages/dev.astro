@@ -6,7 +6,8 @@ import Tag from "@/components/ui/Tag.astro";
 import ScrambleText from "@/components/ui/ScrambleText.astro";
 import { House, List } from "lucide-react";
 import InputLabel from "@/components/ui/InputLabel.astro";
-import TerminalInput from "@/components/ui/TerminalInput.astro";
+import Input from "@/components/ui/Input.astro";
+import Progress from "@/components/ui/Progress.astro";
 
 // 強制讓 Tailwind 編譯這些類名
 const safelist = [
@@ -135,7 +136,7 @@ const colorGroups = [
       <!-- 搜尋框範例 -->
       <div class="mb-8">
         <InputLabel text="query_database" />
-        <TerminalInput
+        <Input
           id="search"
           placeholder="search projects, authors, keywords..."
         />
@@ -144,7 +145,7 @@ const colorGroups = [
       <!-- 留言板範例 -->
       <div class="mb-4">
         <InputLabel text="broadcast_message" />
-        <TerminalInput
+        <Input
           type="textarea"
           placeholder="leave a message · @mention or #tag..."
           rows={4}
@@ -154,6 +155,14 @@ const colorGroups = [
       <!-- 送出按鈕 -->
       <div class="flex justify-end">
         <Button variant="primary" text="EXECUTE_SEND" />
+      </div>
+    </section>
+
+    <section>
+      <div class="max-w-md space-y-8 p-10">
+        <Progress label="SYSTEM_STABILITY" value={92} />
+        <Progress label="CORE_TEMPERATURE" value={45} />
+        <Progress label="READINESS" value={67} />
       </div>
     </section>
   </main>
