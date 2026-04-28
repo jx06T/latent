@@ -1,0 +1,15 @@
+---
+// src/components/ui/InputLabel.astro
+import { cn } from "@/lib/utils";
+
+interface Props {
+  text: string;
+  class?: string;
+}
+
+const { text, class: className } = Astro.props;
+---
+
+<div class={cn("font-mono text-[10px] uppercase text-ink-dim/60 mb-2 tracking-tighter", className)}>
+  // {text}
+</div>

@@ -5,6 +5,8 @@ import Link from "@/components/ui/Link.astro";
 import Tag from "@/components/ui/Tag.astro";
 import ScrambleText from "@/components/ui/ScrambleText.astro";
 import { House, List } from "lucide-react";
+import InputLabel from "@/components/ui/InputLabel.astro";
+import TerminalInput from "@/components/ui/TerminalInput.astro";
 
 // 強制讓 Tailwind 編譯這些類名
 const safelist = [
@@ -126,6 +128,32 @@ const colorGroups = [
           <Tag variant="main">人工智慧</Tag>
           <Tag variant="sub">TypeScript</Tag>
         </div>
+      </div>
+    </section>
+
+    <section class="bg-bg p-8 max-w-2xl border border-line">
+      <!-- 搜尋框範例 -->
+      <div class="mb-8">
+        <InputLabel text="query_database" />
+        <TerminalInput
+          id="search"
+          placeholder="search projects, authors, keywords..."
+        />
+      </div>
+
+      <!-- 留言板範例 -->
+      <div class="mb-4">
+        <InputLabel text="broadcast_message" />
+        <TerminalInput
+          type="textarea"
+          placeholder="leave a message · @mention or #tag..."
+          rows={4}
+        />
+      </div>
+
+      <!-- 送出按鈕 -->
+      <div class="flex justify-end">
+        <Button variant="primary" text="EXECUTE_SEND" />
       </div>
     </section>
   </main>
