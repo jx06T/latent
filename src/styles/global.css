@@ -11,6 +11,17 @@
   font-display: swap;
 }
 
+@layer base {
+  /* 確保所有互動元素不會被雙擊放大，且點擊反應會變快 (移除 300ms 延遲) */
+  a, 
+  button, 
+  input, 
+  textarea, 
+  select {
+    touch-action: manipulation;
+  }
+}
+
 @theme {
   /* ── Background ─────────────────────────────────── */
   --color-bg: #151515;
