@@ -6,7 +6,7 @@ import Layout from "@/layouts/BlogPost.astro";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
 import { marked } from "marked";
-import createDOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const { slug } = Astro.params;
 const CURRENT_YEAR = 2026;
@@ -40,7 +40,15 @@ const project = result.data;
 
 // --- Markdown 渲染 ---
 const rawHtml = await marked.parse(project.content || "");
-const cleanHtml = createDOMPurify.sanitize(rawHtml);
+
+const cleanHtml = sanitizeHtml(rawHtml, {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "iframe"]),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    "*": ["class", "style"],
+  },
+});
+
 ---
 
 <Layout
@@ -174,10 +182,7 @@ const cleanHtml = createDOMPurify.sanitize(rawHtml);
             >
               專案詳情
             </h3>
-            <div
-              class="prose "
-              set:html={cleanHtml}
-            />
+            <div class="prose" set:html={cleanHtml} />
           </section>
 
           {
