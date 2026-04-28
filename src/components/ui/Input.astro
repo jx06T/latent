@@ -26,7 +26,7 @@ const Tag = isTextarea ? "textarea" : "input";
 
 const wrapperStyles = "group flex gap-3 bg-bg-surface border border-line p-3 transition-all duration-300 focus-within:border-primary-500 focus-within:shadow-primary-sm";
 const promptStyles = "font-mono text-primary-500 select-none shrink-0";
-const inputStyles = "bg-transparent border-none outline-none text-ink w-full font-mono placeholder:text-ink-disabled resize-none text-sm";
+const inputStyles = "bg-transparent border-none outline-none text-ink w-full font-mono placeholder:text-ink-disabled resize-none text-base";
 ---
 
 <div class={cn(wrapperStyles, className)}>
@@ -61,5 +61,7 @@ const inputStyles = "bg-transparent border-none outline-none text-ink w-full fon
   }
   .animate-pulse {
     animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    margin-right: -2px;
+    
   }
 </style>
