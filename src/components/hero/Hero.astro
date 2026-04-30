@@ -1,8 +1,7 @@
 ---
 import StaticBackground from "./StaticBackground.astro";
 import FloatingElements from "./FloatingElements.astro";
-import ScannerUI from "./ScannerUI.astro"; 
-
+import ScannerUI from "./ScannerUI.astro";
 ---
 
 <section
@@ -10,9 +9,16 @@ import ScannerUI from "./ScannerUI.astro";
   class="relative w-full h-[250vh] overflow-hidden bg-[#d18e12]"
 >
   <StaticBackground />
-  <FloatingElements />
-  <ScannerUI />
+  <FloatingElements type="normal" />
 
+  <div
+    class="absolute inset-0 w-full h-full pointer-events-none"
+    style="clip-path: url(#scan-mask);"
+  >
+    <FloatingElements type="pixel" />
+  </div>
+
+  <ScannerUI />
 </section>
 
 <section
@@ -62,7 +68,6 @@ import ScannerUI from "./ScannerUI.astro";
         });
       });
 
-      
       console.log("Hero 動畫準備就緒，目前載入的元素有：", els);
     }, heroSection);
 

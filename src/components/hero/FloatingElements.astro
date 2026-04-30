@@ -20,10 +20,10 @@ const decorations = [
     id: "bird-1",
     imgNormal: birdNormal,
     imgPixel: birdPixel,
-    top: "15%",    // 垂直定位
-    left: "70%",   // 水平定位
-    width: "w-32", // Tailwind 寬度控制大小
-    speed: 0.3,   // 視差速度 (正數 = 前景)
+    top: "15%", // 垂直定位
+    left: "65%", // 水平定位
+    width: "128px", // Tailwind 寬度控制大小
+    speed: 0.3, // 視差速度 (正數 = 前景)
   },
   {
     id: "fish-1",
@@ -31,34 +31,31 @@ const decorations = [
     imgPixel: fishPixel,
     top: "65%",
     left: "15%",
-    width: "w-48",
-    speed: 0.5,   // 視差速度 (負數 = 後景)
+    width: "64px",
+    speed: 0.5, // 視差速度 (負數 = 後景)
   },
 ];
+
+interface Props {
+  type: "normal" | "pixel";
+}
+
+const { type } = Astro.props;
 ---
 
-<!-- 2. 自動迴圈渲染 -->
-{decorations.map((item) => (
-  <div
-    class={`absolute ${item.width} pointer-events-none z-10 will-change-transform`}
-    style={`top: ${item.top}; left: ${item.left};`}
-    data-floating-element
-    data-speed={item.speed}
-  >
-    <!-- Layer A: 原圖 -->
-    <Image
-      src={item.imgNormal}
-      alt={item.id}
-      class="w-full h-auto"
-    />
-
-    <!-- Layer B: 像素圖 (套用挖洞遮罩) -->
-    <!-- absolute inset-0 確保它跟原圖 100% 完美重疊 -->
-    <Image
-      src={item.imgPixel}
-      alt={`${item.id} pixel`}
-      class="absolute inset-0 w-full h-auto"
-      style="clip-path: url(#scan-mask);"
-    />
-  </div>
-))}
+{
+  decorations.map((item) => (
+    <div
+      class={`absolute pointer-events-none z-0 will-change-transform`}
+      style={`top: ${item.top}; left: ${item.left}; width: ${item.width}`}
+      data-floating-element
+      data-speed={item.speed}
+    >
+      <Image
+        src={type === "normal" ? item.imgNormal : item.imgPixel}
+        alt={item.id}
+        class="w-full h-auto"
+      />
+    </div>
+  ))
+}
