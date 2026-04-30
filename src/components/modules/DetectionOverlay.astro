@@ -1,0 +1,263 @@
+---
+/**
+ * DetectionOverlay
+ *
+ * 座標系統：全部用 0~1 的相對比例（佔圖片寬/高的百分比）
+ * runtime 時 parallax.ts 會讀取這些數據，乘以實際 DOM 尺寸
+ * 換算成像素後動態更新 SVG elements 和 clipPath
+ *
+ * 調整框位置的方式：修改下方 scanTargets 的 rx/ry/rw/rh
+ * rx=0 是圖片左緣，rx=1 是圖片右緣，以此類推
+ */
+
+interface ScanTarget {
+  id: string
+  // 相對座標（0~1，相對於圖片寬高）
+  rx: number   // x 起點
+  ry: number   // y 起點
+  rw: number   // 寬度
+  rh: number   // 高度
+  // 標籤
+  label: string
+  confidence?: string
+  // 標籤位置（相對座標）
+  labelRx: number
+  labelRy: number
+  // 連線從框的哪一側出發：'right' | 'left' | 'bottom'
+  lineFrom: 'right' | 'left' | 'bottom'
+  status: 'match' | 'no-match' | 'loading'
+}
+
+export const scanTargets: ScanTarget[] = [
+  {
+    id: 'ufo-dome',
+    rx: 0.39, ry: 0.35, rw: 0.22, rh: 0.11,
+    label: 'NO MATCH',
+    labelRx: 0.62, labelRy: 0.29,
+    lineFrom: 'right',
+    status: 'no-match',
+  },
+  {
+    id: 'fish-group',
+    rx: 0.07, ry: 0.59, rw: 0.16, rh: 0.06,
+    label: '#03 fish', confidence: '93%',
+    labelRx: 0.02, labelRy: 0.55,
+    lineFrom: 'left',
+    status: 'match',
+  },
+  {
+    id: 'earth-surface',
+    rx: 0.04, ry: 0.70, rw: 0.20, rh: 0.12,
+    label: '#73 earth', confidence: '57%',
+    labelRx: 0.01, labelRy: 0.67,
+    lineFrom: 'left',
+    status: 'match',
+  },
+  {
+    id: 'city-beam',
+    rx: 0.39, ry: 0.74, rw: 0.22, rh: 0.08,
+    label: 'Loading ###......',
+    labelRx: 0.41, labelRy: 0.83,
+    lineFrom: 'bottom',
+    status: 'loading',
+  },
+  {
+    id: 'cloud',
+    rx: 0.81, ry: 0.04, rw: 0.15, rh: 0.06,
+    label: '#07 cloud',
+    labelRx: 0.81, labelRy: 0.03,
+    lineFrom: 'left',
+    status: 'match',
+  },
+]
+---
+
+<!--
+  SVG 用 100% 寬高 + viewBox="0 0 1 1" 讓內部座標直接對應 0~1 比例
+  這樣不需要 JS 換算，直接用 rx/ry 數值填入 SVG 屬性
+  文字大小用 font-size 搭配 SVG 單位，在 parallax.ts 動態調整
+-->
+<div class="detection-overlay" data-parallax-layer="overlay">
+  <svg
+    id="detection-svg"
+    class="detection-svg"
+    viewBox="0 0 1 1"
+    xmlns="http://www.w3.org/2000/svg"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <defs>
+      <!--
+        clipPath 使用 objectBoundingBox：
+        0~1 座標直接對應 .bg-pixels 元素的寬高
+        不需要 runtime 換算，與 viewBox="0 0 1 1" 完全對齊
+      -->
+      <clipPath id="pixel-clip" clipPathUnits="objectBoundingBox">
+        {scanTargets.map((t) => (
+          <rect
+            x={t.rx}
+            y={t.ry}
+            width={t.rw}
+            height={t.rh}
+          />
+        ))}
+      </clipPath>
+    </defs>
+
+    {scanTargets.map((target) => {
+      const color = '#c8601a'
+      const cl = 0.018   // corner length（相對單位）
+      const lw = 0.002   // line width
+      const { rx: x, ry: y, rw: w, rh: h } = target
+
+      // 連線起點
+      const lineX = target.lineFrom === 'right' ? x + w
+                  : target.lineFrom === 'left'  ? x
+                  : x + w / 2
+      const lineY = target.lineFrom === 'bottom' ? y + h : y + h / 2
+
+      // 標籤寬高（相對單位）
+      const labelW = target.confidence ? 0.14 : 0.13
+      const labelH = 0.025
+
+      return (
+        <g
+          class="scan-group"
+          data-scan-id={target.id}
+          data-status={target.status}
+          opacity="0"
+        >
+          {/* ── 偵測框：四角 L 形 ── */}
+          {/* 左上 */}
+          <line x1={x}      y1={y+cl}  x2={x}      y2={y}     stroke={color} stroke-width={lw}/>
+          <line x1={x}      y1={y}     x2={x+cl}   y2={y}     stroke={color} stroke-width={lw}/>
+          {/* 右上 */}
+          <line x1={x+w-cl} y1={y}     x2={x+w}    y2={y}     stroke={color} stroke-width={lw}/>
+          <line x1={x+w}    y1={y}     x2={x+w}    y2={y+cl}  stroke={color} stroke-width={lw}/>
+          {/* 右下 */}
+          <line x1={x+w}    y1={y+h-cl} x2={x+w}   y2={y+h}   stroke={color} stroke-width={lw}/>
+          <line x1={x+w}    y1={y+h}   x2={x+w-cl} y2={y+h}   stroke={color} stroke-width={lw}/>
+          {/* 左下 */}
+          <line x1={x+cl}   y1={y+h}   x2={x}      y2={y+h}   stroke={color} stroke-width={lw}/>
+          <line x1={x}      y1={y+h}   x2={x}      y2={y+h-cl} stroke={color} stroke-width={lw}/>
+
+          {/* ── 連線：折線到標籤 ── */}
+          <polyline
+            class="scan-line"
+            points={`${lineX},${lineY} ${target.labelRx + labelW / 2},${lineY} ${target.labelRx + labelW / 2},${target.labelRy + labelH / 2}`}
+            fill="none"
+            stroke={color}
+            stroke-width={lw * 0.6}
+            opacity="0.8"
+          />
+
+          {/* ── 標籤 ── */}
+          <rect
+            class="label-bg"
+            x={target.labelRx}
+            y={target.labelRy}
+            width={labelW}
+            height={labelH}
+            fill={color}
+            rx={0.002}
+          />
+          <text
+            x={target.labelRx + 0.005}
+            y={target.labelRy + labelH * 0.72}
+            font-family="'IBM Plex Mono', 'Courier New', monospace"
+            font-size="0.012"
+            fill="#f5f0e8"
+          >
+            {target.label}{target.confidence ? ` ${target.confidence}` : ''}
+          </text>
+
+          {/* NO MATCH：亂碼文字 */}
+          {target.status === 'no-match' && (
+            <text
+              x={x}
+              y={y - 0.008}
+              font-family="'IBM Plex Mono', monospace"
+              font-size="0.009"
+              fill={color}
+              opacity="0.7"
+            >
+              [5yK∆Λ8ε∪ψ∇8∨3]
+            </text>
+          )}
+        </g>
+      )
+    })}
+  </svg>
+</div>
+
+<style>
+  .detection-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .detection-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .scan-line {
+    stroke-dasharray: 0.004 0.004;
+    animation: dashMove 4s linear infinite;
+  }
+
+  @keyframes dashMove {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -0.032; }
+  }
+
+  [data-status="loading"] .label-bg {
+    animation: loadingBlink 1.4s ease-in-out infinite;
+  }
+
+  @keyframes loadingBlink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+</style>
+
+<style>
+  .detection-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .detection-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* 掃描線的 stroke-dasharray 動畫 */
+  .scan-line {
+    stroke-dasharray: 3 3;
+    animation: dashMove 4s linear infinite;
+  }
+
+  @keyframes dashMove {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -24; }
+  }
+
+  /* loading 標籤的閃爍 */
+  [data-status="loading"] .label-bg {
+    animation: loadingBlink 1.4s ease-in-out infinite;
+  }
+
+  @keyframes loadingBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>

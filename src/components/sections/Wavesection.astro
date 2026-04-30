@@ -1,0 +1,69 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+---
+
+<div class={`wave-section wave-section--${className}`}>
+  <div class="wave-section__edge">
+    <svg
+      class="wave-svg"
+      viewBox="0 0 1440 80"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="none"
+    >
+      <path
+        d="M0,40 C180,80 360,0 540,40 C720,80 900,0 1080,40 C1260,80 1380,20 1440,40 L1440,80 L0,80 Z"
+        fill="#0a0a0a"></path>
+    </svg>
+  </div>
+
+  <div class="wave-section__content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .wave-section {
+    position: relative;
+    background: #0a0a0a;
+    width: 100%;
+  }
+
+  /* Hero 模式：波浪在頂部，區塊往下延伸到頁面底部 */
+  .wave-section--hero {
+    /* 高度由內容決定 */
+  }
+
+  /* Footer 模式：波浪在頂部蓋住上方內容的底邊 */
+  .wave-section--footer {
+    padding-top: 0;
+  }
+
+  .wave-section__edge {
+    position: absolute;
+    top: -79px; /* 略微 overlap 避免 1px 縫隙 */
+    left: 0;
+    width: 100%;
+    height: 80px;
+    pointer-events: none;
+  }
+
+  .wave-section__edge--footer {
+    top: 0;
+    transform: translateY(-100%);
+  }
+
+  .wave-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .wave-section__content {
+    position: relative;
+    z-index: 1;
+  }
+</style>

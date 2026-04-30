@@ -11,6 +11,7 @@ interface Props {
   class?: string;
   showIcon?: boolean;
   isExternal?: boolean;
+  underLine?: boolean;
   [key: string]: any;
 }
 
@@ -21,6 +22,7 @@ const {
   class: className,
   showIcon,
   isExternal,
+  underLine = true,
   ...rest
 } = Astro.props;
 
@@ -34,11 +36,11 @@ const externalProps = isExternal
     "inline-block cursor-pointer items-center text-primary-400 hover:text-accent-400 transition-colors duration-200group " +
       className,
   )}
-  href = {href}
+  href={href}
   {...rest}
   {...externalProps}
 >
-  <span class="underline underline-offset-3 inline-block">
+  <span class={cn(underLine && "underline underline-offset-3", "inline-block")}>
     {
       text ? (
         scramble ? (
