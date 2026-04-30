@@ -1,0 +1,118 @@
+---
+// 1. 資料驅動表：你可以在這裡隨意增減偵測框
+const scanBoxes = [
+  {
+    id: "fish",
+    label: "[ fish | 93% ]",
+    x: "15%", y: "60%",   // 相對於海報的位置
+    w: "15%", h: "8%",    // 框的寬高
+  },
+  {
+    id: "cloud",
+    label: "[ cloud | 75% ]",
+    x: "70%", y: "15%",
+    w: "12%", h: "6%",
+  },
+  {
+    id: "earth",
+    label: "[ earth | 57% ]",
+    x: "15%", y: "80%",
+    w: "12%", h: "12%",
+  },
+];
+---
+
+<!-- 
+  滿版的巨型 SVG 畫布
+  pointer-events-none: 確保它不會擋住下方元素的滑鼠互動
+  z-20: 確保它疊在所有背景和裝飾物之上
+-->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-20">
+  
+  <!-- 【第一層：隱藏的挖洞遮罩】 -->
+  <!-- 這個 #scan-mask 就是給 Background 的像素層用的 -->
+  <defs>
+    <clipPath id="scan-mask">
+      {scanBoxes.map((box) => (
+        <rect
+          data-mask-target={box.id}
+          x={box.x}
+          y={box.y}
+          width={box.w}
+          height={box.h}
+        //   fill="white"
+          fill="red"
+        />
+      ))}
+    </clipPath>
+  </defs>
+
+  <!-- 【第二層：動態連線】 -->
+  <!-- 初始 x1, y1 設在畫面中央 (飛碟的預設位置)，GSAP 未來會接管這些線 -->
+  <g id="connection-lines">
+    {scanBoxes.map((box) => (
+      <line
+        data-line-target={box.id}
+        x1="50%"
+        y1="50%"
+        x2={box.x}
+        y2={box.y}
+        stroke="#d18e12"
+        stroke-width="1.5"
+        opacity="0.8"
+      />
+    ))}
+  </g>
+
+  <!-- 【第三層：視覺橘色方框與標籤】 -->
+  <g id="visual-boxes">
+    {scanBoxes.map((box) => (
+      /* 
+        利用嵌套 <svg> 的特性，外層用 % 定位，
+        overflow="visible" 讓我們可以在框框外面畫標籤
+      */
+      <svg
+        data-visual-target={box.id}
+        x={box.x}
+        y={box.y}
+        width={box.w}
+        height={box.h}
+        overflow="visible"
+        class="will-change-transform"
+      >
+        <!-- 橘色空心外框 -->
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill="none"
+          stroke="#d18e12"
+          stroke-width="2"
+        />
+        
+        <!-- 標籤背景底色 (放在框的左上角往上推 24px) -->
+        <!-- width="110" 是預估寬度，也可根據文字長度動態計算 -->
+        <rect
+          x="0"
+          y="-24"
+          width="120"
+          height="24"
+          fill="#d18e12"
+        />
+        
+        <!-- 標籤文字 -->
+        <text
+          x="6"
+          y="-8"
+          fill="#111"
+          font-size="12"
+          font-family="monospace"
+          font-weight="bold"
+        >
+          {box.label}
+        </text>
+      </svg>
+    ))}
+  </g>
+</svg>

@@ -1,0 +1,81 @@
+---
+import StaticBackground from "./StaticBackground.astro";
+import FloatingElements from "./FloatingElements.astro";
+import ScannerUI from "./ScannerUI.astro"; 
+
+---
+
+<section
+  data-hero
+  class="relative w-full h-[250vh] overflow-hidden bg-[#d18e12]"
+>
+  <StaticBackground />
+  <FloatingElements />
+  <ScannerUI />
+
+</section>
+
+<section
+  class="w-full h-[150vh] p-32 bg-gray-900 text-white flex items-center justify-center text-4xl"
+>
+  我是下一個 Section (往下滾動時，上面的 Hero 會自然往上滑)
+</section>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { getHeroElements, SELECTORS } from "./dom-registry";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initHeroParallax() {
+    const heroSection = document.querySelector<HTMLElement>(SELECTORS.hero);
+    if (!heroSection) return;
+
+    // 呼叫收集器，準備好所有元素地圖給未來的動畫用
+    const els = getHeroElements(heroSection);
+
+    // Context 是為了 Astro 換頁時能一次清理所有動畫
+    const ctx = gsap.context(() => {
+      // ==========================================
+      // 未來的動畫邏輯都會寫在這裡面
+      // 例如：
+      // 1. 標題進場動畫
+      // 2. UFO 滑鼠連動
+      // 3. 掃描框展開與收縮 (ScrollTrigger)
+      // ==========================================
+
+      els.floatingElements.forEach((el) => {
+        // 讀取視差速度設定
+        const speed = parseFloat(el.getAttribute("data-speed") || "0");
+        if (speed === 0) return;
+
+        gsap.to(el, {
+          y: () => -window.innerHeight * speed * 1.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: heroSection,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+      });
+
+      
+      console.log("Hero 動畫準備就緒，目前載入的元素有：", els);
+    }, heroSection);
+
+    // 清理機制：切換頁面時殺掉這個頁面的 GSAP 動畫，防止記憶體洩漏
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        ctx.revert();
+      },
+      { once: true },
+    );
+  }
+
+  // 確保 DOM 載入後執行
+  document.addEventListener("DOMContentLoaded", initHeroParallax);
+</script>

@@ -1,45 +1,12 @@
 ---
-import Hero from "@/components/sections/Hero.astro";
+import Hero from "@/components/hero/Hero.astro";
 import Footer from "@/components/sections/Footer.astro";
-import BaseHead from "@/components/sections/BaseHead.astro";
-import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import Layout from "@/layouts/Layout.astro";
 ---
 
-<!doctype html>
-<html lang="zh-Hant">
-  <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-  </head>
-  <body>
-    <main>
-      <Hero />
-      <!--
-      未來可在這裡加入更多 section：
-      <AboutSection />
-      <WorkSection />
-    -->
-    </main>
-
-    <Footer />
-
-    <!-- GSAP：只在 client 執行 -->
-    <script>
-      import gsap from "gsap";
-      import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-      // import { initParallax } from "../scripts/parallax";
-
-      // gsap.registerPlugin(ScrollTrigger);
-
-      // // DOM 載入完成後初始化
-      // document.addEventListener("DOMContentLoaded", () => {
-      //   initParallax();
-      // });
-
-      // // Astro View Transitions 支援（如果有用的話）
-      // document.addEventListener("astro:page-load", () => {
-      //   initParallax();
-      // });
-    </script>
-  </body>
-</html>
+<Layout>
+  <main>
+    <Hero />
+  </main>
+  <Footer />
+</Layout>

@@ -1,0 +1,31 @@
+---
+import { Image } from "astro:assets";
+import bgLines from "@/assets/hero/bg-normal.png";
+import bgPixels from "@/assets/hero/bg-pixel.png";
+
+// absolute inset-0: 絕對定位並撐滿父容器 (Hero)
+---
+
+<div
+  data-parallax-layer="bg-wrapper"
+  class="absolute inset-0 w-full h-full pointer-events-none overflow-hidden"
+>
+  <Image
+    src={bgLines}
+    alt="Base Background"
+    class="absolute inset-0 w-full h-full object-cover"
+    data-parallax-layer="lines"
+  />
+
+  <!-- 
+    最關鍵的一行：style="clip-path: url(#scan-mask);"
+    一開始這張圖會完全看不見 (因為 ScannerUI 還沒把遮罩撐開)。
+  -->
+  <Image
+    src={bgPixels}
+    alt="Pixel Background"
+    class="absolute inset-0 w-full h-full object-cover"
+    data-parallax-layer="pixels"
+    style="clip-path: url(#scan-mask);"
+  />
+</div>

@@ -1,0 +1,48 @@
+---
+import "../styles/global.css";
+import BaseHead from "@/components/sections/BaseHead.astro";
+---
+
+<html lang="zh-Hant">
+  <head>
+    <BaseHead title={"Empty"} description={"嗨嗨嗨"} />
+  </head>
+  <body>
+    <main>
+      <article>
+        <slot />
+      </article>
+    </main>
+  </body>
+</html>
+
+<script>
+  import Lenis from "@studio-freight/lenis";
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // 初始化 Lenis
+  const lenis = new Lenis({
+    duration: 1.2, // 滾動的滑順時間 (越大越滑，1.2 是黃金比例)
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // 經典的 ease-out 曲線
+    smoothWheel: true, // 電腦滑鼠滾輪滑順
+    touchMultiplier: 2, // 手機觸控滾動速度加倍
+  });
+
+  // 【最關鍵的一步】：讓 Lenis 的滾動進度與 GSAP ScrollTrigger 同步！
+  lenis.on("scroll", ScrollTrigger.update);
+
+  gsap.ticker.add((time) => {
+    lenis.raf(time * 1000);
+  });
+
+  // 關閉 GSAP 預設的 lag smoothing，避免與 Lenis 衝突
+  gsap.ticker.lagSmoothing(0);
+
+  // Astro 換頁清理機制
+  document.addEventListener("astro:before-swap", () => {
+    lenis.destroy();
+  });
+</script>
