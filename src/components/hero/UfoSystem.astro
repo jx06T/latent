@@ -39,12 +39,12 @@ const imgs = {
   class="absolute inset-0 top-4  lg:top-8 w-full h-full pointer-events-none overflow-hidden will-change-transform"
 >
   <!-- 底盤 (Body)：移動最少 -->
-  <Image src={imgs.body} alt="UFO Body" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-body />
-  
+  <Image src={imgs.body} alt="UFO Body" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-body loading="eager" />
+
       <!-- 嘴巴 (Mouth)：移動中等 -->
-      <Image src={imgs.mouth} alt="UFO Mouth" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-mouth />
-      
+      <Image src={imgs.mouth} alt="UFO Mouth" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-mouth loading="eager" />
+
       <!-- 雙眼 (Eyes)：移動最多，創造 3D 凸出感 -->
-      <Image src={imgs.eyeL} alt="Left Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-l />
-      <Image src={imgs.eyeR} alt="Right Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-r />
+      <Image src={imgs.eyeL} alt="Left Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-l loading="eager" />
+      <Image src={imgs.eyeR} alt="Right Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-r loading="eager" />
 </div>
