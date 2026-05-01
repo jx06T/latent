@@ -6,7 +6,7 @@ import ScannerUI from "./ScannerUI.astro";
 
 <section
   data-hero
-  class="relative w-full h-[160vh] overflow-hidden bg-[#d18e12]"
+  class="relative w-full h-[160vh] lg:h-[200vh] overflow-hidden bg-[#d18e12]"
 >
   <StaticBackground />
   <FloatingElements type="normal" />
@@ -36,6 +36,7 @@ import ScannerUI from "./ScannerUI.astro";
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { getHeroElements, SELECTORS, ATTRS } from "./dom-registry";
+  import { scanBoxes } from "./hero-data";
 
   function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
     let timeout: ReturnType<typeof setTimeout>;
@@ -103,10 +104,23 @@ import ScannerUI from "./ScannerUI.astro";
       });
 
       // ================================================
+      const scannerElements: {
+        targets: Element[];
+        wUnit: number;
+        hUnit: number;
+      }[] = [];
 
       if (els.scanner.svg && els.scanner.wrappers.length > 0) {
-        els.scanner.wrappers.forEach((wrapper) => {
-          const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
+        scanBoxes.forEach((boxData) => {
+          const wrapper = document.querySelector(
+            `[${ATTRS.scanner.wrapper}="${boxData.id}"]`,
+          );
+
+          if (!wrapper) {
+            return;
+          }
+          const speed = boxData.speed;
+          const id = boxData.id;
 
           const frame = wrapper.querySelector(
             `[${ATTRS.scanner.frame}="${id}"]`,
@@ -122,7 +136,16 @@ import ScannerUI from "./ScannerUI.astro";
           const line = document.querySelector(
             `[${ATTRS.scanner.line}="${id}"]`,
           );
-          const speed = parseFloat(wrapper?.getAttribute("data-speed") || "0");
+
+          if (!(frame && labelMask && mask && line)) {
+            return;
+          }
+
+          scannerElements.push({
+            targets: [wrapper, mask],
+            wUnit: boxData.w,
+            hUnit: boxData.h,
+          });
 
           const parallaxPair = [wrapper, mask].filter(Boolean);
           const animPair = [frame, mask];
@@ -176,10 +199,8 @@ import ScannerUI from "./ScannerUI.astro";
 
           function randomFloat() {
             gsap.to(animPair, {
-              // "--float-x": `${gsap.utils.random(-40, 40)}px`,
-              // "--float-y": `${gsap.utils.random(-40, 40)}px`,
-              "--float-x": `${gsap.utils.random(-4, 4)}px`,
-              "--float-y": `${gsap.utils.random(-4, 4)}px`,
+              "--float-x": `${gsap.utils.random(-4, 4)}%`,
+              "--float-y": `${gsap.utils.random(-40, 40)}px`,
               duration: gsap.utils.random(1, 2),
               ease: "sine.inOut",
               onComplete: randomFloat,
@@ -314,11 +335,9 @@ import ScannerUI from "./ScannerUI.astro";
         const baseUnit = getBaseUnit(currentWidth); // 取得現在 1 單位等於幾 px
 
         scannerElements.forEach((item) => {
-          // 算出真實的像素大小
           const pxWidth = item.wUnit * baseUnit;
           const pxHeight = item.hUnit * baseUnit;
 
-          // 利用 GSAP set 快速更新 SVG 屬性
           gsap.set(item.targets, {
             attr: {
               width: pxWidth,
