@@ -80,24 +80,29 @@ import { scanBoxes } from "./hero-data";
                   data-scanner-label-mask={box.id}
                   x="-1"
                   y="-24"
-                  width="120"
+                  width="210"
                   height="24"
                   style="scale: 0 1;"
-                />
+                  />
               </clipPath>
             </defs>
 
             <g
               data-scanner-label={box.id}
               clip-path={`url(#label-mask-${box.id})`}
-            >
-              <rect x="-1" y="-24" width="120" height="24" fill="#d18e12" />
+              >
+              <rect
+                x="-1"
+                y="-24"
+                fill="#d18e12"
+                class=" translate-y-[6px] md:translate-y-[4px] lg:translate-y-[0px] w-[125px] y- h-[18px] md:w-[150px]  md:h-[20px] lg:w-[180px] lg:h-[24px] xl:w-[200px] lg:h-[28px] xl:translate-y-[-4px]"
+              />
               <text
                 x="6"
                 y="-8"
                 fill="#111"
-                font-size="13"
                 font-family="Ubuntu"
+                class="translate-y-[2px] md:translate-y-[1px] lg:translate-y-[0px] text-[11px] md:text-[13px] lg:text-[16px] xl:text-[18px]"
               >
                 {box.label}
               </text>

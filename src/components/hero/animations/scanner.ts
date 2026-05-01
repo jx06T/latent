@@ -67,7 +67,7 @@ export function initScannerAnimations(
 
         function randomFloat() {
             gsap.to(animPair, {
-                "--float-x": `${gsap.utils.random(-4, 4)}%`,
+                "--float-x": `${gsap.utils.random(-4 * getBaseUnit(window.innerWidth), 4 * getBaseUnit(window.innerWidth))}px`,
                 "--float-y": `${gsap.utils.random(-40, 40)}px`,
                 duration: gsap.utils.random(1, 2),
                 ease: "sine.inOut",
