@@ -43,14 +43,6 @@ import ScannerUI from "./ScannerUI.astro";
 
     // Context 是為了 Astro 換頁時能一次清理所有動畫
     const ctx = gsap.context(() => {
-      // ==========================================
-      // 未來的動畫邏輯都會寫在這裡面
-      // 例如：
-      // 1. 標題進場動畫
-      // 2. UFO 滑鼠連動
-      // 3. 掃描框展開與收縮 (ScrollTrigger)
-      // ==========================================
-
       els.floatingElements.forEach((el) => {
         // 讀取視差速度設定
         const speed = parseFloat(el.getAttribute("data-speed") || "0");
@@ -68,7 +60,142 @@ import ScannerUI from "./ScannerUI.astro";
         });
       });
 
-      console.log("Hero 動畫準備就緒，目前載入的元素有：", els);
+      // ================================================
+
+      if (els.scanner.svg && els.scanner.wrappers.length > 0) {
+        els.scanner.wrappers.forEach((wrapper) => {
+          // 1. 取得對應的元素與設定
+          const id = wrapper.getAttribute("data-floating-wrapper");
+
+          const visualRect = wrapper.querySelector(
+            `[data-visual-target="${id}"]`,
+          );
+          const label = wrapper.querySelector(`[data-label-target="${id}"]`);
+
+          const mask = document.querySelector(`[data-mask-target="${id}"]`);
+          const line = document.querySelector(`[data-line-target="${id}"]`);
+
+          const speed = parseFloat(wrapper.getAttribute("data-speed") || "0");
+
+          const scalePair = [visualRect, mask];
+          const floatPair = [wrapper, mask];
+          console.log(wrapper, id, visualRect, label, mask, line, speed);
+          gsap.set(scalePair, {
+            transformOrigin: "50% 50%",
+            scaleX: 0,
+            scaleY: 0.01,
+          });
+          gsap.set([visualRect, label], { opacity: 0 });
+          gsap.set([label], { scaleX: 0 });
+
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: wrapper,
+              start: "top 80%",
+              end: "bottom 35%",
+              toggleActions: "play reverse play reverse",
+              markers: true,
+            },
+          });
+
+          tl.to(visualRect, { opacity: 1, duration: 0.1 })
+            .to(scalePair, { scaleX: 1, duration: 0.4, ease: "power4.out" })
+            .to(
+              scalePair,
+              { scaleY: 1, duration: 0.6, ease: "power3.out" },
+              "-=0.2",
+            )
+            .to(label, { scaleX: 1, duration: 0.3 }, "-=0.3")
+            .to(label, { opacity: 1, duration: 0.3 }, "-=0.3");
+
+          if (speed !== 0) {
+            gsap.to(floatPair, {
+              y: () => -window.innerHeight * speed * 1.5,
+              ease: "none",
+              scrollTrigger: {
+                trigger: heroSection,
+                start: "top top",
+                end: "bottom top",
+                scrub: true,
+              },
+            });
+          }
+
+          function randomFloat() {
+            // 1. 統一先抽出這一次的隨機值
+            const randomX = gsap.utils.random(-30, 30);
+            const randomY = gsap.utils.random(-30, 30);
+            const randomDuration = gsap.utils.random(2, 4);
+
+            // 2. 把確定的數值餵給這對雙胞胎
+            gsap.to(floatPair, {
+              x: randomX,
+              y: randomY,
+              duration: randomDuration,
+              ease: "sine.inOut",
+              onComplete: randomFloat,
+            });
+          }
+
+          // 啟動第一次飄浮
+          randomFloat();
+        });
+
+        // --- D. 終極魔法：每一幀動態計算連線 (雷射導引系統) ---
+        // GSAP Ticker 會在螢幕刷新的每一幀 (60fps) 執行
+        //   gsap.ticker.add(() => {
+        //     // 假設 UFO 永遠在螢幕的正中央 (你可以替換成飛碟真實的 getBoundingClientRect 座標)
+        //     const centerPoint = {
+        //       x: window.innerWidth / 2,
+        //       y: window.innerHeight / 2,
+        //     };
+
+        //     // 取得整個 SVG 的邊界座標 (為了解決視窗滾動產生的座標偏移)
+        //     const svgRect = els.scanner.svg.getBoundingClientRect();
+
+        //     els.scanner.visuals.forEach((visual) => {
+        //       const id = visual.getAttribute("data-visual-target");
+        //       const line = document.querySelector(`[data-line-target="${id}"]`);
+
+        //       // 取得方框在目前螢幕上的「真實座標與大小」 (這會包含飄浮和視差位移的結果)
+        //       const boxRect = visual.getBoundingClientRect();
+
+        //       // 計算方框的四個角落
+        //       const corners = [
+        //         { x: boxRect.left, y: boxRect.top }, // 左上
+        //         { x: boxRect.right, y: boxRect.top }, // 右上
+        //         { x: boxRect.left, y: boxRect.bottom }, // 左下
+        //         { x: boxRect.right, y: boxRect.bottom }, // 右下
+        //       ];
+
+        //       // 找出距離中心點 (UFO) 最短的角落
+        //       let closestCorner = corners[0];
+        //       let minDistance = Infinity;
+
+        //       corners.forEach((corner) => {
+        //         // 利用畢氏定理計算直線距離
+        //         const dist = Math.hypot(
+        //           corner.x - centerPoint.x,
+        //           corner.y - centerPoint.y,
+        //         );
+        //         if (dist < minDistance) {
+        //           minDistance = dist;
+        //           closestCorner = corner;
+        //         }
+        //       });
+
+        //       // 更新線條的座標 (記得扣掉 SVG 容器的偏移值，把它轉回 SVG 內部座標系)
+        //       gsap.set(line, {
+        //         attr: {
+        //           x1: centerPoint.x - svgRect.left,
+        //           y1: centerPoint.y - svgRect.top,
+        //           x2: closestCorner.x - svgRect.left,
+        //           y2: closestCorner.y - svgRect.top,
+        //         },
+        //       });
+        //     });
+        //   });
+      }
     }, heroSection);
 
     // 清理機制：切換頁面時殺掉這個頁面的 GSAP 動畫，防止記憶體洩漏

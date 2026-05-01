@@ -48,7 +48,7 @@ const { type } = Astro.props;
     <div
       class={`absolute pointer-events-none z-0 will-change-transform`}
       style={`top: ${item.top}; left: ${item.left}; width: ${item.width}`}
-      data-floating-element
+      data-floating-element={item.id}
       data-speed={item.speed}
     >
       <Image

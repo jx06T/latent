@@ -11,30 +11,12 @@ export const SELECTORS = {
     floatingElements: '[data-floating-element]',
 
     scanner: {
+        wrappers: '[data-floating-wrapper]',
         visuals: '[data-visual-target]',
+        labels: '[data-label-target]',
         masks: '[data-mask-target]',
         lines: '[data-line-target]',
-    },
-
-    // 2. 雙序列地面 (GroundSequence) - 預留
-    ground: {
-        container: '[data-ground-container]',
-        canvasNormal: '[data-canvas="normal"]',
-        canvasPixel: '[data-canvas="pixel"]',
-    },
-
-    // 3. 飛碟系統 (UfoSystem) - 預留
-    ufo: {
-        container: '[data-ufo-container]',
-        body: '[data-ufo-body]',
-        face: '[data-ufo-face]',
-        glare: '[data-ufo-glare]',
-    },
-
-    // 4. 標題文字 (Title) - 預留
-    title: {
-        wrapper: '[data-title-wrapper]',
-        main: '[data-title-main]',
+        svg: '[data-scanner-svg]'
     },
 
 };
@@ -49,19 +31,14 @@ export function getHeroElements(root: HTMLElement) {
         floatingElements: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
 
         scanner: {
-            visuals: Array.from(root.querySelectorAll<HTMLElement | SVGElement>(SELECTORS.scanner.visuals)),
+            wrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
+            visuals: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.visuals)),
+            labels: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.labels)),
             masks: Array.from(root.querySelectorAll<HTMLElement | SVGElement>(SELECTORS.scanner.masks)),
             lines: Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
+            svg: root.querySelector<SVGLineElement>(SELECTORS.scanner.svg),
         },
-        
-        // 以下為預留，目前找不到會回傳 null，不影響程式運作
-        ground: {
-            container: root.querySelector<HTMLElement>(SELECTORS.ground.container),
-        },
-        ufo: {
-            container: root.querySelector<HTMLElement>(SELECTORS.ufo.container),
-        },
-        // ... 可以依照需求隨時擴充
+
     };
 }
 
