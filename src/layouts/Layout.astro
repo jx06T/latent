@@ -9,9 +9,7 @@ import BaseHead from "@/components/sections/BaseHead.astro";
   </head>
   <body>
     <main>
-      <article>
         <slot />
-      </article>
     </main>
   </body>
 </html>
@@ -31,7 +29,7 @@ import BaseHead from "@/components/sections/BaseHead.astro";
     touchMultiplier: 2, // 手機觸控滾動速度加倍
   });
 
-  // 【最關鍵的一步】：讓 Lenis 的滾動進度與 GSAP ScrollTrigger 同步！
+  // 讓 Lenis 的滾動進度與 GSAP ScrollTrigger 同步！
   lenis.on("scroll", ScrollTrigger.update);
 
   gsap.ticker.add((time) => {

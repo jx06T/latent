@@ -6,7 +6,7 @@ import ScannerUI from "./ScannerUI.astro";
 
 <section
   data-hero
-  class="relative w-full h-[250vh] overflow-hidden bg-[#d18e12]"
+  class="relative w-full h-[200vh] overflow-hidden bg-[#d18e12]"
 >
   <StaticBackground />
   <FloatingElements type="normal" />
@@ -19,6 +19,11 @@ import ScannerUI from "./ScannerUI.astro";
   </div>
 
   <ScannerUI />
+  <div
+    data-laser-target
+    class="absolute left-1/2 top-[50%] w-4 h-4 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
+  >
+  </div>
 </section>
 
 <section
@@ -30,7 +35,7 @@ import ScannerUI from "./ScannerUI.astro";
 <script>
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { getHeroElements, SELECTORS } from "./dom-registry";
+  import { getHeroElements, SELECTORS, ATTRS } from "./dom-registry";
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -62,25 +67,35 @@ import ScannerUI from "./ScannerUI.astro";
 
       // ================================================
 
-      if (els.scanner.svg && els.scanner.visuals.length > 0) {
-        els.scanner.visuals.forEach((visual) => {
-          const id = visual.getAttribute("data-visual-target");
-          const mask = document.querySelector(`[data-mask-target="${id}"]`);
-          const label = visual.querySelector(`[data-label-target="${id}"]`);
-          const speed = parseFloat(visual.getAttribute("data-speed") || "0");
+      if (els.scanner.svg && els.scanner.wrappers.length > 0) {
+        els.scanner.wrappers.forEach((wrapper) => {
+          const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
 
-          // 一個工作小組，CSS 變數統一驅動 visual 和 mask
-          const pair = [visual, mask];
+          const frame = wrapper.querySelector(
+            `[${ATTRS.scanner.frame}="${id}"]`,
+          );
 
-          gsap.set(pair, {
-            "--scale-x": 0,
-            "--scale-y": 0.02,
-          });
-          gsap.set(label, { transformOrigin: "50% 0%", scaleX: 0, opacity: 0 });
+          const labelMask = wrapper.querySelector(
+            `[${ATTRS.scanner.labelMask}="${id}"]`,
+          );
+
+          const mask = document.querySelector(
+            `[${ATTRS.scanner.mask}="${id}"]`,
+          );
+          const line = document.querySelector(
+            `[${ATTRS.scanner.line}="${id}"]`,
+          );
+          const speed = parseFloat(wrapper?.getAttribute("data-speed") || "0");
+
+          const parallaxPair = [wrapper, mask].filter(Boolean);
+          const animPair = [frame, mask];
+
+          gsap.set(animPair, { "--scale-x": 0, "--scale-y": 0.02 });
+          gsap.set(line, { opacity: 0 });
 
           const tl = gsap.timeline({
             scrollTrigger: {
-              trigger: visual,
+              trigger: wrapper,
               start: "top 80%",
               end: "bottom 35%",
               toggleActions: "play reverse play reverse",
@@ -88,18 +103,21 @@ import ScannerUI from "./ScannerUI.astro";
             },
           });
 
-          tl.to(visual, { opacity: 1, duration: 0.1 })
-            .to(pair, { "--scale-x": 1, duration: 0.4, ease: "power4.out" })
+          tl.to(animPair, { "--scale-x": 1, duration: 0.4, ease: "power4.out" })
+            .to(line, { opacity: 0.8, duration: 0.6 }, "<")
             .to(
-              pair,
+              animPair,
               { "--scale-y": 1, duration: 0.6, ease: "power3.out" },
               "-=0.2",
             )
-            .to(label, { opacity: 1, duration: 0.7 }, "-=0.3")
-            .to(label, { scaleX: 1, duration: 0.3 }, "-=0.3");
+            .to(
+              labelMask,
+              { scaleX: 1, duration: 0.4, ease: "power2.out" },
+              "-=0.5",
+            );
 
           if (speed !== 0) {
-            gsap.to(pair, {
+            gsap.to(parallaxPair, {
               "--parallax-y": () => `${-window.innerHeight * speed * 1.5}px`,
               ease: "none",
               scrollTrigger: {
@@ -112,7 +130,7 @@ import ScannerUI from "./ScannerUI.astro";
           }
 
           function randomFloat() {
-            gsap.to(pair, {
+            gsap.to(animPair, {
               "--float-x": `${gsap.utils.random(-30, 30)}px`,
               "--float-y": `${gsap.utils.random(-30, 30)}px`,
               duration: gsap.utils.random(2, 3),
@@ -122,6 +140,97 @@ import ScannerUI from "./ScannerUI.astro";
           }
 
           randomFloat();
+        });
+      }
+
+      // =================================================
+      if (els.laserTarget) {
+        // 使用 quickTo 建立高效能的「彈性跟隨器」
+        // duration: 0.5 決定了它跟上的速度（越大越遲緩、越有慣性）
+        const xTo = gsap.quickTo(els.laserTarget, "x", {
+          duration: 0.5,
+          ease: "power3.out",
+        });
+        const yTo = gsap.quickTo(els.laserTarget, "y", {
+          duration: 0.5,
+          ease: "power3.out",
+        });
+
+        // 監聽整個螢幕的滑鼠移動
+        window.addEventListener("mousemove", (e) => {
+          // 計算滑鼠距離螢幕正中心的偏移量
+          const offsetX = e.clientX - window.innerWidth / 2;
+          const offsetY = e.clientY - window.innerHeight / 2;
+
+          // 我們不讓它 100% 貼著滑鼠，而是只移動滑鼠偏移量的 20% (0.2)
+          // 這樣感覺起來靶心像是被一條無形的彈簧拉著
+          xTo(offsetX * 0.2);
+          yTo(offsetY * 0.2);
+        });
+      }
+
+      // =================================================
+
+      if (els.laserTarget && els.scanner.svg && els.scanner.lines.length > 0) {
+        // Ticker 會在螢幕刷新的每一幀執行
+        gsap.ticker.add(() => {
+          // 1. 取得靶心 (UFO) 在當下螢幕的真實座標與大小
+          // 當使用者滾動網頁時，這個座標會自動改變，完美符合「相對於畫布靜止」的需求！
+          const targetRect = els.laserTarget!.getBoundingClientRect();
+          const centerX = targetRect.left + targetRect.width / 2;
+          const centerY = targetRect.top + targetRect.height / 2;
+
+          // 2. 取得整個 SVG 的邊界座標 (必須扣除這個偏移值，才能把螢幕座標轉回 SVG 內部座標)
+          const svgRect = els.scanner.svg!.getBoundingClientRect();
+
+          // 3. 尋找所有在畫面中飄浮的視覺框
+          els.scanner.wrappers.forEach((wrapper) => {
+            const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
+            const line = document.querySelector(
+              `[${ATTRS.scanner.line}="${id}"]`,
+            );
+
+            // 抓取 box 來算角落，因為它才是真正有大小的框框
+            const box = wrapper.querySelector(`[${ATTRS.scanner.box}="${id}"]`);
+            console.log(box,line)
+            if (!box || !line) return;
+
+            // 用 box 算出來的邊界，就絕對不包含上面的標籤了！
+            const boxRect = box.getBoundingClientRect();
+
+            // 計算方框的四個角落
+            const corners = [
+              { x: boxRect.left, y: boxRect.top }, // 左上
+              { x: boxRect.right, y: boxRect.top }, // 右上
+              { x: boxRect.left, y: boxRect.bottom }, // 左下
+              { x: boxRect.right, y: boxRect.bottom }, // 右下
+            ];
+
+            // 尋找距離靶心最短的角落
+            let closestCorner = corners[0];
+            let minDistance = Infinity;
+
+            corners.forEach((corner) => {
+              // 利用畢氏定理計算直線距離
+              const dist = Math.hypot(corner.x - centerX, corner.y - centerY);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestCorner = corner;
+              }
+            });
+
+            // 4. 動態更新線條的起點與終點！
+            // x1, y1 (起點) = 靶心座標 - SVG的偏移
+            // x2, y2 (終點) = 最近角落的座標 - SVG的偏移
+            gsap.set(line, {
+              attr: {
+                x1: centerX - svgRect.left,
+                y1: centerY - svgRect.top,
+                x2: closestCorner.x - svgRect.left,
+                y2: closestCorner.y - svgRect.top,
+              },
+            });
+          });
         });
       }
     }, heroSection);

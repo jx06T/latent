@@ -28,20 +28,6 @@ const scanBoxes = [
     speed: 0.3,
   },
 ];
-
-const boxesWithCenters = scanBoxes.map((box) => {
-  const cx = parseFloat(box.x) + parseFloat(box.w) / 2;
-  const cy = parseFloat(box.y) + parseFloat(box.h) / 2;
-  return { ...box, cx: `${cx}%`, cy: `${cy}%` };
-});
-
-const initStyle = [
-  "--parallax-y: 0px",
-  "--float-x: 0px",
-  "--float-y: 0px",
-  "--scale-x: 1",
-  "--scale-y: 1",
-].join("; ");
 ---
 
 <svg
@@ -51,18 +37,15 @@ const initStyle = [
   <defs>
     <clipPath id="scan-mask">
       {
-        boxesWithCenters.map((box) => (
+        scanBoxes.map((box) => (
           <rect
-            data-mask-target={box.id}
+            data-scanner-mask={box.id}
             x={box.x}
             y={box.y}
             width={box.w}
             height={box.h}
             fill="white"
-            style={
-              initStyle + `; --origin-x: ${box.cx}; --origin-y: ${box.cy};`
-            }
-            class="math-transform"
+            class="mask-rect"
           />
         ))
       }
@@ -71,48 +54,85 @@ const initStyle = [
 
   <g id="connection-lines">
     {
-      boxesWithCenters.map((box) => (
-        <line data-line-target={box.id} stroke="#d18e12" stroke-width="1.5" />
+      scanBoxes.map((box) => (
+        <line data-scanner-line={box.id} stroke="#d18e12" stroke-width="1.5" />
       ))
     }
   </g>
 
-  <g id="visual-boxes">
+  <g id="scanner-boxes">
     {
-      boxesWithCenters.map((box) => (
+      scanBoxes.map((box) => (
         <svg
-          data-visual-target={box.id}
+          data-scanner-wrapper={box.id}
           data-speed={box.speed}
           x={box.x}
           y={box.y}
           width={box.w}
           height={box.h}
           overflow="visible"
-          opacity="0"
-          style={initStyle + `; --origin-x: ${box.cx}; --origin-y: ${box.cy};`}
-          class="math-transform"
+          class="scanner-wrapper"
         >
-          <rect
+          <rect x="0" y="0" width="100%" height="100%" fill="transparent" />
+
+          <g
+            data-scanner-frame={box.id}
+            class="scanner-frame"
             x="0"
             y="0"
             width="100%"
             height="100%"
-            fill="none"
-            stroke="#d18e12"
-            stroke-width="2"
-          />
-          <g data-label-target={box.id} opacity="0">
-            <rect x="0" y="-24" width="120" height="24" fill="#d18e12" />
-            <text
-              x="6"
-              y="-8"
-              fill="#111"
-              font-size="12"
-              font-family="monospace"
-              font-weight="bold"
+            overflow="visible"
+          >
+            <rect
+              data-scanner-box={box.id}
+              class="scanner-box"
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="none"
+              stroke="#d18e12"
+              stroke-width="2"
+            />
+
+            <defs>
+              <clipPath id={`label-mask-${box.id}`}>
+                <rect
+                  data-scanner-label-mask={box.id}
+                  x="0"
+                  y="-24"
+                  width="120"
+                  height="24"
+                  style="scale: 0 1;"
+                />
+              </clipPath>
+            </defs>
+
+            <g
+              data-scanner-label={box.id}
+              clip-path={`url(#label-mask-${box.id})`}
             >
-              {box.label}
-            </text>
+              <rect
+                x="0"
+                y="-24"
+                width="120"
+                height="24"
+                fill="#d18e12"
+                stroke="#d18e12"
+                stroke-width="2"
+              />
+              <text
+                x="6"
+                y="-8"
+                fill="#111"
+                font-size="12"
+                font-family="monospace"
+                font-weight="bold"
+              >
+                {box.label}
+              </text>
+            </g>
           </g>
         </svg>
       ))
@@ -121,11 +141,38 @@ const initStyle = [
 </svg>
 
 <style>
-  .math-transform {
-    transform-origin: var(--origin-x) var(--origin-y);
-    will-change: transform, translate, scale;
+  .mask-rect {
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+    will-change: transform;
 
-    translate: var(--float-x) calc(var(--parallax-y) + var(--float-y));
-    scale: var(--scale-x) var(--scale-y);
+    transform: translate(
+        var(--float-x, 0px),
+        calc(var(--parallax-y, 0px) + var(--float-y, 0px))
+      )
+      scale(var(--scale-x, 0), var(--scale-y, 0.01));
+  }
+
+  .scanner-wrapper {
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+    will-change: transform;
+
+    translate: 0 var(--parallax-y, 0px);
+  }
+
+  .scanner-frame {
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+    will-change: transform;
+
+    translate: var(--float-x, 0px) var(--float-y, 0px);
+  }
+  .scanner-box {
+    transform-box: fill-box;
+    transform-origin: 50% 0%;
+    will-change: transform;
+
+    scale: var(--scale-x, 0) var(--scale-y, 0.01);
   }
 </style>

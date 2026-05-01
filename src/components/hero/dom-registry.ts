@@ -1,27 +1,54 @@
-export const SELECTORS = {
-    hero: '[data-hero]',
-    bg: { wrapper: '[data-parallax-layer="wrapper"]' },
-    floatingElements: '[data-floating-element]',
+// 1. 定義 HTML 屬性名稱 (這些是真正的 Source of Truth)
+export const ATTRS = {
+    hero: 'data-hero',
+    bgStatic: 'data-bg-static',
+    floating: 'data-floating-element',
     scanner: {
-        visuals: '[data-visual-target]',
-        labels: '[data-label-target]',
-        masks: '[data-mask-target]',
-        lines: '[data-line-target]',
-        svg: '[data-scanner-svg]'
+        wrapper: 'data-scanner-wrapper',
+        frame: 'data-scanner-frame',
+        box: 'data-scanner-box',
+        label: 'data-scanner-label',
+        labelMask: 'data-scanner-label-mask',
+        mask: 'data-scanner-mask',
+        line: 'data-scanner-line',
+        svg: 'data-scanner-svg'
     },
+    laserTarget: 'data-laser-target',
+} as const;
+
+// 2. 小工具：把屬性名稱轉成 CSS 選擇器 "[data-xxx]"
+const getSel = (attr: string) => `[${attr}]`;
+
+// 3. 匯出選擇器 (供 querySelector 使用)
+export const SELECTORS = {
+    hero: getSel(ATTRS.hero),
+    bgStatic: getSel(ATTRS.bgStatic),
+    floatingElements: getSel(ATTRS.floating),
+    scanner: {
+        wrappers: getSel(ATTRS.scanner.wrapper),
+        frames: getSel(ATTRS.scanner.frame),
+        box: getSel(ATTRS.scanner.box),
+        labels: getSel(ATTRS.scanner.label),
+        labelMasks: getSel(ATTRS.scanner.labelMask),
+        masks: getSel(ATTRS.scanner.mask),
+        lines: getSel(ATTRS.scanner.line),
+        svg: getSel(ATTRS.scanner.svg)
+    },
+    laserTarget: getSel(ATTRS.laserTarget),
 };
 
+// 4. 收集器
 export function getHeroElements(root: HTMLElement) {
     return {
         root,
-        bg: { wrapper: root.querySelector<HTMLElement>(SELECTORS.bg.wrapper) },
+        bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
         floatingElements: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
         scanner: {
-            visuals: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.visuals)),
-            masks: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.masks)),
+            wrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
             lines: Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
             svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
         },
+        laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
     };
 }
 
