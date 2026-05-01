@@ -34,9 +34,9 @@ export function throttle<T extends (...args: any[]) => any>(fn: T, interval: num
 export function getBaseUnit(screenWidth: number): number {
     const baseVwPx = screenWidth / 100;
     const maxScreen = 1200;
-    const minScreen = 450;
+    const minScreen = 400;
     const multiplierAtMax = 1.0;
-    const multiplierAtMin = 1.8;
+    const multiplierAtMin = 2;
 
     let currentMultiplier: number;
     if (screenWidth >= maxScreen) {

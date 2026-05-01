@@ -84,7 +84,6 @@ export function initScannerAnimations(
                 attr: { width: wUnit * baseUnit, height: hUnit * baseUnit },
             });
         });
-        ScrollTrigger.refresh();
     }
 
     return { updateSizes };

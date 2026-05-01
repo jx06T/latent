@@ -36,9 +36,9 @@ import ScannerUI from "./ScannerUI.astro";
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { getHeroRoot, SELECTORS } from "./dom-registry";
-  import { scanBoxes } from "./hero-data";
+  import { scanBoxes, floatElements } from "./hero-data";
   import { throttle } from "./hero-utils";
-  import { initFloatParallax } from "./animations/parallax";
+  import { initFloatParallax, initFloatSizes } from "./animations/parallax";
   import { initScannerAnimations } from "./animations/scanner";
   import { initLaserTarget, initLaserLines } from "./animations/laser";
 
@@ -53,12 +53,19 @@ import ScannerUI from "./ScannerUI.astro";
     const ctx = gsap.context(() => {
       initFloatParallax(heroSection, els.floatingEls);
 
-      const { updateSizes } = initScannerAnimations(
+      const { updateSizes: scannerUpdate } = initScannerAnimations(
         heroSection,
         els.svg!,
         els.scanWrappers,
         scanBoxes,
       );
+      const { updateSizes: floatUpdate } = initFloatSizes(els.floatingEls, floatElements);
+
+      function updateSizes() {
+        scannerUpdate();
+        floatUpdate();
+        ScrollTrigger.refresh();
+      }
 
       const cleanups: Array<() => void> = [];
 

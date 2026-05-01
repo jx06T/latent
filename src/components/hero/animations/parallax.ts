@@ -1,5 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getBaseUnit } from "../hero-utils";
+import type { FloatElement } from "../hero-data";
 
 export function initFloatParallax(heroSection: HTMLElement, els: HTMLElement[]): void {
     els.forEach((el) => {
@@ -17,4 +19,20 @@ export function initFloatParallax(heroSection: HTMLElement, els: HTMLElement[]):
             },
         });
     });
+}
+
+// els contains normal + pixel sets (each data.length items, normal first).
+// index % data.length maps each DOM element to its FloatElement data.
+export function initFloatSizes(
+    els: HTMLElement[],
+    data: FloatElement[]
+): { updateSizes: () => void } {
+    function updateSizes() {
+        const baseUnit = getBaseUnit(window.innerWidth);
+        els.forEach((el, i) => {
+            const item = data[i % data.length];
+            gsap.set(el, { width: item.wUnit * baseUnit });
+        });
+    }
+    return { updateSizes };
 }
