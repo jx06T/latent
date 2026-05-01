@@ -62,43 +62,25 @@ import ScannerUI from "./ScannerUI.astro";
 
       // ================================================
 
-      if (els.scanner.svg && els.scanner.wrappers.length > 0) {
-        els.scanner.wrappers.forEach((wrapper) => {
-          // 1. 取得對應的元素與設定
-          const id = wrapper.getAttribute("data-floating-wrapper");
+      if (els.scanner.svg && els.scanner.visuals.length > 0) {
+        els.scanner.visuals.forEach((visual) => {
+          const id = visual.getAttribute("data-visual-target");
+          const mask = document.querySelector(`[data-mask-target="${id}"]`);
+          const label = visual.querySelector(`[data-label-target="${id}"]`);
+          const speed = parseFloat(visual.getAttribute("data-speed") || "0");
 
-          const visualRect = wrapper.querySelector(
-            `[data-visual-target="${id}"]`,
-          );
-          const label = wrapper.querySelector(`[data-label-target="${id}"]`);
+          // 一個工作小組，CSS 變數統一驅動 visual 和 mask
+          const pair = [visual, mask];
 
-          const floatInner = wrapper.querySelector(
-            `[data-float-inner="${id}"]`,
-          );
-          const maskRect = document.querySelector(`[data-mask-target="${id}"]`);
-          const maskParallax = document.querySelector(
-            `[data-mask-parallax="${id}"]`,
-          );
-          const maskFloat = document.querySelector(`[data-mask-float="${id}"]`);
-
-          const speed = parseFloat(wrapper.getAttribute("data-speed") || "0");
-
-          // 三層各守一種 transform，互不干擾
-          const scalePair = [visualRect, maskRect]; // scaleX/Y：展開動畫
-          const parallaxPair = [wrapper, maskParallax]; // translateY：視差
-          const randomPair = [floatInner, maskFloat]; // translate：隨機飄浮
-
-          gsap.set(scalePair, {
-            transformOrigin: "50% 50%",
-            scaleX: 0,
-            scaleY: 0.02,
+          gsap.set(pair, {
+            "--scale-x": 0,
+            "--scale-y": 0.02,
           });
-          gsap.set([visualRect, label], { opacity: 0 });
-          gsap.set([label], { scaleX: 0 });
+          gsap.set(label, { transformOrigin: "50% 0%", scaleX: 0, opacity: 0 });
 
           const tl = gsap.timeline({
             scrollTrigger: {
-              trigger: wrapper,
+              trigger: visual,
               start: "top 80%",
               end: "bottom 35%",
               toggleActions: "play reverse play reverse",
@@ -106,19 +88,19 @@ import ScannerUI from "./ScannerUI.astro";
             },
           });
 
-          tl.to(visualRect, { opacity: 1, duration: 0.1 })
-            .to(scalePair, { scaleX: 1, duration: 0.4, ease: "power4.out" })
+          tl.to(visual, { opacity: 1, duration: 0.1 })
+            .to(pair, { "--scale-x": 1, duration: 0.4, ease: "power4.out" })
             .to(
-              scalePair,
-              { scaleY: 1, duration: 0.6, ease: "power3.out" },
+              pair,
+              { "--scale-y": 1, duration: 0.6, ease: "power3.out" },
               "-=0.2",
             )
-            .to(label, { scaleX: 1, duration: 0.3 }, "-=0.3")
-            .to(label, { opacity: 1, duration: 0.3 }, "-=0.3");
+            .to(label, { opacity: 1, duration: 0.7 }, "-=0.3")
+            .to(label, { scaleX: 1, duration: 0.3 }, "-=0.3");
 
           if (speed !== 0) {
-            gsap.to(parallaxPair, {
-              y: () => -window.innerHeight * speed * 1.5,
+            gsap.to(pair, {
+              "--parallax-y": () => `${-window.innerHeight * speed * 1.5}px`,
               ease: "none",
               scrollTrigger: {
                 trigger: heroSection,
@@ -130,77 +112,17 @@ import ScannerUI from "./ScannerUI.astro";
           }
 
           function randomFloat() {
-            const randomX = gsap.utils.random(-30, 30);
-            const randomY = gsap.utils.random(-30, 30);
-            const randomDuration = gsap.utils.random(2, 4);
-
-            gsap.to(randomPair, {
-              x: randomX,
-              y: randomY,
-              duration: randomDuration,
+            gsap.to(pair, {
+              "--float-x": `${gsap.utils.random(-30, 30)}px`,
+              "--float-y": `${gsap.utils.random(-30, 30)}px`,
+              duration: gsap.utils.random(2, 3),
               ease: "sine.inOut",
               onComplete: randomFloat,
             });
           }
 
-          // 啟動第一次飄浮
           randomFloat();
         });
-
-        // --- D. 終極魔法：每一幀動態計算連線 (雷射導引系統) ---
-        // GSAP Ticker 會在螢幕刷新的每一幀 (60fps) 執行
-        //   gsap.ticker.add(() => {
-        //     // 假設 UFO 永遠在螢幕的正中央 (你可以替換成飛碟真實的 getBoundingClientRect 座標)
-        //     const centerPoint = {
-        //       x: window.innerWidth / 2,
-        //       y: window.innerHeight / 2,
-        //     };
-
-        //     // 取得整個 SVG 的邊界座標 (為了解決視窗滾動產生的座標偏移)
-        //     const svgRect = els.scanner.svg.getBoundingClientRect();
-
-        //     els.scanner.visuals.forEach((visual) => {
-        //       const id = visual.getAttribute("data-visual-target");
-        //       const line = document.querySelector(`[data-line-target="${id}"]`);
-
-        //       // 取得方框在目前螢幕上的「真實座標與大小」 (這會包含飄浮和視差位移的結果)
-        //       const boxRect = visual.getBoundingClientRect();
-
-        //       // 計算方框的四個角落
-        //       const corners = [
-        //         { x: boxRect.left, y: boxRect.top }, // 左上
-        //         { x: boxRect.right, y: boxRect.top }, // 右上
-        //         { x: boxRect.left, y: boxRect.bottom }, // 左下
-        //         { x: boxRect.right, y: boxRect.bottom }, // 右下
-        //       ];
-
-        //       // 找出距離中心點 (UFO) 最短的角落
-        //       let closestCorner = corners[0];
-        //       let minDistance = Infinity;
-
-        //       corners.forEach((corner) => {
-        //         // 利用畢氏定理計算直線距離
-        //         const dist = Math.hypot(
-        //           corner.x - centerPoint.x,
-        //           corner.y - centerPoint.y,
-        //         );
-        //         if (dist < minDistance) {
-        //           minDistance = dist;
-        //           closestCorner = corner;
-        //         }
-        //       });
-
-        //       // 更新線條的座標 (記得扣掉 SVG 容器的偏移值，把它轉回 SVG 內部座標系)
-        //       gsap.set(line, {
-        //         attr: {
-        //           x1: centerPoint.x - svgRect.left,
-        //           y1: centerPoint.y - svgRect.top,
-        //           x2: closestCorner.x - svgRect.left,
-        //           y2: closestCorner.y - svgRect.top,
-        //         },
-        //       });
-        //     });
-        //   });
       }
     }, heroSection);
 
