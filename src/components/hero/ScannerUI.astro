@@ -12,8 +12,8 @@ import { scanBoxes } from "./hero-data";
         scanBoxes.map((box) => (
           <rect
             data-scanner-mask={box.id}
-            x={box.x}
-            y={box.y}
+            x={`${box.x}%`}
+            y={`${box.y}%`}
             width={box.w}
             height={box.h}
             fill="white"
@@ -37,8 +37,8 @@ import { scanBoxes } from "./hero-data";
       scanBoxes.map((box) => (
         <svg
           data-scanner-wrapper={box.id}
-          x={box.x}
-          y={box.y}
+          x={`${box.x}%`}
+          y={`${box.y}%`}
           width={box.w}
           height={box.h}
           overflow="visible"

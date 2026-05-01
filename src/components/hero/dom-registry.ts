@@ -37,19 +37,17 @@ export const SELECTORS = {
     laserTarget: getSel(ATTRS.laserTarget),
 };
 
-// 4. 收集器
-export function getHeroElements(root: HTMLElement) {
+// 4. 收集全域單例元素。Per-box 的子元素由各動畫模組自行查詢 (scanner.ts)。
+export function getHeroRoot(root: HTMLElement) {
     return {
         root,
-        bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
-        floatingElements: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
-        scanner: {
-            wrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
-            lines: Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
-            svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
-        },
-        laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
+        bgStatic:     root.querySelector<HTMLElement>(SELECTORS.bgStatic),
+        laserTarget:  root.querySelector<HTMLElement>(SELECTORS.laserTarget),
+        svg:          root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
+        floatingEls:  Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
+        scanWrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
+        scanLines:    Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
     };
 }
 
-export type HeroElements = ReturnType<typeof getHeroElements>;
+export type HeroRoot = ReturnType<typeof getHeroRoot>;

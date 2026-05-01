@@ -1,98 +1,18 @@
 ---
 import { Image } from "astro:assets";
+import { floatElements } from "./hero-data";
 
-// 1. 批量載入資料夾內所有的 png 和 jpg 圖片 (eager: true 代表立即載入，這是 ImageMetadata 必須的)
 const images = import.meta.glob<{ default: ImageMetadata }>(
   "@/assets/hero/float_*.{png,jpg}",
   { eager: true },
 );
 
-// 2. 建立一個輔助函數，根據傳入的編號和類型抓圖片
 function getFloatImg(num: string, type: "normal" | "pixel") {
-  const ext = type === "normal" ? "png" : "jpg"; // 根據你的命名規則，normal 是 png，pixel 是 jpg
+  const ext  = type === "normal" ? "png" : "jpg";
   const path = `/src/assets/hero/float_${num}_${type}.${ext}`;
-
-  if (!images[path]) {
-    throw new Error(`找不到圖片: ${path}`);
-  }
-  return images[path].default; // 回傳 ImageMetadata 物件給 <Image /> 用
+  if (!images[path]) throw new Error(`找不到圖片: ${path}`);
+  return images[path].default;
 }
-
-// 3. 你的裝飾物清單變得超乾淨！只需要指定 "編號"
-const decorations = [
-  {
-    id: "f-1",
-    num: "01",
-    top: "60%",
-    left: "65%",
-    // width: "200px",
-    width: "20%",
-    speed: 0.05,
-  },
-  {
-    id: "b-1",
-    num: "02",
-    top: "15%",
-    left: "70%",
-    // width: "180px",
-    width: "18%",
-    speed: 0.15,
-  },
-  {
-    id: "c-1",
-    num: "03",
-    top: "20%",
-    left: "20%",
-    // width: "200px",
-    width: "20%",
-    speed: 0.05,
-  },
-  {
-    id: "f-2",
-    num: "04",
-    top: "70%",
-    left: "15%",
-    // width: "100px",
-    width: "10%",
-    speed: 0.1,
-  },
-  {
-    id: "j-1",
-    num: "05",
-    top: "72%",
-    left: "80%",
-    // width: "160px",
-    width: "16%",
-    speed: 0.1,
-  },
-  {
-    id: "j-1",
-    num: "07",
-    top: "75%",
-    left: "18%",
-    // width: "150px",
-    width: "15%",
-    speed: 0.13,
-  },
-  {
-    id: "c-2",
-    num: "09",
-    top: "25%",
-    left: "80%",
-    // width: "280px",
-    width: "28%",
-    speed: 0.17,
-  },
-  {
-    id: "o-1",
-    num: "10",
-    top: "60%",
-    left: "-7%",
-    // width: "220px",
-    width: "22%",
-    speed: 0.2,
-  },
-];
 
 interface Props {
   type: "normal" | "pixel";
@@ -102,10 +22,10 @@ const { type } = Astro.props;
 ---
 
 {
-  decorations.map((item) => (
+  floatElements.map((item) => (
     <div
       class="absolute pointer-events-none z-0 will-change-transform"
-      style={`top: ${item.top}; left: ${item.left}; width: ${item.width}`}
+      style={`top: ${item.top}%; left: ${item.left}%; width: ${item.width}%`}
       data-floating-element={item.id}
       data-speed={item.speed}
     >
