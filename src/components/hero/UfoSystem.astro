@@ -1,0 +1,50 @@
+---
+import { Image } from "astro:assets";
+
+// 載入正常版
+import ufoN from "@/assets/hero/ufo_normal.png";
+import eyeLN from "@/assets/hero/eye_l_normal.png";
+import eyeRN from "@/assets/hero/eye_r_normal.png";
+import moN from "@/assets/hero/mo_normal.png";
+
+// 載入像素版
+import ufoP from "@/assets/hero/ufo_pixel.png"; // 原文為 png，若為 jpg 請自行更改
+import eyeLP from "@/assets/hero/eye_l_pixel.png";
+import eyeRP from "@/assets/hero/eye_r_pixel.png";
+import moP from "@/assets/hero/mo_pixel.png";
+
+interface Props {
+  type: "normal" | "pixel";
+}
+
+const { type } = Astro.props;
+
+// 根據所屬宇宙選擇圖片包
+const imgs = {
+  body: type === "normal" ? ufoN : ufoP,
+  eyeL: type === "normal" ? eyeLN : eyeLP,
+  eyeR: type === "normal" ? eyeRN : eyeRP,
+  mouth: type === "normal" ? moN : moP,
+};
+---
+
+<!-- 
+  UFO 總容器
+  設定 data-speed 讓它也能無痛吃我們寫好的 initFloatParallax！
+  RWD: 手機上佔 60vw，電腦上佔 30vw，置中偏上定位
+-->
+<div
+  data-ufo-wrapper
+  data-speed="0.02"
+  class="absolute inset-0 top-4  lg:top-8 w-full h-full pointer-events-none overflow-hidden will-change-transform"
+>
+  <!-- 底盤 (Body)：移動最少 -->
+  <Image src={imgs.body} alt="UFO Body" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-body />
+  
+      <!-- 嘴巴 (Mouth)：移動中等 -->
+      <Image src={imgs.mouth} alt="UFO Mouth" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-mouth />
+      
+      <!-- 雙眼 (Eyes)：移動最多，創造 3D 凸出感 -->
+      <Image src={imgs.eyeL} alt="Left Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-l />
+      <Image src={imgs.eyeR} alt="Right Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-r />
+</div>

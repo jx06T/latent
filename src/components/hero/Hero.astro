@@ -2,6 +2,8 @@
 import StaticBackground from "./StaticBackground.astro";
 import FloatingElements from "./FloatingElements.astro";
 import ScannerUI from "./ScannerUI.astro";
+import UfoSystem from "./UfoSystem.astro";
+import LatentLogo from "../ui/LatentLogo.astro";
 ---
 
 <section
@@ -10,12 +12,14 @@ import ScannerUI from "./ScannerUI.astro";
 >
   <StaticBackground />
   <FloatingElements type="normal" />
+  <UfoSystem type="normal" />
 
   <div
     class="absolute inset-0 w-full h-full pointer-events-none"
     style="clip-path: url(#scan-mask);"
   >
     <FloatingElements type="pixel" />
+    <UfoSystem type="pixel" />
   </div>
 
   <ScannerUI />
@@ -23,6 +27,13 @@ import ScannerUI from "./ScannerUI.astro";
     data-laser-target
     class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
   >
+  </div>
+  <div
+    data-latent-logo
+    data-speed="0.03"
+    class="absolute -translate-x-1/2 left-1/2 top-14 w-[70%] md:w-[50%] lg:translate-x-0 lg:w-[40%] lg:left-[5%]"
+  >
+    <LatentLogo class="text-black" />
   </div>
 </section>
 
@@ -41,6 +52,7 @@ import ScannerUI from "./ScannerUI.astro";
   import { initFloatParallax, initFloatSizes } from "./animations/parallax";
   import { initScannerAnimations } from "./animations/scanner";
   import { initLaserTarget, initLaserLines } from "./animations/laser";
+  import { initUfoTracking } from "./animations/ufo";
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -51,7 +63,7 @@ import ScannerUI from "./ScannerUI.astro";
     const els = getHeroRoot(heroSection);
 
     const ctx = gsap.context(() => {
-      initFloatParallax(heroSection, els.floatingEls);
+      initFloatParallax(heroSection, [els.logo!,...els.ufoWrappers, ...els.floatingEls]);
 
       const { updateSizes: scannerUpdate } = initScannerAnimations(
         heroSection,
@@ -59,7 +71,11 @@ import ScannerUI from "./ScannerUI.astro";
         els.scanWrappers,
         scanBoxes,
       );
-      const { updateSizes: floatUpdate } = initFloatSizes(els.floatingEls, floatElements);
+
+      const { updateSizes: floatUpdate } = initFloatSizes(
+        els.floatingEls,
+        floatElements,
+      );
 
       function updateSizes() {
         scannerUpdate();
@@ -68,6 +84,10 @@ import ScannerUI from "./ScannerUI.astro";
       }
 
       const cleanups: Array<() => void> = [];
+
+      if (els.ufoWrappers.length > 0) {
+        cleanups.push(initUfoTracking(els.ufoWrappers));
+      }
 
       if (els.laserTarget && els.svg) {
         cleanups.push(initLaserTarget(els.laserTarget));

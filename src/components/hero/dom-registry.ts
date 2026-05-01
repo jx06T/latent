@@ -3,6 +3,7 @@ export const ATTRS = {
     hero: 'data-hero',
     bgStatic: 'data-bg-static',
     floating: 'data-floating-element',
+    logo: 'data-latent-logo',
     scanner: {
         wrapper: 'data-scanner-wrapper',
         frame: 'data-scanner-frame',
@@ -12,6 +13,13 @@ export const ATTRS = {
         mask: 'data-scanner-mask',
         line: 'data-scanner-line',
         svg: 'data-scanner-svg'
+    },
+    ufo: {
+        wrapper: 'data-ufo-wrapper',
+        body: 'data-ufo-body',
+        eyeL: 'data-ufo-eye-l',
+        eyeR: 'data-ufo-eye-r',
+        mouth: 'data-ufo-mouth',
     },
     laserTarget: 'data-laser-target',
 } as const;
@@ -23,6 +31,7 @@ const getSel = (attr: string) => `[${attr}]`;
 export const SELECTORS = {
     hero: getSel(ATTRS.hero),
     bgStatic: getSel(ATTRS.bgStatic),
+    logo: getSel(ATTRS.logo),
     floatingElements: getSel(ATTRS.floating),
     scanner: {
         wrappers: getSel(ATTRS.scanner.wrapper),
@@ -34,6 +43,13 @@ export const SELECTORS = {
         lines: getSel(ATTRS.scanner.line),
         svg: getSel(ATTRS.scanner.svg)
     },
+    ufo: {
+        wrappers: getSel(ATTRS.ufo.wrapper),
+        body: getSel(ATTRS.ufo.body),
+        eyeL: getSel(ATTRS.ufo.eyeL),
+        eyeR: getSel(ATTRS.ufo.eyeR),
+        mouth: getSel(ATTRS.ufo.mouth),
+    },
     laserTarget: getSel(ATTRS.laserTarget),
 };
 
@@ -43,8 +59,10 @@ export function getHeroRoot(root: HTMLElement) {
         root,
         bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
         laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
+        logo: root.querySelector<HTMLElement>(SELECTORS.logo),
         svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
         floatingEls: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
+        ufoWrappers: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.ufo.wrappers)),
         scanWrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
         scanLines: Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
     };
