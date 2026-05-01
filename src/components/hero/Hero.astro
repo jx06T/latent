@@ -37,7 +37,7 @@ import ScannerUI from "./ScannerUI.astro";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
   import { getHeroRoot, SELECTORS } from "./dom-registry";
   import { scanBoxes } from "./hero-data";
-  import { debounce } from "./hero-utils";
+  import { throttle } from "./hero-utils";
   import { initFloatParallax } from "./animations/parallax";
   import { initScannerAnimations } from "./animations/scanner";
   import { initLaserTarget, initLaserLines } from "./animations/laser";
@@ -67,10 +67,10 @@ import ScannerUI from "./ScannerUI.astro";
         initLaserLines(els.laserTarget, els.svg, els.scanWrappers);
       }
 
-      const debouncedResize = debounce(updateSizes, 250);
-      window.addEventListener("resize", debouncedResize);
+      const throttledResize = throttle(updateSizes, 200);
+      window.addEventListener("resize", throttledResize);
       cleanups.push(() =>
-        window.removeEventListener("resize", debouncedResize),
+        window.removeEventListener("resize", throttledResize),
       );
 
       updateSizes();
