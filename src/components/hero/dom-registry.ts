@@ -15,6 +15,7 @@ export const SELECTORS = {
         visuals: '[data-visual-target]',
         labels: '[data-label-target]',
         masks: '[data-mask-target]',
+        floatInners: '[data-float-inner]',
         lines: '[data-line-target]',
         svg: '[data-scanner-svg]'
     },

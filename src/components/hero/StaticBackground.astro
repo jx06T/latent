@@ -16,10 +16,6 @@ import bgPixels from "@/assets/hero/bg-pixel.png";
     class="absolute inset-0 w-full h-full object-cover"
   />
 
-  <!-- 
-    最關鍵的一行：style="clip-path: url(#scan-mask);"
-    一開始這張圖會完全看不見 (因為 ScannerUI 還沒把遮罩撐開)。
-  -->
   <Image
     src={bgPixels}
     alt="Pixel Background"

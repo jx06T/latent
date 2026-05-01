@@ -1,47 +1,110 @@
 ---
 // 1. 加入 speed (決定它滾動時在 Z 軸的深淺)
 const scanBoxes = [
-  { id: "fish", label: "[ fish | 93% ]", x: "15%", y: "60%", w: "15%", h: "8%", speed: 0.2 },
-  { id: "cloud", label: "[ cloud | 75% ]", x: "70%", y: "15%", w: "12%", h: "6%", speed: 0.7 },
-  { id: "earth", label: "[ earth | 57% ]", x: "15%", y: "80%", w: "12%", h: "12%", speed: 0.3 },
+  {
+    id: "fish",
+    label: "[ fish | 93% ]",
+    x: "15%",
+    y: "60%",
+    w: "15%",
+    h: "8%",
+    speed: 0.2,
+  },
+  {
+    id: "cloud",
+    label: "[ cloud | 75% ]",
+    x: "70%",
+    y: "15%",
+    w: "12%",
+    h: "6%",
+    speed: 0.7,
+  },
+  {
+    id: "earth",
+    label: "[ earth | 57% ]",
+    x: "15%",
+    y: "80%",
+    w: "12%",
+    h: "12%",
+    speed: 0.3,
+  },
 ];
 ---
 
-<svg data-scanner-svg class="absolute inset-0 w-full h-full pointer-events-none z-20">
+<svg
+  data-scanner-svg
+  class="absolute inset-0 w-full h-full pointer-events-none z-20"
+>
   <defs>
     <clipPath id="scan-mask">
-      {scanBoxes.map((box) => (
-        <rect data-mask-target={box.id} x={box.x} y={box.y} width={box.w} height={box.h} fill="white"
-         />
-      ))}
+      {
+        scanBoxes.map((box) => (
+          <rect
+            data-mask-target={box.id}
+            x={box.x}
+            y={box.y}
+            width={box.w}
+            height={box.h}
+            fill="white"
+          />
+        ))
+      }
     </clipPath>
   </defs>
 
   <g id="connection-lines">
-    {scanBoxes.map((box) => (
-      <line data-line-target={box.id} stroke="#d18e12" stroke-width="1.5" opacity="0.8" />
-    ))}
+    {
+      scanBoxes.map((box) => (
+        <line
+          data-line-target={box.id}
+          stroke="#d18e12"
+          stroke-width="1.5"
+          opacity="0.8"
+        />
+      ))
+    }
   </g>
 
   <g id="visual-boxes">
-    {scanBoxes.map((box) => (
-    <svg
-      data-floating-wrapper={box.id} 
-      data-speed={box.speed}
-      x={box.x} y={box.y} width={box.w} height={box.h}
-      overflow="visible" class="will-change-transform"
-    >
-      <rect
-        data-visual-target={box.id}
-        x="0" y="0" width="100%" height="100%"
-        fill="none" stroke="#d18e12" stroke-width="2"
-      />
-      
-      <g data-label-target={box.id}>
-        <rect x="0" y="-24" width="120" height="24" fill="#d18e12" />
-        <text x="6" y="-8" fill="#111" font-size="12" font-family="monospace" font-weight="bold">{box.label}</text>
-      </g>
-    </svg>
-  ))}
+    {
+      scanBoxes.map((box) => (
+        <svg
+          data-floating-wrapper={box.id}
+          data-speed={box.speed}
+          x={box.x}
+          y={box.y}
+          width={box.w}
+          height={box.h}
+          overflow="visible"
+          class="will-change-transform"
+        >
+          <g data-float-inner={box.id}>
+            <rect
+              data-visual-target={box.id}
+              x="0"
+              y="0"
+              width="100%"
+              height="100%"
+              fill="none"
+              stroke="#d18e12"
+              stroke-width="2"
+            />
+            <g data-label-target={box.id}>
+              <rect x="0" y="-24" width="120" height="24" fill="#d18e12" />
+              <text
+                x="6"
+                y="-8"
+                fill="#111"
+                font-size="12"
+                font-family="monospace"
+                font-weight="bold"
+              >
+                {box.label}
+              </text>
+            </g>
+          </g>
+        </svg>
+      ))
+    }
   </g>
 </svg>

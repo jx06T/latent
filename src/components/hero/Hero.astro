@@ -72,18 +72,26 @@ import ScannerUI from "./ScannerUI.astro";
           );
           const label = wrapper.querySelector(`[data-label-target="${id}"]`);
 
-          const mask = document.querySelector(`[data-mask-target="${id}"]`);
-          const line = document.querySelector(`[data-line-target="${id}"]`);
+          const floatInner = wrapper.querySelector(
+            `[data-float-inner="${id}"]`,
+          );
+          const maskRect = document.querySelector(`[data-mask-target="${id}"]`);
+          const maskParallax = document.querySelector(
+            `[data-mask-parallax="${id}"]`,
+          );
+          const maskFloat = document.querySelector(`[data-mask-float="${id}"]`);
 
           const speed = parseFloat(wrapper.getAttribute("data-speed") || "0");
 
-          const scalePair = [visualRect, mask];
-          const floatPair = [wrapper, mask];
-          console.log(wrapper, id, visualRect, label, mask, line, speed);
+          // 三層各守一種 transform，互不干擾
+          const scalePair = [visualRect, maskRect]; // scaleX/Y：展開動畫
+          const parallaxPair = [wrapper, maskParallax]; // translateY：視差
+          const randomPair = [floatInner, maskFloat]; // translate：隨機飄浮
+
           gsap.set(scalePair, {
             transformOrigin: "50% 50%",
             scaleX: 0,
-            scaleY: 0.01,
+            scaleY: 0.02,
           });
           gsap.set([visualRect, label], { opacity: 0 });
           gsap.set([label], { scaleX: 0 });
@@ -109,7 +117,7 @@ import ScannerUI from "./ScannerUI.astro";
             .to(label, { opacity: 1, duration: 0.3 }, "-=0.3");
 
           if (speed !== 0) {
-            gsap.to(floatPair, {
+            gsap.to(parallaxPair, {
               y: () => -window.innerHeight * speed * 1.5,
               ease: "none",
               scrollTrigger: {
@@ -122,13 +130,11 @@ import ScannerUI from "./ScannerUI.astro";
           }
 
           function randomFloat() {
-            // 1. 統一先抽出這一次的隨機值
             const randomX = gsap.utils.random(-30, 30);
             const randomY = gsap.utils.random(-30, 30);
             const randomDuration = gsap.utils.random(2, 4);
 
-            // 2. 把確定的數值餵給這對雙胞胎
-            gsap.to(floatPair, {
+            gsap.to(randomPair, {
               x: randomX,
               y: randomY,
               duration: randomDuration,
