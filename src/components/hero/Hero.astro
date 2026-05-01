@@ -25,6 +25,8 @@ import ScannerUI from "./ScannerUI.astro";
   >
   </div>
 
+</section>
+
   <section
     class="w-full h-[150vh] p-32 bg-gray-900 text-white flex items-center justify-center text-4xl"
   >
@@ -98,9 +100,8 @@ import ScannerUI from "./ScannerUI.astro";
               scrollTrigger: {
                 trigger: wrapper,
                 start: "top 80%",
-                end: "bottom 35%",
+                end: "bottom 20%",
                 toggleActions: "play reverse play reverse",
-                markers:true
               },
             });
             tl.timeScale(1.5);
@@ -123,8 +124,12 @@ import ScannerUI from "./ScannerUI.astro";
               );
 
             if (speed !== 0) {
+              const yOffset = window.innerHeight * speed;
+
+              gsap.set(parallaxPair, { "--parallax-y": `${yOffset/2}px` });
+
               gsap.to(parallaxPair, {
-                "--parallax-y": () => `${-window.innerHeight * speed * 1.5}px`,
+                "--parallax-y": `${-yOffset}px`,
                 ease: "none",
                 scrollTrigger: {
                   trigger: heroSection,
@@ -137,8 +142,10 @@ import ScannerUI from "./ScannerUI.astro";
 
             function randomFloat() {
               gsap.to(animPair, {
-                "--float-x": `${gsap.utils.random(-40, 40)}px`,
-                "--float-y": `${gsap.utils.random(-40, 40)}px`,
+                // "--float-x": `${gsap.utils.random(-40, 40)}px`,
+                // "--float-y": `${gsap.utils.random(-40, 40)}px`,
+                "--float-x": `${gsap.utils.random(-4, 4)}px`,
+                "--float-y": `${gsap.utils.random(-4, 4)}px`,
                 duration: gsap.utils.random(1, 2),
                 ease: "sine.inOut",
                 onComplete: randomFloat,
@@ -153,7 +160,7 @@ import ScannerUI from "./ScannerUI.astro";
         if (els.laserTarget) {
           let mouseX = 0;
           let mouseY = 0;
-          console.log("!!!")
+          
           let scrollY = window.scrollY;
 
           const xTo = gsap.quickTo(els.laserTarget, "x", {
