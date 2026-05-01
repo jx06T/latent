@@ -2,7 +2,7 @@
 const scanBoxes = [
   {
     id: "fish",
-    label: "[ fish | 93% ]",
+    label: "[ #03 fish 93% ]",
     x: "15%",
     y: "60%",
     w: "15%",
@@ -11,7 +11,7 @@ const scanBoxes = [
   },
   {
     id: "cloud",
-    label: "[ cloud | 75% ]",
+    label: "[ #07 cloud 75% ]",
     x: "70%",
     y: "15%",
     w: "12%",
@@ -20,7 +20,7 @@ const scanBoxes = [
   },
   {
     id: "earth",
-    label: "[ earth | 57% ]",
+    label: "[ #99 earth 57% ]",
     x: "15%",
     y: "80%",
     w: "12%",
@@ -100,7 +100,7 @@ const scanBoxes = [
               <clipPath id={`label-mask-${box.id}`}>
                 <rect
                   data-scanner-label-mask={box.id}
-                  x="0"
+                  x="-1"
                   y="-24"
                   width="120"
                   height="24"
@@ -113,22 +113,13 @@ const scanBoxes = [
               data-scanner-label={box.id}
               clip-path={`url(#label-mask-${box.id})`}
             >
-              <rect
-                x="0"
-                y="-24"
-                width="120"
-                height="24"
-                fill="#d18e12"
-                stroke="#d18e12"
-                stroke-width="2"
-              />
+              <rect x="-1" y="-24" width="120" height="24" fill="#d18e12" />
               <text
                 x="6"
                 y="-8"
                 fill="#111"
-                font-size="12"
-                font-family="monospace"
-                font-weight="bold"
+                font-size="13"
+                font-family="Ubuntu"
               >
                 {box.label}
               </text>
