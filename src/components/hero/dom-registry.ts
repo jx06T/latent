@@ -2,6 +2,7 @@
 export const ATTRS = {
     hero: 'data-hero',
     bgStatic: 'data-bg-static',
+    log: 'data-log',
     floating: 'data-floating-element',
     logo: 'data-latent-logo',
     scanner: {
@@ -32,6 +33,7 @@ export const SELECTORS = {
     hero: getSel(ATTRS.hero),
     bgStatic: getSel(ATTRS.bgStatic),
     logo: getSel(ATTRS.logo),
+    log: getSel(ATTRS.log),
     floatingElements: getSel(ATTRS.floating),
     scanner: {
         wrappers: getSel(ATTRS.scanner.wrapper),
@@ -60,6 +62,7 @@ export function getHeroRoot(root: HTMLElement) {
         bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
         laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
         logo: root.querySelector<HTMLElement>(SELECTORS.logo),
+        log: root.querySelector<HTMLElement>(SELECTORS.log),
         svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
         floatingEls: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
         ufoWrappers: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.ufo.wrappers)),

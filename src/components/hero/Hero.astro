@@ -4,6 +4,8 @@ import FloatingElements from "./FloatingElements.astro";
 import ScannerUI from "./ScannerUI.astro";
 import UfoSystem from "./UfoSystem.astro";
 import LatentLogo from "../ui/LatentLogo.astro";
+import LogConsole from "../ui/LogConsole.astro";
+import Wavesection from "../sections/Wavesection.astro";
 ---
 
 <section
@@ -35,6 +37,16 @@ import LatentLogo from "../ui/LatentLogo.astro";
   >
     <LatentLogo class="text-black" />
   </div>
+
+  <div
+    data-log
+    data-speed="0.03"
+    class="absolute left-0 right-0 top-[50vh] z-30 h-[60vh]"
+  >
+    <Wavesection position="top" class="inset-0 bg-bg h-full px-20">
+      <LogConsole />
+    </Wavesection>
+  </div>
 </section>
 
 <section
@@ -53,6 +65,8 @@ import LatentLogo from "../ui/LatentLogo.astro";
   import { initScannerAnimations } from "./animations/scanner";
   import { initLaserTarget, initLaserLines } from "./animations/laser";
   import { initUfoTracking } from "./animations/ufo";
+  import { initTargetDropAnimation } from "./animations/story";
+  import { initLogAnimations } from "./animations/logs";
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -63,7 +77,20 @@ import LatentLogo from "../ui/LatentLogo.astro";
     const els = getHeroRoot(heroSection);
 
     const ctx = gsap.context(() => {
-      initFloatParallax(heroSection, [els.logo!,...els.ufoWrappers, ...els.floatingEls]);
+      const masterTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: heroSection,
+          start: "top top", // 畫布開始滾動時
+          end: "bottom top", // 畫布完全離開視窗時
+          scrub: true, // 綁定滾動條
+        },
+      });
+
+      initFloatParallax(heroSection, [
+        els.logo!,
+        ...els.ufoWrappers,
+        ...els.floatingEls,
+      ]);
 
       const { updateSizes: scannerUpdate } = initScannerAnimations(
         heroSection,
@@ -87,6 +114,11 @@ import LatentLogo from "../ui/LatentLogo.astro";
 
       if (els.ufoWrappers.length > 0) {
         cleanups.push(initUfoTracking(els.ufoWrappers));
+      }
+
+      if (els.log) {
+        initTargetDropAnimation(masterTl, els.log);
+        initLogAnimations(els.log);
       }
 
       if (els.laserTarget && els.svg) {
