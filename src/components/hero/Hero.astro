@@ -6,7 +6,7 @@ import ScannerUI from "./ScannerUI.astro";
 
 <section
   data-hero
-  class="relative w-full h-[200vh] overflow-hidden bg-[#d18e12]"
+  class="relative w-full h-[160vh] overflow-hidden bg-[#d18e12]"
 >
   <StaticBackground />
   <FloatingElements type="normal" />
@@ -21,7 +21,7 @@ import ScannerUI from "./ScannerUI.astro";
   <ScannerUI />
   <div
     data-laser-target
-    class="absolute left-1/2 top-1/2 w-4 h-4 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
+    class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
   >
   </div>
 
@@ -100,16 +100,17 @@ import ScannerUI from "./ScannerUI.astro";
                 start: "top 80%",
                 end: "bottom 35%",
                 toggleActions: "play reverse play reverse",
+                markers:true
               },
             });
-            tl.timeScale(1.5)
+            tl.timeScale(1.5);
 
             tl.to(animPair, {
               "--scale-x": 1,
               duration: 0.4,
               ease: "power4.out",
             })
-              .to(line, { opacity: 0.8, duration: 0.6 }, "<")
+              .to(line, { opacity: 1, duration: 0.6 }, "<")
               .to(
                 animPair,
                 { "--scale-y": 1, duration: 0.6, ease: "power3.out" },
@@ -136,9 +137,9 @@ import ScannerUI from "./ScannerUI.astro";
 
             function randomFloat() {
               gsap.to(animPair, {
-                "--float-x": `${gsap.utils.random(-30, 30)}px`,
-                "--float-y": `${gsap.utils.random(-30, 30)}px`,
-                duration: gsap.utils.random(2, 3),
+                "--float-x": `${gsap.utils.random(-40, 40)}px`,
+                "--float-y": `${gsap.utils.random(-40, 40)}px`,
+                duration: gsap.utils.random(1, 2),
                 ease: "sine.inOut",
                 onComplete: randomFloat,
               });
@@ -152,6 +153,7 @@ import ScannerUI from "./ScannerUI.astro";
         if (els.laserTarget) {
           let mouseX = 0;
           let mouseY = 0;
+          console.log("!!!")
           let scrollY = window.scrollY;
 
           const xTo = gsap.quickTo(els.laserTarget, "x", {
@@ -169,6 +171,18 @@ import ScannerUI from "./ScannerUI.astro";
             mouseY = e.clientY - window.innerHeight / 2;
           });
 
+          window.addEventListener(
+            "touchmove",
+            (e) => {
+              const touch = e.touches[0];
+              if (touch) {
+                mouseX = (touch.clientX - window.innerWidth / 2) * 0.15;
+                mouseY = (touch.clientY - window.innerHeight / 2) * 0.15;
+              }
+            },
+            { passive: true },
+          );
+
           // 統一整合到 Ticker 迴圈
           gsap.ticker.add(() => {
             const currentScrollY = window.scrollY;
@@ -177,12 +191,13 @@ import ScannerUI from "./ScannerUI.astro";
             const scrollDeltaY = currentScrollY - scrollY;
             scrollY = currentScrollY;
 
-            // 目標 X：單純跟隨滑鼠 (微幅 15% 偏移)
+            // 目標 X：單純跟隨滑鼠 (微幅 70% 偏移)
             const targetX = mouseX * 0.7;
 
-            // 目標 Y：滑鼠偏移 (15%) + 抵銷畫布的滾動距離 (currentScrollY)
+            // 目標 Y：滑鼠偏移 (70%) + 抵銷畫布的滾動距離 (currentScrollY)
             // 加上 currentScrollY 是為了讓元素對抗 absolute 的物理特性，永遠停留在螢幕中央
-            let targetY = mouseY * 0.7 + currentScrollY - window.innerHeight / 2 ;
+            let targetY =
+              mouseY * 0.7 + currentScrollY - window.innerHeight / 3;
 
             // 當快速滾動時 (scrollDeltaY 很大)，我們讓紅點稍微「跟不上」
             const lagY = -scrollDeltaY * 1.5;
@@ -199,10 +214,8 @@ import ScannerUI from "./ScannerUI.astro";
           els.scanner.svg &&
           els.scanner.lines.length > 0
         ) {
-          
           // Ticker 在螢幕刷新的每一幀執行
           gsap.ticker.add(() => {
-            
             const targetRect = els.laserTarget!.getBoundingClientRect();
             const centerX = targetRect.left + targetRect.width / 2;
             const centerY = targetRect.top + targetRect.height / 2;

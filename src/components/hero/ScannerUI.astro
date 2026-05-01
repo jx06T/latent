@@ -1,31 +1,49 @@
 ---
 const scanBoxes = [
   {
-    id: "fish",
-    label: "[ #03 fish 93% ]",
-    x: "15%",
-    y: "60%",
-    w: "15%",
-    h: "8%",
-    speed: 0.2,
+    id: "o-1",
+    label: "[ #03 octopus 93% ]",
+    x: "2%",
+    y: "67%",
+    w: "120px",
+    h: "180px",
+    speed: 0.5,
   },
   {
-    id: "cloud",
-    label: "[ #07 cloud 75% ]",
+    id: "j-1",
+    label: "[ #03 jellyfish 93% ]",
+    x: "80%",
+    y: "92%",
+    w: "100px",
+    h: "200px",
+    speed: 0.6,
+  },
+  {
+    id: "b-1",
+    label: "[ #07 bird 75% ]",
     x: "70%",
     y: "15%",
-    w: "12%",
-    h: "6%",
+    w: "160px",
+    h: "120px",
+    speed: 0.3,
+  },
+  {
+    id: "f-1",
+    label: "[ #99 fish 57% ]",
+    x: "15%",
+    y: "92%",
+    w: "180px",
+    h: "80px",
     speed: 0.7,
   },
   {
-    id: "earth",
-    label: "[ #99 earth 57% ]",
-    x: "15%",
-    y: "80%",
-    w: "12%",
-    h: "12%",
-    speed: 0.3,
+    id: "g-1",
+    label: "[ #99 ground 57% ]",
+    x: "50%",
+    y: "97%",
+    w: "180px",
+    h: "80px",
+    speed: 0.5,
   },
 ];
 ---
@@ -55,7 +73,7 @@ const scanBoxes = [
   <g id="connection-lines">
     {
       scanBoxes.map((box) => (
-        <line data-scanner-line={box.id} stroke="#d18e12" stroke-width="1.5" />
+        <line data-scanner-line={box.id} stroke="#d18e12" stroke-width="2" />
       ))
     }
   </g>
@@ -145,11 +163,6 @@ const scanBoxes = [
   }
 
   .scanner-wrapper {
-    transform-box: fill-box;
-    transform-origin: 50% 0%;
-    will-change: transform;
-
-    translate: 0 var(--parallax-y, 0px);
   }
 
   .scanner-frame {
@@ -157,7 +170,8 @@ const scanBoxes = [
     transform-origin: 50% 0%;
     will-change: transform;
 
-    translate: var(--float-x, 0px) var(--float-y, 0px);
+    translate: var(--float-x, 0px)
+      calc(var(--parallax-y, 0px) + var(--float-y, 0px));
   }
   .scanner-box {
     transform-box: fill-box;
