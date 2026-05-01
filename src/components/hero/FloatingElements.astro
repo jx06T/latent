@@ -33,6 +33,9 @@ const { type } = Astro.props;
         src={getFloatImg(item.num, type)}
         alt={item.id}
         class="w-full h-auto"
+        widths={[200, 400, 600]}
+        sizes={`${item.width}vw`}
+        loading={item.top < 50 ? "eager" : "lazy"}
       />
     </div>
   ))
