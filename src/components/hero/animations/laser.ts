@@ -27,12 +27,12 @@ export function initLaserTarget(target: HTMLElement): () => void {
 
     gsap.ticker.add(() => {
         const currentScrollY = window.scrollY;
-        const scrollDeltaY   = currentScrollY - scrollY;
+        const scrollDeltaY = currentScrollY - scrollY;
         scrollY = currentScrollY;
 
         const targetX = mouseX * 0.7;
         const targetY = mouseY * 0.7 + currentScrollY - window.innerHeight / 3;
-        const lagY    = -scrollDeltaY * 1.5;
+        const lagY = -scrollDeltaY * 1.5;
 
         xTo(targetX);
         yTo(targetY + lagY);
@@ -51,21 +51,21 @@ export function initLaserLines(
 ): void {
     gsap.ticker.add(() => {
         const targetRect = target.getBoundingClientRect();
-        const centerX    = targetRect.left + targetRect.width / 2;
-        const centerY    = targetRect.top  + targetRect.height / 2;
-        const svgRect    = svg.getBoundingClientRect();
+        const centerX = targetRect.left + targetRect.width / 2;
+        const centerY = targetRect.top + targetRect.height / 2;
+        const svgRect = svg.getBoundingClientRect();
 
         wrappers.forEach((wrapper) => {
-            const id  = wrapper.getAttribute(ATTRS.scanner.wrapper);
+            const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
             const line = document.querySelector(`[${ATTRS.scanner.line}="${id}"]`);
-            const box  = wrapper.querySelector(`[${ATTRS.scanner.box}="${id}"]`);
+            const box = wrapper.querySelector(`[${ATTRS.scanner.box}="${id}"]`);
             if (!box || !line) return;
 
             const boxRect = box.getBoundingClientRect();
             const corners = [
-                { x: boxRect.left,  y: boxRect.top    },
-                { x: boxRect.right, y: boxRect.top    },
-                { x: boxRect.left,  y: boxRect.bottom },
+                { x: boxRect.left, y: boxRect.top },
+                { x: boxRect.right, y: boxRect.top },
+                { x: boxRect.left, y: boxRect.bottom },
                 { x: boxRect.right, y: boxRect.bottom },
             ];
 
@@ -78,8 +78,8 @@ export function initLaserLines(
 
             gsap.set(line, {
                 attr: {
-                    x1: centerX         - svgRect.left,
-                    y1: centerY         - svgRect.top,
+                    x1: centerX - svgRect.left,
+                    y1: centerY - svgRect.top,
                     x2: closestCorner.x - svgRect.left,
                     y2: closestCorner.y - svgRect.top,
                 },

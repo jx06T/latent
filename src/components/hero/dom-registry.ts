@@ -41,12 +41,12 @@ export const SELECTORS = {
 export function getHeroRoot(root: HTMLElement) {
     return {
         root,
-        bgStatic:     root.querySelector<HTMLElement>(SELECTORS.bgStatic),
-        laserTarget:  root.querySelector<HTMLElement>(SELECTORS.laserTarget),
-        svg:          root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
-        floatingEls:  Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
+        bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
+        laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
+        svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
+        floatingEls: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
         scanWrappers: Array.from(root.querySelectorAll<SVGElement>(SELECTORS.scanner.wrappers)),
-        scanLines:    Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
+        scanLines: Array.from(root.querySelectorAll<SVGLineElement>(SELECTORS.scanner.lines)),
     };
 }
 

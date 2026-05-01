@@ -57,7 +57,7 @@ import ScannerUI from "./ScannerUI.astro";
         heroSection,
         els.svg!,
         els.scanWrappers,
-        scanBoxes
+        scanBoxes,
       );
 
       const cleanups: Array<() => void> = [];
@@ -69,7 +69,9 @@ import ScannerUI from "./ScannerUI.astro";
 
       const debouncedResize = debounce(updateSizes, 250);
       window.addEventListener("resize", debouncedResize);
-      cleanups.push(() => window.removeEventListener("resize", debouncedResize));
+      cleanups.push(() =>
+        window.removeEventListener("resize", debouncedResize),
+      );
 
       updateSizes();
 
@@ -78,8 +80,10 @@ import ScannerUI from "./ScannerUI.astro";
 
     document.addEventListener(
       "astro:before-swap",
-      () => { ctx.revert(); },
-      { once: true }
+      () => {
+        ctx.revert();
+      },
+      { once: true },
     );
   }
 

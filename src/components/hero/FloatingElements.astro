@@ -8,7 +8,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
 );
 
 function getFloatImg(num: string, type: "normal" | "pixel") {
-  const ext  = type === "normal" ? "png" : "jpg";
+  const ext = type === "normal" ? "png" : "jpg";
   const path = `/src/assets/hero/float_${num}_${type}.${ext}`;
   if (!images[path]) throw new Error(`找不到圖片: ${path}`);
   return images[path].default;

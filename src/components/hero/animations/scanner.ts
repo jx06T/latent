@@ -14,23 +14,23 @@ export function initScannerAnimations(
 ): { updateSizes: () => void } {
     const sizeTargets: SizeTarget[] = [];
 
-    if (wrappers.length === 0) return { updateSizes: () => {} };
+    if (wrappers.length === 0) return { updateSizes: () => { } };
 
     boxes.forEach((boxData) => {
         const wrapper = document.querySelector(`[${ATTRS.scanner.wrapper}="${boxData.id}"]`);
         if (!wrapper) return;
 
-        const frame     = wrapper.querySelector(`[${ATTRS.scanner.frame}="${boxData.id}"]`);
+        const frame = wrapper.querySelector(`[${ATTRS.scanner.frame}="${boxData.id}"]`);
         const labelMask = wrapper.querySelector(`[${ATTRS.scanner.labelMask}="${boxData.id}"]`);
-        const mask      = document.querySelector(`[${ATTRS.scanner.mask}="${boxData.id}"]`);
-        const line      = document.querySelector(`[${ATTRS.scanner.line}="${boxData.id}"]`);
+        const mask = document.querySelector(`[${ATTRS.scanner.mask}="${boxData.id}"]`);
+        const line = document.querySelector(`[${ATTRS.scanner.line}="${boxData.id}"]`);
 
         if (!(frame && labelMask && mask && line)) return;
 
         sizeTargets.push({ targets: [wrapper, mask], wUnit: boxData.w, hUnit: boxData.h });
 
         const parallaxPair = [wrapper, mask];
-        const animPair     = [frame, mask];
+        const animPair = [frame, mask];
 
         gsap.set(animPair, { "--scale-x": 0, "--scale-y": 0.02 });
         gsap.set(line, { opacity: 0 });
