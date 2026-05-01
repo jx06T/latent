@@ -24,276 +24,331 @@ import ScannerUI from "./ScannerUI.astro";
     class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
   >
   </div>
-
 </section>
 
-  <section
-    class="w-full h-[150vh] p-32 bg-gray-900 text-white flex items-center justify-center text-4xl"
-  >
-    我是下一個 Section (往下滾動時，上面的 Hero 會自然往上滑)
-  </section>
+<section
+  class="w-full h-[150vh] p-32 bg-gray-900 text-white flex items-center justify-center text-4xl"
+>
+  我是下一個 Section (往下滾動時，上面的 Hero 會自然往上滑)
+</section>
 
-  <script>
-    import gsap from "gsap";
-    import { ScrollTrigger } from "gsap/ScrollTrigger";
-    import { getHeroElements, SELECTORS, ATTRS } from "./dom-registry";
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { getHeroElements, SELECTORS, ATTRS } from "./dom-registry";
 
-    gsap.registerPlugin(ScrollTrigger);
+  function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
+    let timeout: ReturnType<typeof setTimeout>;
 
-    function initHeroParallax() {
-      const heroSection = document.querySelector<HTMLElement>(SELECTORS.hero);
-      if (!heroSection) return;
+    return function (...args: Parameters<T>) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
 
-      // 呼叫收集器，準備好所有元素地圖給未來的動畫用
-      const els = getHeroElements(heroSection);
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
 
-      // Context 是為了 Astro 換頁時能一次清理所有動畫
-      const ctx = gsap.context(() => {
-        els.floatingElements.forEach((el) => {
-          // 讀取視差速度設定
-          const speed = parseFloat(el.getAttribute("data-speed") || "0");
-          if (speed === 0) return;
+  function getBaseUnit(screenWidth: number): number {
+    const baseVwPx = screenWidth / 100;
 
-          gsap.to(el, {
-            y: () => -window.innerHeight * speed * 1.5,
-            ease: "none",
+    const maxScreen = 1200;
+    const minScreen = 450;
+    const multiplierAtMax = 1.0;
+    const multiplierAtMin = 1.8;
+
+    let currentMultiplier = 1.0;
+
+    if (screenWidth >= maxScreen) {
+      currentMultiplier = multiplierAtMax;
+    } else if (screenWidth <= minScreen) {
+      currentMultiplier = multiplierAtMin;
+    } else {
+      const ratio = (screenWidth - minScreen) / (maxScreen - minScreen);
+      currentMultiplier =
+        multiplierAtMin - (multiplierAtMin - multiplierAtMax) * ratio;
+    }
+
+    return baseVwPx * currentMultiplier;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initHeroParallax() {
+    const heroSection = document.querySelector<HTMLElement>(SELECTORS.hero);
+    if (!heroSection) return;
+
+    // 呼叫收集器，準備好所有元素地圖給未來的動畫用
+    const els = getHeroElements(heroSection);
+
+    // Context 是為了 Astro 換頁時能一次清理所有動畫
+    const ctx = gsap.context(() => {
+      els.floatingElements.forEach((el) => {
+        // 讀取視差速度設定
+        const speed = parseFloat(el.getAttribute("data-speed") || "0");
+        if (speed === 0) return;
+
+        gsap.to(el, {
+          y: () => -window.innerHeight * speed * 1.5,
+          ease: "none",
+          scrollTrigger: {
+            trigger: heroSection,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+      });
+
+      // ================================================
+
+      if (els.scanner.svg && els.scanner.wrappers.length > 0) {
+        els.scanner.wrappers.forEach((wrapper) => {
+          const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
+
+          const frame = wrapper.querySelector(
+            `[${ATTRS.scanner.frame}="${id}"]`,
+          );
+
+          const labelMask = wrapper.querySelector(
+            `[${ATTRS.scanner.labelMask}="${id}"]`,
+          );
+
+          const mask = document.querySelector(
+            `[${ATTRS.scanner.mask}="${id}"]`,
+          );
+          const line = document.querySelector(
+            `[${ATTRS.scanner.line}="${id}"]`,
+          );
+          const speed = parseFloat(wrapper?.getAttribute("data-speed") || "0");
+
+          const parallaxPair = [wrapper, mask].filter(Boolean);
+          const animPair = [frame, mask];
+
+          gsap.set(animPair, { "--scale-x": 0, "--scale-y": 0.02 });
+          gsap.set(line, { opacity: 0 });
+
+          const tl = gsap.timeline({
             scrollTrigger: {
-              trigger: heroSection,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
+              trigger: wrapper,
+              start: "top 80%",
+              end: "bottom 20%",
+              toggleActions: "play reverse play reverse",
+            },
+          });
+          tl.timeScale(1.5);
+
+          tl.to(animPair, {
+            "--scale-x": 1,
+            duration: 0.4,
+            ease: "power4.out",
+          })
+            .to(line, { opacity: 1, duration: 0.6 }, "<")
+            .to(
+              animPair,
+              { "--scale-y": 1, duration: 0.6, ease: "power3.out" },
+              "-=0.2",
+            )
+            .to(
+              labelMask,
+              { scaleX: 1, duration: 0.4, ease: "power2.out" },
+              "-=0.5",
+            );
+
+          if (speed !== 0) {
+            const yOffset = window.innerHeight * speed;
+
+            gsap.set(parallaxPair, { "--parallax-y": `${yOffset / 2}px` });
+
+            gsap.to(parallaxPair, {
+              "--parallax-y": `${-yOffset}px`,
+              ease: "none",
+              scrollTrigger: {
+                trigger: heroSection,
+                start: "top top",
+                end: "bottom top",
+                scrub: true,
+              },
+            });
+          }
+
+          function randomFloat() {
+            gsap.to(animPair, {
+              // "--float-x": `${gsap.utils.random(-40, 40)}px`,
+              // "--float-y": `${gsap.utils.random(-40, 40)}px`,
+              "--float-x": `${gsap.utils.random(-4, 4)}px`,
+              "--float-y": `${gsap.utils.random(-4, 4)}px`,
+              duration: gsap.utils.random(1, 2),
+              ease: "sine.inOut",
+              onComplete: randomFloat,
+            });
+          }
+
+          randomFloat();
+        });
+      }
+
+      // =================================================
+      if (els.laserTarget) {
+        let mouseX = 0;
+        let mouseY = 0;
+
+        let scrollY = window.scrollY;
+
+        const xTo = gsap.quickTo(els.laserTarget, "x", {
+          duration: 0.6,
+          ease: "power3.out",
+        });
+        const yTo = gsap.quickTo(els.laserTarget, "y", {
+          duration: 0.6,
+          ease: "power3.out",
+        });
+
+        // 監聽滑鼠移動
+        window.addEventListener("mousemove", (e) => {
+          mouseX = e.clientX - window.innerWidth / 2;
+          mouseY = e.clientY - window.innerHeight / 2;
+        });
+
+        window.addEventListener(
+          "touchmove",
+          (e) => {
+            const touch = e.touches[0];
+            if (touch) {
+              mouseX = (touch.clientX - window.innerWidth / 2) * 0.15;
+              mouseY = (touch.clientY - window.innerHeight / 2) * 0.15;
+            }
+          },
+          { passive: true },
+        );
+
+        // 統一整合到 Ticker 迴圈
+        gsap.ticker.add(() => {
+          const currentScrollY = window.scrollY;
+
+          // 計算這一幀與上一幀的滾動距離差 (這就是最純粹的滾動速度 Velocity)
+          const scrollDeltaY = currentScrollY - scrollY;
+          scrollY = currentScrollY;
+
+          // 目標 X：單純跟隨滑鼠 (微幅 70% 偏移)
+          const targetX = mouseX * 0.7;
+
+          // 目標 Y：滑鼠偏移 (70%) + 抵銷畫布的滾動距離 (currentScrollY)
+          // 加上 currentScrollY 是為了讓元素對抗 absolute 的物理特性，永遠停留在螢幕中央
+          let targetY = mouseY * 0.7 + currentScrollY - window.innerHeight / 3;
+
+          // 當快速滾動時 (scrollDeltaY 很大)，我們讓紅點稍微「跟不上」
+          const lagY = -scrollDeltaY * 1.5;
+
+          xTo(targetX);
+          yTo(targetY + lagY);
+        });
+      }
+
+      // =================================================
+
+      if (els.laserTarget && els.scanner.svg && els.scanner.lines.length > 0) {
+        // Ticker 在螢幕刷新的每一幀執行
+        gsap.ticker.add(() => {
+          const targetRect = els.laserTarget!.getBoundingClientRect();
+          const centerX = targetRect.left + targetRect.width / 2;
+          const centerY = targetRect.top + targetRect.height / 2;
+
+          // 2. 取得整個 SVG 的邊界座標 (必須扣除這個偏移值，才能把螢幕座標轉回 SVG 內部座標)
+          const svgRect = els.scanner.svg!.getBoundingClientRect();
+
+          // 3. 尋找所有在畫面中飄浮的視覺框
+          els.scanner.wrappers.forEach((wrapper) => {
+            const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
+            const line = document.querySelector(
+              `[${ATTRS.scanner.line}="${id}"]`,
+            );
+
+            // 抓取 box 來算角落，因為它才是真正有大小的框框
+            const box = wrapper.querySelector(`[${ATTRS.scanner.box}="${id}"]`);
+            if (!box || !line) return;
+
+            // 用 box 算出來的邊界，就絕對不包含上面的標籤了！
+            const boxRect = box.getBoundingClientRect();
+
+            // 計算方框的四個角落
+            const corners = [
+              { x: boxRect.left, y: boxRect.top }, // 左上
+              { x: boxRect.right, y: boxRect.top }, // 右上
+              { x: boxRect.left, y: boxRect.bottom }, // 左下
+              { x: boxRect.right, y: boxRect.bottom }, // 右下
+            ];
+
+            // 尋找距離靶心最短的角落
+            let closestCorner = corners[0];
+            let minDistance = Infinity;
+
+            corners.forEach((corner) => {
+              // 利用畢氏定理計算直線距離
+              const dist = Math.hypot(corner.x - centerX, corner.y - centerY);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestCorner = corner;
+              }
+            });
+
+            // 4. 動態更新線條的起點與終點！
+            // x1, y1 (起點) = 靶心座標 - SVG的偏移
+            // x2, y2 (終點) = 最近角落的座標 - SVG的偏移
+            gsap.set(line, {
+              attr: {
+                x1: centerX - svgRect.left,
+                y1: centerY - svgRect.top,
+                x2: closestCorner.x - svgRect.left,
+                y2: closestCorner.y - svgRect.top,
+              },
+            });
+          });
+        });
+      }
+
+      function updateScannerSizes() {
+        const currentWidth = window.innerWidth;
+        const baseUnit = getBaseUnit(currentWidth); // 取得現在 1 單位等於幾 px
+
+        scannerElements.forEach((item) => {
+          // 算出真實的像素大小
+          const pxWidth = item.wUnit * baseUnit;
+          const pxHeight = item.hUnit * baseUnit;
+
+          // 利用 GSAP set 快速更新 SVG 屬性
+          gsap.set(item.targets, {
+            attr: {
+              width: pxWidth,
+              height: pxHeight,
             },
           });
         });
 
-        // ================================================
+        ScrollTrigger.refresh();
+      }
 
-        if (els.scanner.svg && els.scanner.wrappers.length > 0) {
-          els.scanner.wrappers.forEach((wrapper) => {
-            const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
+      updateScannerSizes();
+      const debouncedResize = debounce(updateScannerSizes, 250);
+      window.addEventListener("resize", debouncedResize);
 
-            const frame = wrapper.querySelector(
-              `[${ATTRS.scanner.frame}="${id}"]`,
-            );
+      return () => {
+        window.removeEventListener("resize", debouncedResize);
+      };
+    }, heroSection);
 
-            const labelMask = wrapper.querySelector(
-              `[${ATTRS.scanner.labelMask}="${id}"]`,
-            );
+    // 清理機制：切換頁面時殺掉這個頁面的 GSAP 動畫，防止記憶體洩漏
+    document.addEventListener(
+      "astro:before-swap",
+      () => {
+        ctx.revert();
+      },
+      { once: true },
+    );
+  }
 
-            const mask = document.querySelector(
-              `[${ATTRS.scanner.mask}="${id}"]`,
-            );
-            const line = document.querySelector(
-              `[${ATTRS.scanner.line}="${id}"]`,
-            );
-            const speed = parseFloat(
-              wrapper?.getAttribute("data-speed") || "0",
-            );
-
-            const parallaxPair = [wrapper, mask].filter(Boolean);
-            const animPair = [frame, mask];
-
-            gsap.set(animPair, { "--scale-x": 0, "--scale-y": 0.02 });
-            gsap.set(line, { opacity: 0 });
-
-            const tl = gsap.timeline({
-              scrollTrigger: {
-                trigger: wrapper,
-                start: "top 80%",
-                end: "bottom 20%",
-                toggleActions: "play reverse play reverse",
-              },
-            });
-            tl.timeScale(1.5);
-
-            tl.to(animPair, {
-              "--scale-x": 1,
-              duration: 0.4,
-              ease: "power4.out",
-            })
-              .to(line, { opacity: 1, duration: 0.6 }, "<")
-              .to(
-                animPair,
-                { "--scale-y": 1, duration: 0.6, ease: "power3.out" },
-                "-=0.2",
-              )
-              .to(
-                labelMask,
-                { scaleX: 1, duration: 0.4, ease: "power2.out" },
-                "-=0.5",
-              );
-
-            if (speed !== 0) {
-              const yOffset = window.innerHeight * speed;
-
-              gsap.set(parallaxPair, { "--parallax-y": `${yOffset/2}px` });
-
-              gsap.to(parallaxPair, {
-                "--parallax-y": `${-yOffset}px`,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: heroSection,
-                  start: "top top",
-                  end: "bottom top",
-                  scrub: true,
-                },
-              });
-            }
-
-            function randomFloat() {
-              gsap.to(animPair, {
-                // "--float-x": `${gsap.utils.random(-40, 40)}px`,
-                // "--float-y": `${gsap.utils.random(-40, 40)}px`,
-                "--float-x": `${gsap.utils.random(-4, 4)}px`,
-                "--float-y": `${gsap.utils.random(-4, 4)}px`,
-                duration: gsap.utils.random(1, 2),
-                ease: "sine.inOut",
-                onComplete: randomFloat,
-              });
-            }
-
-            randomFloat();
-          });
-        }
-
-        // =================================================
-        if (els.laserTarget) {
-          let mouseX = 0;
-          let mouseY = 0;
-          
-          let scrollY = window.scrollY;
-
-          const xTo = gsap.quickTo(els.laserTarget, "x", {
-            duration: 0.6,
-            ease: "power3.out",
-          });
-          const yTo = gsap.quickTo(els.laserTarget, "y", {
-            duration: 0.6,
-            ease: "power3.out",
-          });
-
-          // 監聽滑鼠移動
-          window.addEventListener("mousemove", (e) => {
-            mouseX = e.clientX - window.innerWidth / 2;
-            mouseY = e.clientY - window.innerHeight / 2;
-          });
-
-          window.addEventListener(
-            "touchmove",
-            (e) => {
-              const touch = e.touches[0];
-              if (touch) {
-                mouseX = (touch.clientX - window.innerWidth / 2) * 0.15;
-                mouseY = (touch.clientY - window.innerHeight / 2) * 0.15;
-              }
-            },
-            { passive: true },
-          );
-
-          // 統一整合到 Ticker 迴圈
-          gsap.ticker.add(() => {
-            const currentScrollY = window.scrollY;
-
-            // 計算這一幀與上一幀的滾動距離差 (這就是最純粹的滾動速度 Velocity)
-            const scrollDeltaY = currentScrollY - scrollY;
-            scrollY = currentScrollY;
-
-            // 目標 X：單純跟隨滑鼠 (微幅 70% 偏移)
-            const targetX = mouseX * 0.7;
-
-            // 目標 Y：滑鼠偏移 (70%) + 抵銷畫布的滾動距離 (currentScrollY)
-            // 加上 currentScrollY 是為了讓元素對抗 absolute 的物理特性，永遠停留在螢幕中央
-            let targetY =
-              mouseY * 0.7 + currentScrollY - window.innerHeight / 3;
-
-            // 當快速滾動時 (scrollDeltaY 很大)，我們讓紅點稍微「跟不上」
-            const lagY = -scrollDeltaY * 1.5;
-
-            xTo(targetX);
-            yTo(targetY + lagY);
-          });
-        }
-
-        // =================================================
-
-        if (
-          els.laserTarget &&
-          els.scanner.svg &&
-          els.scanner.lines.length > 0
-        ) {
-          // Ticker 在螢幕刷新的每一幀執行
-          gsap.ticker.add(() => {
-            const targetRect = els.laserTarget!.getBoundingClientRect();
-            const centerX = targetRect.left + targetRect.width / 2;
-            const centerY = targetRect.top + targetRect.height / 2;
-
-            // 2. 取得整個 SVG 的邊界座標 (必須扣除這個偏移值，才能把螢幕座標轉回 SVG 內部座標)
-            const svgRect = els.scanner.svg!.getBoundingClientRect();
-
-            // 3. 尋找所有在畫面中飄浮的視覺框
-            els.scanner.wrappers.forEach((wrapper) => {
-              const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
-              const line = document.querySelector(
-                `[${ATTRS.scanner.line}="${id}"]`,
-              );
-
-              // 抓取 box 來算角落，因為它才是真正有大小的框框
-              const box = wrapper.querySelector(
-                `[${ATTRS.scanner.box}="${id}"]`,
-              );
-              if (!box || !line) return;
-
-              // 用 box 算出來的邊界，就絕對不包含上面的標籤了！
-              const boxRect = box.getBoundingClientRect();
-
-              // 計算方框的四個角落
-              const corners = [
-                { x: boxRect.left, y: boxRect.top }, // 左上
-                { x: boxRect.right, y: boxRect.top }, // 右上
-                { x: boxRect.left, y: boxRect.bottom }, // 左下
-                { x: boxRect.right, y: boxRect.bottom }, // 右下
-              ];
-
-              // 尋找距離靶心最短的角落
-              let closestCorner = corners[0];
-              let minDistance = Infinity;
-
-              corners.forEach((corner) => {
-                // 利用畢氏定理計算直線距離
-                const dist = Math.hypot(corner.x - centerX, corner.y - centerY);
-                if (dist < minDistance) {
-                  minDistance = dist;
-                  closestCorner = corner;
-                }
-              });
-
-              // 4. 動態更新線條的起點與終點！
-              // x1, y1 (起點) = 靶心座標 - SVG的偏移
-              // x2, y2 (終點) = 最近角落的座標 - SVG的偏移
-              gsap.set(line, {
-                attr: {
-                  x1: centerX - svgRect.left,
-                  y1: centerY - svgRect.top,
-                  x2: closestCorner.x - svgRect.left,
-                  y2: closestCorner.y - svgRect.top,
-                },
-              });
-            });
-          });
-        }
-      }, heroSection);
-
-      // 清理機制：切換頁面時殺掉這個頁面的 GSAP 動畫，防止記憶體洩漏
-      document.addEventListener(
-        "astro:before-swap",
-        () => {
-          ctx.revert();
-        },
-        { once: true },
-      );
-    }
-
-    // 確保 DOM 載入後執行
-    document.addEventListener("DOMContentLoaded", initHeroParallax);
-  </script>
-</section>
+  // 確保 DOM 載入後執行
+  document.addEventListener("DOMContentLoaded", initHeroParallax);
+</script>
