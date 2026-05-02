@@ -3,11 +3,10 @@ import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Tag from "@/components/ui/Tag.astro";
 ---
 
-<div class="panel-inner">
+<div class="panel-inner h-full max-w-[100vw] py-6 px-8">
   <CommentLabel text="keynote_speaker" />
 
-  <div class="mt-4 border-dashed-cyber p-5">
-    <div class="font-mono text-xs text-ink-dim mb-3">KEYNOTE // 主題講座</div>
+  <div class="mt-4 border-dashed border-line border-2 p-5">
 
     <h3 class="text-xl sm:text-2xl font-black text-ink leading-snug">
       人工智慧時代的攝影
@@ -17,16 +16,16 @@ import Tag from "@/components/ui/Tag.astro";
     </p>
 
     <div class="mt-6 border-t border-line pt-4 space-y-2">
-      <div class="flex gap-3 font-mono text-sm">
-        <span class="text-ink-disabled w-14 shrink-0">講者</span>
-        <span class="text-ink font-bold">莊永裕 教授</span>
+      <div class="flex gap-3 font-mono text-base">
+        <span class="text-ink-dim w-11 shrink-0">講者</span>
+        <span class="text-ink">莊永裕 教授</span>
       </div>
-      <div class="flex gap-3 font-mono text-sm">
-        <span class="text-ink-disabled w-14 shrink-0">單位</span>
+      <div class="flex gap-3 font-mono text-base">
+        <span class="text-ink-dim w-11 shrink-0">單位</span>
         <span class="text-ink-muted">台灣大學 資訊工程學系</span>
       </div>
-      <div class="flex gap-3 font-mono text-sm">
-        <span class="text-ink-disabled w-14 shrink-0">時間</span>
+      <div class="flex gap-3 font-mono text-base">
+        <span class="text-ink-dim w-11 shrink-0">時間</span>
         <span class="text-ink-muted">10:30 — 12:00</span>
       </div>
     </div>

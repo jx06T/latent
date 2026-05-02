@@ -47,7 +47,6 @@ export function initLaserTarget(target: HTMLElement): () => void {
         const maxY = window.innerHeight * (b + 0.46);
 
         const targetY = Math.min(rawY, maxY);
-        console.log(rawY, maxY)
         const lagY = -scrollDeltaY * 1.5;
 
         xTo(targetX);

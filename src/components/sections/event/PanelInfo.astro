@@ -1,43 +1,47 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel.astro";
+import LatentLogo from "@/components/ui/LatentLogo.astro";
 ---
 
-<div class="panel-inner">
+<div class="panel-inner h-full max-w-[100vw] py-6 px-8">
   <CommentLabel text="event_info" />
 
-  <h2 class="text-3xl sm:text-4xl font-black text-ink text-glow-primary mt-3 leading-tight">
-    LATENT<br />2026
+  <h2
+    class="mt-3 leading-tight w-full"
+  >
+    <LatentLogo class=" w-32 md:w-36 xl:w-40  block"/>
   </h2>
-  <p class="font-mono text-accent-500 text-sm mt-1 tracking-widest">// 學生專題社展</p>
-
-  <div class="mt-8 space-y-4 font-mono text-sm">
-    <div class="flex gap-3 items-start">
-      <span class="text-ink-disabled shrink-0 w-16">DATE</span>
+  <h3 class="mt-1 text-base md:text-lg lg:text-xl text-accent-500">2026 建北電資聯合社展</h3>
+  <div class="mt-8 space-y-4 font-mono text-base">
+    <div class="flex gap-1 items-start">
+      <span class="text-ink-dim shrink-0 w-11">DATE</span>
       <span class="text-ink">2026 / 05 / 31 (日)</span>
     </div>
-    <div class="flex gap-3 items-start">
-      <span class="text-ink-disabled shrink-0 w-16">TIME</span>
+    <div class="flex gap-1 items-start">
+      <span class="text-ink-dim shrink-0 w-11">TIME</span>
       <span class="text-ink">09:00 — 18:00</span>
     </div>
-    <div class="flex gap-3 items-start">
-      <span class="text-ink-disabled shrink-0 w-16">VENUE</span>
+    <div class="flex gap-1 items-start">
+      <span class="text-ink-dim shrink-0 w-11">VENUE</span>
       <div>
         <p class="text-ink">建國中學 夢紅樓藝廊</p>
-        <p class="text-ink-dim text-xs mt-0.5">台北市中正區南海路 56 號</p>
+        <p class="text-ink-dim text-sm mt-0.5">台北市中正區南海路 56 號</p>
       </div>
     </div>
   </div>
 
-  <div class="mt-8 border-t border-line pt-6 space-y-2 font-mono text-xs">
+  <div class="mt-8 border-t-2 border-line pt-6 space-y-2 font-mono text-sm">
     <div class="flex gap-2 items-center">
       <span class="text-accent-500">✦</span>
       <span class="text-ink-dim">主辦</span>
-      <span class="text-ink">建中電子研究社 × 北一女資訊研究社</span>
+      <span class="text-ink">建中電子研究社<span class=" inline-block mx-1 mb-1">×</span>北一女資訊研究社</span>
     </div>
     <div class="flex gap-2 items-center">
       <span class="text-line-active">◆</span>
       <span class="text-ink-dim">協辦</span>
-      <span class="text-ink-muted">建中資訊社、成功電研、中山資研、景美電腦</span>
+      <span class="text-ink-muted"
+        >建中資訊社、成功電研、中山資研、景美電腦</span
+      >
     </div>
   </div>
 

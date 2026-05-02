@@ -42,19 +42,19 @@ const CATEGORIES = [
 ];
 ---
 
-<div class="panel-inner">
+<div class="panel-inner h-full max-w-[100vw] py-6 px-8">
   <CommentLabel text="exhibition_categories" />
   <h3 class="text-2xl font-black text-ink mt-3 mb-6">六大展覽類別</h3>
 
   <div class="grid grid-cols-2 gap-3 max-w-xl">
     {CATEGORIES.map((cat) => (
-      <div class="border-dashed-cyber p-4 hover:border-line-active transition-colors duration-200 group">
+      <div class=" border-dashed border-line border  p-4 hover:border-line-active transition-colors duration-200 group">
         <cat.icon
           size={20}
           className="text-accent-500 mb-2.5 group-hover:text-accent-400 transition-colors"
         />
         <h4 class="font-bold text-sm text-ink leading-snug">{cat.name}</h4>
-        <p class="font-mono text-xs text-ink-disabled mt-0.5">{cat.en}</p>
+        <p class="font-mono text-[0.78rem] text-ink-ddim">{cat.en}</p>
         <p class="text-xs text-ink-dim mt-1.5 leading-snug">{cat.desc}</p>
       </div>
     ))}

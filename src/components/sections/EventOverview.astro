@@ -6,75 +6,93 @@ import PanelKeynote from "./event/PanelKeynote.astro";
 import PanelCategories from "./event/PanelCategories.astro";
 import PanelContact from "./event/PanelContact.astro";
 
-const PANELS = 5;
+const PANELS = 4;
 ---
 
-<section id="event-overview" class="relative overflow-hidden bg-bg">
+<section
+  id="event-overview"
+  class="relative overflow-hidden bg-bg h-screen w-full"
+>
   <!-- Circuit-board background pattern -->
-  <div class="absolute inset-0 pointer-events-none" aria-hidden="true" style="
+  <div
+    class="absolute inset-0 pointer-events-none"
+    aria-hidden="true"
+    style="
     background-image:
       linear-gradient(rgba(116,156,186,0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(116,156,186,0.04) 1px, transparent 1px);
     background-size: 60px 60px;
     background-position: -1px -1px;
-  "></div>
+  "
+  >
+  </div>
 
-  <!-- Section header (visible before horizontal scroll starts) -->
-  <div class="absolute top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none">
-    <CommentLabel text="event_overview" />
+  <!-- Section header -->
+  <div class="absolute top-8 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none">
+    <CommentLabel text="event_overview" class="text-base md:text-xl" />
   </div>
 
   <!-- Panel progress dots -->
-  <div id="panel-dots" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2" aria-hidden="true">
-    {Array.from({ length: PANELS }).map((_, i) => (
-      <div
-        class={`panel-dot w-1.5 h-1.5 rounded-full transition-colors duration-300 ${i === 0 ? "bg-accent-500" : "bg-line-active"}`}
-        data-panel={i}
-      ></div>
-    ))}
+  <div
+    id="panel-dots"
+    class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2"
+    aria-hidden="true"
+  >
+    {
+      Array.from({ length: PANELS }).map((_, i) => (
+        <div
+          class={`panel-dot w-2 h-2 rounded-full transition-colors duration-300 ${i === 0 ? "bg-accent-500" : "bg-line-active"}`}
+        />
+      ))
+    }
   </div>
 
-  <!-- Panels track -->
-  <div class="panels-track flex will-change-transform">
-    <!-- Each panel: w-screen h-screen flex-shrink-0 overflow-y-auto -->
-    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
-      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+  <!-- 
+    Panels track
+    設定 w-max 讓軌道自然往右延伸 
+  -->
+  <div class="panels-track flex w-max h-screen will-change-transform">
+    <div class="w-[30vw] h-screen shrink-0 "></div>
+    <div
+      class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
+    >
+      <div class="w-full h-full max-w-2xl mx-auto py-20">
         <PanelInfo />
       </div>
     </div>
 
-    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
-      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+    <div
+      class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
+    >
+      <div class="w-full h-full max-w-2xl mx-auto py-20">
         <PanelTimeline />
       </div>
     </div>
 
-    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
-      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+    <div
+      class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
+    >
+      <div class="w-full h-full max-w-2xl mx-auto py-20">
         <PanelKeynote />
       </div>
     </div>
 
-    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
-      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+    <div
+      class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
+    >
+      <div class="w-full h-full max-w-2xl mx-auto py-20">
         <PanelCategories />
       </div>
     </div>
 
-    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center">
-      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+    <!-- <div class="panel-card px-[15vw] h-screen shrink-0 flex items-center">
+      <div class="w-full max-w-2xl mx-auto py-20">
         <PanelContact />
       </div>
-    </div>
+    </div> -->
+    <div class="w-[30vw] h-screen shrink-0"></div>
   </div>
 </section>
-
-<style>
-  /* Ensure panel-inner elements have their base styles scoped here */
-  :global(.panel-inner) {
-    /* No extra styles needed — panels rely on utility classes */
-  }
-</style>
 
 <script>
   import gsap from "gsap";
@@ -88,28 +106,67 @@ const PANELS = 5;
 
     const track = section.querySelector<HTMLElement>(".panels-track");
     const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
-    if (!track) return;
+    const panels = gsap.utils.toArray<HTMLElement>(".panel-card");
+    if (!track || panels.length === 0) return;
 
     const ctx = gsap.context(() => {
-      const st = ScrollTrigger.create({
+      const getScrollAmount = () => track.scrollWidth - window.innerWidth;
+
+      // 2. 定義一個函數來計算所有卡片「完美置中」的進度點 (0 到 1 之間)
+      const getSnapPoints = () => {
+        const scrollAmount = getScrollAmount();
+        return panels.map((panel) => {
+          const panelLeft = panel.offsetLeft;
+          const panelWidth = panel.offsetWidth;
+
+          const targetX = panelLeft - (window.innerWidth - panelWidth) / 2;
+
+          const clampedX = Math.max(0, Math.min(targetX, scrollAmount));
+
+          return clampedX / scrollAmount;
+        });
+      };
+
+      // 3. 建立一個變數儲存當下的進度點陣列
+      let currentSnapPoints = getSnapPoints();
+
+      // 4. 建立主要的 ScrollTrigger 與橫向移動動畫
+      ScrollTrigger.create({
         trigger: section,
         pin: true,
         scrub: 1,
-        snap: 1 / 4,
-        end: () => "+=" + (track.scrollWidth - document.documentElement.clientWidth),
+        end: () => "+=" + window.innerHeight * 3,
         invalidateOnRefresh: true,
+
+        onRefresh: () => {
+          currentSnapPoints = getSnapPoints();
+        },
+
+        // 將軌道往左推的實體動畫
         animation: gsap.to(track, {
-          x: () => -(track.scrollWidth - document.documentElement.clientWidth) + "px",
+          x: () => -getScrollAmount() + "px",
           ease: "none",
         }),
+
+        snap: {
+          snapTo: (progress) => gsap.utils.snap(currentSnapPoints, progress),
+
+          duration: { min: 0.1, max: 0.2 },
+          delay: 0,
+          ease: "power1.inOut",
+        },
+
         onUpdate(self) {
-          // Update progress dots
-          const activePanel = Math.round(self.progress * 4);
+          const progress = self.progress;
+
+          const closestPoint = gsap.utils.snap(currentSnapPoints, progress);
+          const closestIndex = currentSnapPoints.indexOf(closestPoint);
+
           dots.forEach((dot, i) => {
             dot.style.backgroundColor =
-              i === activePanel
-                ? "var(--color-accent-500)"
-                : "var(--color-line-active)";
+              i === closestIndex
+                ? "var(--color-accent-500)" // 亮橘色 (亮起)
+                : "var(--color-line-active)"; // 灰色 (未亮)
           });
         },
       });

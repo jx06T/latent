@@ -2,29 +2,28 @@
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 
 const TIMELINE = [
-  { time: "09:00", label: "報到 & 開幕", note: "Registration & Opening" },
+  { time: "09:00", label: "報到", note: "Registration & Opening" },
   { time: "10:00", label: "開幕式 & 長官致詞", note: "Opening Ceremony" },
   { time: "10:30", label: "主題講座", note: "Keynote: AI × Photography", accent: true },
   { time: "12:00", label: "午餐休息", note: "Lunch Break" },
   { time: "13:30", label: "展覽開放 & 互動體驗", note: "Exhibition Open", accent: true },
-  { time: "16:30", label: "頒獎典禮", note: "Award Ceremony", accent: true },
-  { time: "18:00", label: "閉幕", note: "Closing" },
+  { time: "16:30", label: "頒獎典禮 & 閉幕", note: "Award Ceremony", accent: true },
 ];
 ---
 
-<div class="panel-inner">
+<div class="panel-inner h-full max-w-[100vw] py-6 px-8">
   <CommentLabel text="event_timeline" />
-  <h3 class="text-2xl font-black text-ink mt-3 mb-8">活動時程</h3>
+  <h3 class="text-2xl font-black text-ink mt-2 mb-4">活動時程</h3>
 
+  <!-- Vertical track line -->
   <div class="relative">
-    <!-- Vertical track line -->
-    <div class="absolute left-[27px] top-3 bottom-3 w-px bg-line"></div>
+    <div class="absolute left-1.75 top-1 h-full w-0.5 bg-line"></div>
 
-    <div class="space-y-0">
+    <div class=" -left-6.75">
       {TIMELINE.map((item, i) => (
-        <div class="relative flex gap-5 pb-6 last:pb-0">
+        <div class="relative flex gap-5 pb-4.5 last:pb-0">
           <!-- Node -->
-          <div class={`w-[55px] shrink-0 flex flex-col items-center pt-0.5 z-10`}>
+          <div class={`w-13 shrink-0 flex flex-col items-start pt-0.5 z-10`}>
             <div class={`w-4 h-4 rounded-full border-2 flex items-center justify-center bg-bg
               ${item.accent ? "border-accent-500" : "border-line-active"}`}>
               <div class={`w-1.5 h-1.5 rounded-full ${item.accent ? "bg-accent-500" : "bg-primary-500"}`}></div>
@@ -32,12 +31,12 @@ const TIMELINE = [
           </div>
 
           <!-- Content -->
-          <div class="pb-1">
-            <div class="font-mono text-xs text-ink-dim mb-0.5">{item.time}</div>
-            <div class={`font-bold text-sm ${item.accent ? "text-ink" : "text-ink-muted"}`}>
+          <div class="-mt-0.5 pb-1">
+            <div class="font-mono text-sm text-ink-dim mb-0">{item.time}</div>
+            <div class={` text-base text-ink`}>
               {item.label}
             </div>
-            <div class="font-mono text-xs text-ink-disabled mt-0.5">{item.note}</div>
+            <div class="font-mono text-sm text-ink-ddim -mt-1">{item.note}</div>
           </div>
         </div>
       ))}
