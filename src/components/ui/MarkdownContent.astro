@@ -48,7 +48,7 @@ const renderer = {
     const { href, title, text } = token;
     const titleAttr = title ? ` title="${title}"` : "";
     // 加上 loading="lazy" 優化載入
-    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md border border-line" />`;
+    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" />`;
   },
 };
 

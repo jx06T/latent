@@ -188,6 +188,18 @@
     padding: 1px 4px;
     border-radius: 3px;
   }
+  .prose img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+  }
+  .prose :is(h1, h2, h3, h4, h5, h6) {
+    margin-bottom: 0.3em;
+  }
+  .prose :is(h3, h4, h5, h6) {
+    margin-bottom: 0.1em;
+  }
 
   mark {
     background: var(--color-accent-500);
