@@ -10,6 +10,10 @@
 
   gsap.registerPlugin(ScrollTrigger);
 
+  // Prevent ScrollTrigger from refreshing when only viewport HEIGHT changes
+  // (mobile URL bar show/hide) — width-change events still trigger refresh normally.
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
   const lenis = new Lenis({
     duration: 1.2,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
