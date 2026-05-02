@@ -25,6 +25,34 @@
 
   gsap.ticker.lagSmoothing(0);
 
+  // Take manual control so Lenis and the browser don't fight over scroll position
+  // on back/forward navigation.
+  history.scrollRestoration = "manual";
+
+  // Save Lenis scroll position before the page unloads
+  window.addEventListener("pagehide", () => {
+    sessionStorage.setItem(
+      `lenis-scroll:${location.pathname}`,
+      String(Math.round(lenis.scroll))
+    );
+  });
+
+  // Restore scroll after pageshow (double-rAF lets layout settle before scrollTo)
+  window.addEventListener("pageshow", () => {
+    const saved = sessionStorage.getItem(`lenis-scroll:${location.pathname}`);
+    const y = saved ? parseInt(saved, 10) : 0;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (y > 0) lenis.scrollTo(y, { immediate: true });
+        ScrollTrigger.refresh();
+      });
+    });
+  });
+
+  // Safety net: refresh after fonts load to fix any stale trigger positions
+  document.fonts.ready.then(() => ScrollTrigger.refresh());
+
   document.addEventListener("astro:before-swap", () => {
     lenis.destroy();
   });

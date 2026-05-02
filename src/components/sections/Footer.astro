@@ -2,11 +2,12 @@
 import WaveSection from "./Wavesection.astro";
 import Link from "../ui/Link.astro";
 import LatentLogo from "@/components/ui/LatentLogo.astro";
+import LatentIcon from "../ui/LatentIcon.astro";
 ---
 
 <WaveSection position="top" class="mt-24">
   <footer
-    class="flex flex-col justify-top pt-4 pb-8 items-center w-full gap-y-4"
+    class="flex flex-col justify-top pt-4 pb-4 items-center w-full gap-y-4"
   >
     <LatentLogo class="text-accent-500 w-36" />
 
@@ -16,16 +17,39 @@ import LatentLogo from "@/components/ui/LatentLogo.astro";
       <Link href="/contact" underLine={false}>Contact</Link>
     </nav>
 
-    <p class="text-primary-400 text-xs">
-      © {new Date().getFullYear()} latent. All rights reserved.
-    </p>
-    <div class="w-full px-8 md:px-[5%] mt-6 text-ink-muted leading-3">
-      <div class="bg-bg-surface w-fit py-0.5 px-1">
-        <pre>
-Latent [adj.]
-present bot not yet visible or active
+    <div class="text-center space-y-0">
+      <p class="text-primary-400 text-sm">
+        © {new Date().getFullYear()} latent. All rights reserved.
+      </p>
+      <p class="text-ink-ddim text-sm font-mono uppercase tracking-widest">
+        Crafted by
+        <Link
+          href="https://github.com/jx06t"
+          isExternal
+          underLine={false}
+          class="text-ink-dim hover:text-accent-400 p-0 m-0">jx06t</Link
+        >
+        | Jointly owned by
+        <Link
+          href="https://www.ckefgisc.org/"
+          isExternal
+          underLine={false}
+          class="text-ink-dim hover:text-accent-400 p-0 m-0"
+        >
+          CKEFGISC
+        </Link>
+      </p>
+    </div>
 
-      </pre>
+    <div
+      class="w-full flex justify-between px-8 md:px-[5%] text-xs mt-1 text-black leading-4"
+    >
+      <div class="bg-gray-600 w-fit py-0.5 px-1">
+        <pre>Latent [adj.]
+present bot not yet visible or active</pre>
+      </div>
+      <div class="h-9">
+        <LatentIcon class="h-full text-gray-600" />
       </div>
     </div>
   </footer>
