@@ -4,14 +4,14 @@ import Link from "../ui/Link.astro";
 import LatentLogo from "@/components/ui/LatentLogo.astro";
 ---
 
-<WaveSection position="top" class=" mt-24">
-  <footer class="flex flex-col justify-top pb-4 items-center w-full gap-y-4">
+<WaveSection position="top" class="mt-24">
+  <footer class="flex flex-col justify-top bg-bg pt-4 mb-14 items-center w-full gap-y-4">
     <LatentLogo class="text-accent-500 w-36" />
 
-    <nav class=" space-x-4 " aria-label="Footer navigation">
-      <Link href="#" underLine={false}>About</Link>
-      <Link href="#" underLine={false}>Research</Link>
-      <Link href="#" underLine={false}>Contact</Link>
+    <nav class="space-x-5" aria-label="Footer navigation">
+      <Link href="/projects" underLine={false}>Projects</Link>
+      <Link href="/about" underLine={false}>About</Link>
+      <Link href="/contact" underLine={false}>Contact</Link>
     </nav>
 
     <p class="text-primary-400 text-xs">

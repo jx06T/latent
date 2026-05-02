@@ -27,7 +27,7 @@ const WAVE_PATHS: Record<string, string> = {
 const path = WAVE_PATHS[wave] ?? WAVE_PATHS.sine;
 ---
 
-<div class={cn("relative w-full", className)}>
+<div class={cn("relative w-full bg-transparent", className)}>
   {
     (position === "top" || position === "both") && (
       <div class="absolute -top-19.75 left-0 w-full h-20 pointer-events-none">
