@@ -38,7 +38,7 @@ const STATS = [
 <section id="telemetry" class="relative py-20 overflow-hidden bg-bg-surface border-t border-line">
 
   <div class="relative z-10 max-w-6xl mx-auto px-[10%]">
-    <div class="text-center mb-12">
+    <div class="text-center mb-6 md:mb-12">
       <CommentLabel text="system_telemetry" />
       <h2 class="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
         <ScrambleText text="[ 2026_LATENT_STATUS ]"/>
@@ -47,7 +47,7 @@ const STATS = [
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-line ">
       {STATS.map((stat, i) => (
-        <div class={`relative p-8 sm:p-10 text-center ${i < 2 ? "border-b sm:border-b-0 sm:border-r border-line" : ""}`}>
+        <div class={`relative p-6 sm:p-8 md:p-10 text-center ${i < 2 ? "border-b sm:border-b-0 sm:border-r border-line" : ""}`}>
           <!-- Corner accents -->
           <span class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent-500" aria-hidden="true"></span>
           <span class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-500" aria-hidden="true"></span>

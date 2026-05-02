@@ -2,6 +2,7 @@
 import Tag from "@/components/ui/Tag.astro";
 import { CATEGORIES } from "@/lib/schema";
 import type { CategoryId } from "@/lib/schema";
+import { ArrowUpRight } from "lucide-react";
 
 interface Props {
   slug: string;
@@ -34,52 +35,66 @@ const categoryLabel = CATEGORIES[category_main as CategoryId] ?? CATEGORIES[0];
   class="group flex flex-col bg-bg-surface border border-line hover:border-line-active
          transition-colors duration-300 hover:shadow-primary-sm overflow-hidden"
 >
-  <a href={`/projects/${year}/${slug}`} class="flex flex-col flex-1">
-
-    <!-- Cover image -->
-    <div class="relative h-44 bg-bg-elevated overflow-hidden border-b border-line">
-      {cover_image ? (
+  <!-- Cover image -->
+  <div
+    class="relative h-44 bg-bg-elevated overflow-hidden border-b border-line block"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    {
+      cover_image ? (
         <img
           loading="lazy"
           src={cover_image}
           alt=""
           class="w-full h-full object-cover opacity-70 group-hover:opacity-100
-                 group-hover:scale-105 transition-all duration-500"
+               group-hover:scale-105 transition-all duration-500"
         />
       ) : (
         <div class="w-full h-full flex items-center justify-center border-dashed-cyber">
-          <span class="font-mono text-xs text-ink-disabled">// NO_COVER_SIGNAL</span>
+          <span class="font-mono text-xs text-ink-disabled">
+            // NO_COVER_SIGNAL
+          </span>
         </div>
-      )}
-      <span
-        class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-accent-500
-               opacity-0 group-hover:opacity-100 transition-opacity"
-        aria-hidden="true"
-      />
-    </div>
+      )
+    }
+    <span
+      class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-accent-500
+             opacity-0 group-hover:opacity-100 transition-opacity"
+      aria-hidden="true"></span>
+  </div>
 
-    <!-- Card body -->
-    <div class="flex flex-col flex-1 p-4 gap-2">
-      <Tag variant="main">{categoryLabel}</Tag>
-      <h3 class="text-ink text-xl font-bold leading-snug mt-1">{title}</h3>
-      <p class="text-ink-dim text-sm leading-relaxed line-clamp-2 flex-1">
-        {subtitle ?? "// NO_SUBTITLE_PROVIDED"}
-      </p>
-      <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
-        {tech_stack.slice(0, 3).map((t) => <Tag variant="sub">{t}</Tag>)}
-        {tech_stack.length > 3 && (
+  <!-- Card body -->
+  <div class="flex flex-col flex-1 p-4 gap-2">
+    <Tag variant="main">{categoryLabel}</Tag>
+    <h3 class="text-xl font-bold leading-snug mt-1">
+      <a
+        href={`/projects/${year}/${slug}`}
+        class="text-ink hover:text-accent-400 transition-colors duration-200 inline-flex items-center gap-1.5 group/title"
+      >
+        {title}
+        <ArrowUpRight className=" font-bold inline-block -mb-1 -ml-1" />
+      </a>
+    </h3>
+    <p class="text-ink-dim text-sm leading-relaxed line-clamp-2 flex-1">
+      {subtitle ?? "// NO_SUBTITLE_PROVIDED"}
+    </p>
+    <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
+      {tech_stack.slice(0, 3).map((t) => <Tag variant="sub">{t}</Tag>)}
+      {
+        tech_stack.length > 3 && (
           <Tag variant="sub">+{tech_stack.length - 3}</Tag>
-        )}
-      </div>
+        )
+      }
     </div>
+  </div>
 
-    <!-- Card footer -->
-    <footer
-      class="flex justify-between items-center px-4 py-2.5 border-t border-line
-             font-mono text-xs text-ink-dim"
-    >
-      <span>@{author_handle}</span>
-      <span class="text-accent-500">♦ {like_count}</span>
-    </footer>
-  </a>
+  <!-- Card footer -->
+  <footer
+    class="flex justify-between items-center px-4 py-2.5 border-t border-line
+           font-mono text-xs text-ink-dim"
+  >
+    <span>@{author_handle}</span>
+    <span class="text-accent-500">♦ {like_count}</span>
+  </footer>
 </article>
