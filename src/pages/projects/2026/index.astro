@@ -2,12 +2,15 @@
 import BaseHead from "@/components/sections/BaseHead.astro";
 import Footer from "@/components/sections/Footer.astro";
 import Header from "@/components/Header.astro";
-import { SITE_DESCRIPTION, SITE_TITLE } from "@/consts";
+import SmoothScroll from "@/components/SmoothScroll.astro";
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import Input from "@/components/ui/Input.astro";
+import ProjectCard from "@/components/modules/ProjectCard.astro";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
+import { SITE_TITLE } from "@/consts";
 import { z } from "zod";
 
-// 1. 抓取 2026 年所有已發布專案
 const { data, error } = await supabase
   .from("projects")
   .select("*")
@@ -19,162 +22,150 @@ if (error) {
   console.error("Fetch error:", error);
 }
 
-// 2. 使用 Zod 驗證陣列資料
 const projects = z.array(ProjectSchema).parse(data || []);
 
-const THEME_COLOR = "#ff00ff"; // 2026 專屬色
+const YEAR = 2026;
+const allCategories = Object.entries(CATEGORIES) as [string, string][];
 ---
 
 <!doctype html>
 <html lang="zh-TW">
   <head>
-    <BaseHead title={`2026 專題列表 | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
-    <style define:vars={{ theme: THEME_COLOR }}>
-      main {
-        width: 100%;
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-        font-family: "Courier New", monospace;
-      }
-      .cyber-header {
-        border-bottom: 2px solid var(--theme);
-        margin-bottom: 3rem;
-        padding-bottom: 1rem;
-      }
-      .cyber-header h1 {
-        color: var(--theme);
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin: 0;
-      }
-      
-      .project-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
-        list-style: none;
-        padding: 0;
-      }
-
-      .project-card {
-        border: 1px solid #333;
-        background: #0a0a0a;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .project-card:hover {
-        border-color: var(--theme);
-        box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-        transform: translateY(-5px);
-      }
-
-      .project-card a {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-      }
-
-      .cover-wrapper {
-        width: 100%;
-        height: 180px;
-        background: #1a1a1a;
-        overflow: hidden;
-        border-bottom: 1px solid #333;
-      }
-
-      .cover-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.7;
-        transition: 0.3s;
-      }
-
-      .project-card:hover img {
-        opacity: 1;
-        transform: scale(1.05);
-      }
-
-      .card-content {
-        padding: 1.5rem;
-      }
-
-      .category-tag {
-        font-size: 0.7rem;
-        color: var(--theme);
-        border: 1px solid var(--theme);
-        padding: 2px 6px;
-        margin-bottom: 0.5rem;
-        display: inline-block;
-      }
-
-      .project-card h4 {
-        margin: 0.5rem 0;
-        color: #fff;
-        font-size: 1.2rem;
-      }
-
-      .project-card .subtitle {
-        font-size: 0.85rem;
-        color: #888;
-        margin-bottom: 1rem;
-        height: 2.4em;
-        overflow: hidden;
-      }
-
-      .card-footer {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.75rem;
-        color: var(--theme);
-        border-top: 1px solid #222;
-        padding-top: 1rem;
-      }
-
-      @media (max-width: 720px) {
-        .project-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
+    <BaseHead
+      title={`${YEAR} 年度專題 | ${SITE_TITLE}`}
+      description={`探索 ${YEAR} 年度學生專題，涵蓋 AI、系統開發、互動遊戲等領域`}
+    />
   </head>
-  <body>
-    <Header />
-    <main>
-      <header class="cyber-header">
-        <h1>[ 2026_PROJECT_DATABASE ]</h1>
-        <p>TOTAL_RECORDS: {projects.length}</p>
-      </header>
+  <body class="bg-bg">
+    <SmoothScroll />
+    <Header active="projects" />
 
-      <section>
-        <ul class="project-grid">
-          {projects.map((project) => (
-            <li class="project-card">
-              <a href={`./2026/${project.slug}`}>
-                <div class="cover-wrapper">
-                  <img src={project.cover_image || "https://picsum.photos/400/200?grayscale"} alt="" />
-                </div>
-                <div class="card-content">
-                  <span class="category-tag">
-                    {CATEGORIES[project.category_main]}
-                  </span>
-                  <h4>{project.title}</h4>
-                  <p class="subtitle">{project.subtitle || "NO_SUBTITLE_PROVIDED"}</p>
-                  
-                  <div class="card-footer">
-                    <span>BY @{project.author_handle}</span>
-                    <span>ENERGY: {project.like_count}</span>
-                  </div>
-                </div>
-              </a>
-            </li>
+    <main class="pt-24 min-h-screen">
+
+      <!-- Page header -->
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 border-b border-line">
+        <CommentLabel text="year_database" />
+        <h1 class="text-4xl sm:text-5xl font-black text-ink text-glow-primary mt-2 tracking-tight">
+          [ {YEAR}_PROJECT_DATABASE ]
+        </h1>
+        <div class="flex flex-wrap items-center gap-4 mt-3 font-mono text-sm text-ink-dim">
+          <span>TOTAL_RECORDS: <span class="text-ink">{projects.length}</span></span>
+          <span class="text-line-active">│</span>
+          <span>STATUS: <span class="text-success">PUBLISHED</span></span>
+        </div>
+      </section>
+
+      <!-- Search & filter hook (data attributes ready for future JS wiring) -->
+      <section id="search-interface" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 border-b border-line">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <CommentLabel text="query_filter" />
+            <Input
+              id="search-input"
+              placeholder="search title, author, keyword..."
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <!-- Category filter buttons -->
+        <div id="category-filters" class="flex flex-wrap gap-2 mt-4">
+          <button
+            data-category="all"
+            class="font-mono text-xs px-3 py-1.5 border border-line-active text-accent-500
+                   hover:bg-accent-500/10 transition-colors duration-150
+                   [&.active]:bg-accent-500/20 [&.active]:border-accent-500 active"
+          >
+            全部
+          </button>
+          {allCategories.map(([id, label]) => (
+            <button
+              data-category={id}
+              class="font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
+                     hover:border-line-active hover:text-ink transition-colors duration-150
+                     [&.active]:bg-accent-500/20 [&.active]:border-accent-500 [&.active]:text-accent-500"
+            >
+              {label}
+            </button>
           ))}
-        </ul>
+        </div>
+      </section>
+
+      <!-- Project grid -->
+      <section class="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24">
+        {projects.length === 0 ? (
+          <div class="flex flex-col items-center justify-center py-24 text-center border-dashed-cyber">
+            <CommentLabel text="no_records_found" />
+            <p class="font-mono text-ink-dim mt-4">// 目前尚無已發佈的專題</p>
+          </div>
+        ) : (
+          <ul
+            id="project-grid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+          >
+            {projects.map((project) => (
+              <li
+                data-title={project.title.toLowerCase()}
+                data-author={project.author_handle.toLowerCase()}
+                data-category={project.category_main}
+                data-keywords={project.keywords.join(" ").toLowerCase()}
+              >
+                <ProjectCard
+                  slug={project.slug}
+                  year={YEAR}
+                  title={project.title}
+                  subtitle={project.subtitle}
+                  author_handle={project.author_handle}
+                  category_main={project.category_main}
+                  cover_image={project.cover_image}
+                  tech_stack={project.tech_stack}
+                  like_count={project.like_count}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
+
     <Footer />
   </body>
 </html>
+
+<script>
+  // Search & category filter — client-side, no API call.
+  // Reads data-* attributes rendered server-side; toggles `hidden` class on <li>.
+  const searchInput = document.getElementById("search-input") as HTMLInputElement | null;
+  const categoryButtons = document.querySelectorAll<HTMLButtonElement>("#category-filters [data-category]");
+  const projectItems = document.querySelectorAll<HTMLLIElement>("#project-grid li");
+
+  let activeCategory = "all";
+
+  function applyFilters() {
+    const query = searchInput?.value.toLowerCase().trim() ?? "";
+    projectItems.forEach((li) => {
+      const matchesSearch =
+        !query ||
+        (li.dataset.title ?? "").includes(query) ||
+        (li.dataset.author ?? "").includes(query) ||
+        (li.dataset.keywords ?? "").includes(query);
+
+      const matchesCategory =
+        activeCategory === "all" ||
+        li.dataset.category === activeCategory;
+
+      li.classList.toggle("hidden", !(matchesSearch && matchesCategory));
+    });
+  }
+
+  searchInput?.addEventListener("input", applyFilters);
+
+  categoryButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.category ?? "all";
+      categoryButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+</script>

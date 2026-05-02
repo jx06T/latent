@@ -115,6 +115,28 @@
   }
 }
 
+@layer base {
+  /* Dark-theme typography — overrides @tailwindcss/typography defaults via CSS variables */
+  .prose {
+    --tw-prose-body: var(--color-ink-muted);
+    --tw-prose-headings: var(--color-ink);
+    --tw-prose-lead: var(--color-ink-dim);
+    --tw-prose-links: var(--color-primary-400);
+    --tw-prose-bold: var(--color-ink);
+    --tw-prose-counters: var(--color-ink-dim);
+    --tw-prose-bullets: var(--color-line-active);
+    --tw-prose-hr: var(--color-line);
+    --tw-prose-quotes: var(--color-ink-muted);
+    --tw-prose-quote-borders: var(--color-line-active);
+    --tw-prose-captions: var(--color-ink-dim);
+    --tw-prose-code: var(--color-accent-400);
+    --tw-prose-pre-code: var(--color-ink-muted);
+    --tw-prose-pre-bg: var(--color-bg-elevated);
+    --tw-prose-th-borders: var(--color-line);
+    --tw-prose-td-borders: var(--color-line);
+  }
+}
+
 @layer utilities {
   /* 掃描框用虛線 */
   .border-dashed-cyber {

@@ -1,10 +1,18 @@
 ---
-// src/pages/2026/[slug].astro
 export const prerender = false;
 
-import Layout from "@/layouts/BlogPost.astro";
+import BaseHead from "@/components/sections/BaseHead.astro";
+import Footer from "@/components/sections/Footer.astro";
+import Header from "@/components/Header.astro";
+import SmoothScroll from "@/components/SmoothScroll.astro";
+import Button from "@/components/ui/Button.astro";
+import Tag from "@/components/ui/Tag.astro";
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import Link from "@/components/ui/Link.astro";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
+import type { CategoryId } from "@/lib/schema";
+import { SITE_TITLE } from "@/consts";
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
 
@@ -13,8 +21,6 @@ const CURRENT_YEAR = 2026;
 
 if (!slug) return Astro.redirect("/404");
 
-// --- 資料抓取與 Debug (保留原邏輯) ---
-console.log(`[DEBUG] Fetching 2026 Project: ${slug}`);
 const { data: projectData, error: dbError } = await supabase
   .from("projects")
   .select("*")
@@ -27,20 +33,14 @@ if (dbError || !projectData) {
   return Astro.redirect("/404");
 }
 
-// --- Zod 驗證 ---
 const result = ProjectSchema.safeParse(projectData);
 if (!result.success) {
-  console.error(
-    "❌ Zod Validation Failed:",
-    JSON.stringify(result.error.format(), null, 2),
-  );
+  console.error("❌ Zod Validation Failed:", JSON.stringify(result.error.format(), null, 2));
   return Astro.redirect("/404");
 }
 const project = result.data;
 
-// --- Markdown 渲染 ---
 const rawHtml = await marked.parse(project.content || "");
-
 const cleanHtml = sanitizeHtml(rawHtml, {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "iframe"]),
   allowedAttributes: {
@@ -49,180 +49,162 @@ const cleanHtml = sanitizeHtml(rawHtml, {
   },
 });
 
+const categoryLabel = CATEGORIES[project.category_main as CategoryId] ?? CATEGORIES[0];
+const subCategoryLabels = project.category_sub
+  .map((id) => CATEGORIES[id as CategoryId])
+  .filter(Boolean);
+
+const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 ---
 
-<Layout
-  title={`${project.title} | ${CURRENT_YEAR}`}
-  description={project.description || ""}
-  pubDate={new Date(project.created_at)}
->
-  <!-- 標準背景與字體設定 -->
-  <main
-    class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 py-12 px-4 sm:px-6"
-  >
-    <div class="max-w-5xl mx-auto">
-      <!-- Debug 資訊 (小字灰色) -->
-      <div
-        class="mb-4 text-xs font-mono text-slate-500 border-b border-slate-200 dark:border-slate-800 pb-2"
-      >
-        Status: {project.status} | ID: {project.id}
-      </div>
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <BaseHead
+      title={`${project.title} · LATENT ${CURRENT_YEAR}`}
+      description={project.description ?? `${project.title} — ${categoryLabel} 專題`}
+      image={project.cover_image ?? undefined}
+    />
+  </head>
+  <body class="bg-bg">
+    <SmoothScroll />
+    <Header active="projects" />
 
-      <!-- Header: 標題與基本資訊 -->
-      <header class="mb-8">
-        <div class="flex items-center gap-2 mb-3">
-          <span
-            class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold px-2 py-1 rounded"
-          >
-            {CURRENT_YEAR}
-          </span>
-          <span
-            class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium px-2 py-1 rounded"
-          >
-            {CATEGORIES[project.category_main]}
-          </span>
-        </div>
+    <main class="pt-24 pb-32 min-h-screen">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
-        <h1 class="text-4xl font-extrabold tracking-tight mb-2">
-          {project.title}
-        </h1>
+        <!-- Breadcrumb -->
+        <nav class="font-mono text-xs text-ink-dim mb-8 flex items-center gap-1.5" aria-label="breadcrumb">
+          <Link href="/projects">projects</Link>
+          <span>/</span>
+          <span>{CURRENT_YEAR}</span>
+          <span>/</span>
+          <span class="text-ink">{project.slug}</span>
+        </nav>
 
-        {
-          project.subtitle && (
-            <p class="text-xl text-slate-600 dark:text-slate-400 mb-4">
-              {project.subtitle}
-            </p>
-          )
-        }
+        <!-- Cover image -->
+        {project.cover_image && (
+          <div class="w-full h-56 sm:h-72 overflow-hidden border border-line mb-8">
+            <img
+              src={project.cover_image}
+              alt={project.title}
+              class="w-full h-full object-cover opacity-80"
+            />
+          </div>
+        )}
 
-        <div class="text-sm">
-          作者：<span class="font-semibold">@{project.author_handle}</span>
-        </div>
-      </header>
+        <!-- Header -->
+        <header class="mb-8">
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <Tag variant="main">{categoryLabel}</Tag>
+            <Tag variant="sub">{CURRENT_YEAR}</Tag>
+            {subCategoryLabels.map((label) => (
+              <Tag variant="sub">{label}</Tag>
+            ))}
+          </div>
 
-      <!-- 主要連結按鈕 -->
-      <div class="flex flex-wrap gap-3 mb-10">
-        {
-          project.links.demo && (
-            <a
-              href={project.links.demo}
-              target="_blank"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition"
-            >
-              線上展示 (Demo)
-            </a>
-          )
-        }
-        {
-          project.links.github && (
-            <a
-              href={project.links.github}
-              target="_blank"
-              class="inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium rounded-md transition"
-            >
-              原始碼 (GitHub)
-            </a>
-          )
-        }
-      </div>
+          <h1 class="text-4xl sm:text-5xl font-black text-ink text-glow-primary leading-tight">
+            {project.title}
+          </h1>
+          {project.subtitle && (
+            <p class="text-xl text-ink-dim mt-2">{project.subtitle}</p>
+          )}
+          <p class="text-sm text-ink-dim font-mono mt-3">
+            作者：<span class="text-ink">@{project.author_handle}</span>
+          </p>
+        </header>
 
-      <!-- 內容佈局: 側邊欄與主內容 -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <!-- 側邊欄 (詳細資訊) -->
-        <aside class="space-y-8 order-2 lg:order-1">
-          <section>
-            <h3
-              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-            >
-              專案簡介
-            </h3>
-            <p class="text-sm leading-relaxed">{project.description}</p>
-          </section>
+        <!-- Link buttons -->
+        {linkEntries.length > 0 && (
+          <div class="flex flex-wrap gap-3 mb-10">
+            {project.links.demo && (
+              <Button as="a" href={project.links.demo} variant="primary" text="線上展示" target="_blank" rel="noopener noreferrer" />
+            )}
+            {project.links.github && (
+              <Button as="a" href={project.links.github} variant="outline" text="原始碼" target="_blank" rel="noopener noreferrer" />
+            )}
+            {linkEntries
+              .filter(([key]) => key !== "demo" && key !== "github")
+              .map(([key, url]) => (
+                <Button as="a" href={url!} variant="secondary" text={key} target="_blank" rel="noopener noreferrer" />
+              ))
+            }
+          </div>
+        )}
 
-          <section>
-            <h3
-              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-            >
-              技術棧 (Tech Stack)
-            </h3>
-            <div class="flex flex-wrap gap-2">
-              {
-                project.tech_stack.map((tech) => (
-                  <span class="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs rounded shadow-sm">
-                    {tech}
-                  </span>
-                ))
-              }
-            </div>
-          </section>
+        <!-- 2-col layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
 
-          <section>
-            <h3
-              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3"
-            >
-              關鍵字
-            </h3>
-            <div class="flex flex-wrap gap-2">
-              {
-                project.keywords.map((kw) => (
-                  <span class="text-blue-600 dark:text-blue-400 text-xs">
-                    #{kw}
-                  </span>
-                ))
-              }
-            </div>
-          </section>
-        </aside>
+          <!-- Sidebar -->
+          <aside class="lg:col-span-1 space-y-6 order-2 lg:order-1">
 
-        <!-- 主內容 (Markdown 與 圖片) -->
-        <article class="lg:col-span-2 order-1 lg:order-2 space-y-12">
-          <section>
-            <h3
-              class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6 border-b pb-2"
-            >
-              專案詳情
-            </h3>
-            <div class="prose" set:html={cleanHtml} />
-          </section>
+            <section class="border-dashed-cyber p-4">
+              <CommentLabel text="project_overview" />
+              <p class="text-sm text-ink-muted leading-relaxed mt-2">{project.description}</p>
+            </section>
 
-          {
-            project.screenshots.length > 0 && (
+            {project.tech_stack.length > 0 && (
               <section>
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-6 border-b pb-2">
-                  成果展示 (Screenshots)
-                </h3>
-                <div class="space-y-6">
-                  {project.screenshots.map((src) => (
-                    <img
-                      src={src}
-                      loading="lazy"
-                      alt="Project Screenshot"
-                      class="w-full rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
-                    />
+                <CommentLabel text="tech_stack" />
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                  {project.tech_stack.map((tech) => (
+                    <Tag variant="sub">{tech}</Tag>
                   ))}
                 </div>
               </section>
-            )
-          }
-        </article>
-      </div>
+            )}
 
-      <!-- Footer: 底部統計與返回 -->
-      <footer
-        class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-sm text-slate-500"
-      >
-        <div>
-          按讚次數：<span class="font-bold text-slate-900 dark:text-slate-100"
-            >{project.like_count}</span
-          >
+            {project.keywords.length > 0 && (
+              <section>
+                <CommentLabel text="keywords" />
+                <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
+                  {project.keywords.map((kw) => (
+                    <span class="font-mono text-xs text-primary-400"># {kw}</span>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section class="border-solid-cyber p-3 flex items-center gap-3">
+              <span class="text-accent-500 font-mono text-2xl font-black">{project.like_count}</span>
+              <span class="text-ink-dim text-sm font-mono">ENERGY_VOTES</span>
+            </section>
+
+          </aside>
+
+          <!-- Main content -->
+          <article class="lg:col-span-2 order-1 lg:order-2 space-y-10">
+
+            <section>
+              <CommentLabel text="project_details" />
+              <div class="prose max-w-none mt-4" set:html={cleanHtml} />
+            </section>
+
+            {project.screenshots.length > 0 && (
+              <section>
+                <CommentLabel text="screenshots" />
+                <div class="space-y-4 mt-4">
+                  {project.screenshots.map((src) => (
+                    <div class="border border-line overflow-hidden">
+                      <img src={src} loading="lazy" alt="" class="w-full" />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+          </article>
         </div>
-        <a
-          href="/2026"
-          class="text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          返回列表
-        </a>
-      </footer>
-    </div>
-  </main>
-</Layout>
+
+        <!-- Footer bar -->
+        <footer class="mt-16 pt-6 border-t border-line flex justify-between items-center">
+          <Link href="/projects/2026">← 返回列表</Link>
+          <span class="font-mono text-xs text-ink-disabled">ID: {project.id.slice(0, 8)}…</span>
+        </footer>
+
+      </div>
+    </main>
+
+    <Footer />
+  </body>
+</html>

@@ -46,4 +46,4 @@ export const CATEGORIES = {
   6: "硬體"
 } as const;
 
-type CategoryId = keyof typeof CATEGORIES;
+export type CategoryId = keyof typeof CATEGORIES;

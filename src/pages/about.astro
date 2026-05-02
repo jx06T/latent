@@ -1,63 +1,57 @@
 ---
-import AboutHeroImage from '../assets/blog-placeholder-about.jpg';
-import Layout from '../layouts/BlogPost.astro';
+import ProseLayout from "@/layouts/ProseLayout.astro";
 ---
 
-<Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage={AboutHeroImage}
+<ProseLayout
+  title="關於 LATENT"
+  description="LATENT 是一個專為學生專題設計的發表平台，讓每一段學習歷程都有機會被看見。"
+  active="about"
 >
-	<p>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-		labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo
-		viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam
-		adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus
-		et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus
-		vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque
-		sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
-	</p>
+  <div class="prose max-w-none">
+    <h1>關於 LATENT</h1>
 
-	<p>
-		Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non
-		tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non
-		blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna
-		porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis
-		massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc.
-		Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis
-		bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra
-		massa massa ultricies mi.
-	</p>
+    <p class="lead">
+      LATENT 是一個專為學生專題設計的發表平台，讓每一段學習歷程都有機會被看見。
+    </p>
 
-	<p>
-		Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl
-		suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet
-		nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae
-		turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem
-		dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat
-		semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus
-		vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum
-		facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam
-		vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla
-		urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
-	</p>
+    <h2>這是什麼？</h2>
+    <p>
+      每一年，來自不同領域的學生在這裡展示他們的作品——
+      從 AI 模型、互動遊戲，到硬體裝置與資料視覺化。
+      LATENT 的名字，來自「潛伏的能量」：那些還沒被世界發現、但已悄悄成形的創作。
+    </p>
+    <p>
+      我們相信，每一件學生作品背後都有一段值得記錄的過程。
+      不論是課堂期末專題、競賽作品，還是課外自發的嘗試，都是這裡的歸宿。
+    </p>
 
-	<p>
-		Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper
-		viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc
-		scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur
-		gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus
-		pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim
-		blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id
-		cursus metus aliquam eleifend mi.
-	</p>
+    <h2>2026 年度</h2>
+    <p>
+      本年度收錄橫跨六大領域的學生專題：
+    </p>
+    <ul>
+      <li><strong>人工智慧</strong> — 機器學習、自然語言處理、電腦視覺</li>
+      <li><strong>系統與網站開發</strong> — 全端應用、API、工具系統</li>
+      <li><strong>互動與遊戲</strong> — 遊戲設計、互動裝置、體驗設計</li>
+      <li><strong>資料分析與視覺化</strong> — 資料探索、圖表設計、儀表板</li>
+      <li><strong>工具與自動化</strong> — 腳本、工作流程、效率工具</li>
+      <li><strong>硬體</strong> — 嵌入式系統、IoT、實體裝置</li>
+    </ul>
 
-	<p>
-		Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta
-		nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam
-		tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci
-		ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar
-		proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
-	</p>
-</Layout>
+    <h2>如何參與？</h2>
+    <p>
+      如果你是在學學生，歡迎透過<a href="/contact">聯絡頁面</a>提交你的專題。
+      每件作品需通過審核，確認內容完整後方會正式刊出。
+    </p>
+    <p>
+      提交前請確保你的專題包含：清楚的標題與說明、技術堆疊清單、
+      以及至少一個可供展示的連結（Demo 或 GitHub）。
+    </p>
+
+    <h2>關於平台</h2>
+    <p>
+      本站由學生自主開發與維護，使用 Astro + Supabase 構建。
+      若有技術問題或合作意向，歡迎<a href="/contact">聯繫我們</a>。
+    </p>
+  </div>
+</ProseLayout>
