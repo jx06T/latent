@@ -3,30 +3,37 @@ import { Image } from "astro:assets";
 import bgLines from "@/assets/hero/bg-normal.jpg";
 import bgPixels from "@/assets/hero/bg-pixel.jpg";
 
-// absolute inset-0: 絕對定位並撐滿父容器 (Hero)
+interface Props {
+  type: "normal" | "pixel";
+}
+
+const { type } = Astro.props;
 ---
 
 <div
   data-bg-static
   class="absolute inset-0 w-full h-full pointer-events-none overflow-hidden"
 >
-  <Image
-    src={bgLines}
-    alt="Base Background"
-    class="absolute inset-0 w-full h-full object-cover"
-    widths={[640, 960, 1280, 1920]}
-    sizes="100vw"
-    loading="eager"
-    fetchpriority="high"
-  />
-
-  <Image
-    src={bgPixels}
-    alt="Pixel Background"
-    class="absolute inset-0 w-full h-full object-cover"
-    style="clip-path: url(#scan-mask);"
-    widths={[640, 960, 1280, 1920]}
-    sizes="100vw"
-    loading="eager"
-  />
+  {
+    type == "normal" ? (
+      <Image
+        src={bgLines}
+        alt="Base Background"
+        class="absolute inset-0 w-full h-full object-cover"
+        widths={[640, 960, 1280, 1920]}
+        sizes="100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    ) : (
+      <Image
+        src={bgPixels}
+        alt="Pixel Background"
+        class="absolute inset-0 w-full h-full object-cover"
+        widths={[640, 960, 1280, 1920]}
+        sizes="100vw"
+        loading="eager"
+      />
+    )
+  }
 </div>

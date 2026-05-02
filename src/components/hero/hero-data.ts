@@ -58,8 +58,8 @@ export const scanBoxes: ScanBox[] = [
         id: "u-1",
         label: "[ #99 ground 57% ]",
         x: 35,
-        y: 26,
-        w: 15,
+        y: 24,
+        w: 14,
         h: 14.3,
         speed: 0.18,
     },
@@ -92,5 +92,5 @@ export const floatElements: FloatElement[] = [
     { id: "j-1", num: "05", top: 72, left: 80,  width: 16, speed: 0.1,  wUnit: 16 },
     { id: "j-1", num: "07", top: 75, left: 18,  width: 15, speed: 0.13, wUnit: 15 },
     { id: "c-2", num: "09", top: 25, left: 80,  width: 28, speed: 0.17, wUnit: 28 },
-    { id: "o-1", num: "10", top: 60, left: -7,  width: 22, speed: 0.2,  wUnit: 22 },
+    { id: "o-1", num: "10", top: 58, left: -7,  width: 22, speed: 0.2,  wUnit: 22 },
 ];
