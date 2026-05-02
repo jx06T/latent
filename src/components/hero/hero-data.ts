@@ -1,6 +1,7 @@
 export type ScanBox = {
     id: string;
     label: string;
+    confidence: number; // base value; display fluctuates ±15, clamped 01–99
     x: number;
     y: number;
     w: number;
@@ -11,7 +12,8 @@ export type ScanBox = {
 export const scanBoxes: ScanBox[] = [
     {
         id: "o-1",
-        label: "[ #03 octopus 93% ]",
+        label: "[ #03 octopus",
+        confidence: 93,
         x: 2,
         y: 55,
         w: 12,
@@ -20,7 +22,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "j-1",
-        label: "[ #03 jellyfish 93% ]",
+        label: "[ #03 jellyfish",
+        confidence: 93,
         x: 80,
         y: 62,
         w: 10,
@@ -29,7 +32,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "b-1",
-        label: "[ #07 bird 75% ]",
+        label: "[ #07 bird",
+        confidence: 75,
         x: 70,
         y: 10,
         w: 16,
@@ -38,7 +42,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "f-1",
-        label: "[ #99 fish 57% ]",
+        label: "[ #99 fish",
+        confidence: 57,
         x: 15,
         y: 73,
         w: 18,
@@ -47,7 +52,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "g-1",
-        label: "[ #99 ground 57% ]",
+        label: "[ #99 building",
+        confidence: 57,
         x: 55,
         y: 83,
         w: 16,
@@ -56,7 +62,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "u-1",
-        label: "[ #99 ground 57% ]",
+        label: "[ #99 Unknown",
+        confidence: 10,
         x: 35,
         y: 24,
         w: 14,
@@ -65,7 +72,8 @@ export const scanBoxes: ScanBox[] = [
     },
     {
         id: "u-2",
-        label: "[ #99 ground 57% ]",
+        label: "[ #99 Unknown",
+        confidence: 1,
         x: 60,
         y: 40,
         w: 6,

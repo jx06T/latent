@@ -104,7 +104,7 @@ import { scanBoxes } from "./hero-data";
                 font-family="Ubuntu"
                 class="translate-y-0.5 md:translate-y-px lg:translate-y-0 text-[11px] md:text-[13px] lg:text-[16px] xl:text-[18px]"
               >
-                {box.label}
+                {box.label} <tspan data-scanner-conf={box.id}>{String(box.confidence).padStart(2, "0")}%</tspan> ]
               </text>
             </g>
           </g>

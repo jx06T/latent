@@ -50,6 +50,9 @@ export function initScannerAnimations(
             .to(animPair, { "--scale-y": 1, duration: 0.6, ease: "power3.out" }, "-=0.2")
             .to(labelMask, { scaleX: 1, duration: 0.4, ease: "power2.out" }, "-=0.5");
 
+        const confEl = wrapper.querySelector<SVGTSpanElement>(`[data-scanner-conf="${boxData.id}"]`);
+        if (confEl) startConfidenceFlicker(confEl, boxData.confidence);
+
         if (boxData.speed !== 0) {
             const yOffset = window.innerHeight * boxData.speed;
             gsap.set(parallaxPair, { "--parallax-y": `${yOffset / 2}px` });
@@ -65,7 +68,19 @@ export function initScannerAnimations(
             });
         }
 
-        function randomFloat() {
+        function startConfidenceFlicker(el: SVGTSpanElement, base: number): void {
+      let timerId: number;
+      const tick = () => {
+        const delta = Math.round((Math.random() * 2 - 1) * 15);
+        const val = Math.min(99, Math.max(1, base + delta));
+        el.textContent = String(val).padStart(2, "0") + "%";
+        timerId = window.setTimeout(tick, 500);
+      };
+      timerId = window.setTimeout(tick, 1000 + Math.random() * 1000);
+      document.addEventListener("astro:before-swap", () => clearTimeout(timerId), { once: true });
+    }
+
+    function randomFloat() {
             gsap.to(animPair, {
                 "--float-x": `${gsap.utils.random(-4 * getBaseUnit(window.innerWidth), 4 * getBaseUnit(window.innerWidth))}px`,
                 "--float-y": `${gsap.utils.random(-40, 40)}px`,
