@@ -50,7 +50,7 @@ const STATS = [
     <div class="text-center mb-12">
       <CommentLabel text="system_telemetry" />
       <h2 class="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
-        LATENT_2026 // STATUS
+        [ 2026_LATENT_STATUS ]
       </h2>
     </div>
 
@@ -58,8 +58,8 @@ const STATS = [
       {STATS.map((stat, i) => (
         <div class={`relative p-8 sm:p-10 text-center ${i < 2 ? "border-b sm:border-b-0 sm:border-r border-line" : ""}`}>
           <!-- Corner accents -->
-          <span class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent-500/50" aria-hidden="true"></span>
-          <span class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-500/50" aria-hidden="true"></span>
+          <span class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent-500" aria-hidden="true"></span>
+          <span class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-500" aria-hidden="true"></span>
 
           <div
             id={stat.id}
@@ -68,11 +68,11 @@ const STATS = [
           >
             0
           </div>
-          <div class="font-mono text-xs text-ink-dim mt-2">{stat.unit}</div>
-          <div class="font-mono text-xs text-primary-600 mt-3 tracking-widest uppercase">
+          <div class="font-mono text-base text-ink-dim mt-2">{stat.unit}</div>
+          <div class="font-mono text-sm text-ink-dim mt-3 tracking-widest uppercase">
+          <div class="text-sm text-accent-600 mt-0.5">{stat.desc}</div>
             {stat.label}
           </div>
-          <div class="text-xs text-ink-disabled mt-1">{stat.desc}</div>
         </div>
       ))}
     </div>
