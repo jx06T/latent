@@ -32,7 +32,7 @@ const levelClass: Record<LogEntry["level"], string> = {
   aria-label="System log output"
   role="log"
 >
-  <ul class="list-none m-0 p-0" aria-live="polite">
+  <ul class="log-list list-none m-0 p-0" aria-live="polite">
     {
       logs.map((entry) => (
         <li
