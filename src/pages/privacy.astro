@@ -1,52 +1,15 @@
 ---
 import ProseLayout from "@/layouts/ProseLayout.astro";
+import MarkdownContent from "@/components/ui/MarkdownContent.astro";
+
+import privacyContent from "@/content/privacy.md?raw";
 ---
 
 <ProseLayout
   title="隱私權政策 | Latent"
   description="Latent 平台的隱私權政策，說明我們如何處理您的資料。"
 >
-  <div class="prose max-w-none">
-    <h1>隱私權政策</h1>
-
-    <p class="lead">
-      本政策說明 Latent 平台如何收集、使用及保護您的資訊。
-      最後更新：2026 年 1 月。
-    </p>
-
-    <h2>資料收集</h2>
-    <p>
-      本站僅收集匿名瀏覽統計（例如頁面瀏覽次數），不收集任何可識別個人身份的資訊。
-      我們不要求您建立帳號或提供電子郵件即可瀏覽所有公開內容。
-    </p>
-
-    <h2>Supabase 資料庫</h2>
-    <p>
-      本站的專題資料儲存於 <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">Supabase</a> 雲端服務。
-      所有資料傳輸均使用 TLS 加密，並受 Supabase 的隱私政策及資料安全規範保護。
-    </p>
-
-    <h2>Cookie 與追蹤</h2>
-    <p>
-      本站不使用任何追蹤性 Cookie，也不使用第三方廣告或行為分析工具。
-      我們不會跨網站追蹤您的瀏覽行為。
-    </p>
-
-    <h2>第三方連結</h2>
-    <p>
-      本站內容可能包含指向外部網站（如 GitHub、Demo 連結）的超連結。
-      這些外部網站各有其隱私政策，本站不對其內容或資料處理方式負責。
-    </p>
-
-    <h2>政策修改</h2>
-    <p>
-      本隱私政策可能不定期更新。修改時，我們將以頁面上方的「最後更新」日期標示。
-      建議您定期查閱此頁面以了解最新內容。
-    </p>
-
-    <h2>聯絡我們</h2>
-    <p>
-      如果您對本隱私政策有任何疑問，歡迎透過<a href="/contact">聯絡頁面</a>與我們聯繫。
-    </p>
+  <div class="prose prose-invert max-w-none">
+    <MarkdownContent content={privacyContent} />
   </div>
 </ProseLayout>

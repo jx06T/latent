@@ -7,12 +7,14 @@ interface Props {
   message?: string; // 設為可選，方便 template 使用
   timestamp?: string;
   class?: string;
+  id?: string;
 }
 
 const {
   type = "success",
   message = "",
   timestamp = "+0.000s",
+  id = "",
   class: className,
 } = Astro.props;
 
@@ -35,10 +37,17 @@ const s = statusMap[type];
   <span class={cn("js-log-color flex items-center gap-1", s.color)}>
     <span class="opacity-70">[</span>
     <span
-      class={cn("js-log-bg w-1.5 h-1.5 rounded-full inline-block -mb-0.5", s.bg)}
-      style="box-shadow: 0 0 6px currentColor"
-    ></span>
-    <span class={cn("js-log-color-text -mb-px text-xs tracking-widest h-4 flex items-center", s.color)}>
+      class={cn(
+        "js-log-bg w-1.5 h-1.5 rounded-full inline-block -mb-0.5",
+        s.bg,
+      )}
+      style="box-shadow: 0 0 6px currentColor"></span>
+    <span
+      class={cn(
+        "js-log-color-text -mb-px text-xs tracking-widest h-4 flex items-center",
+        s.color,
+      )}
+    >
       <span class="js-log-label">{s.label}</span>
     </span>
     <span class="opacity-70">]</span>
@@ -55,5 +64,8 @@ const s = statusMap[type];
   </span>
 
   <!-- 背景掃描線閃爍效果 (可選) -->
-  <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 pointer-events-none"></div>
+  <div
+    class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 pointer-events-none"
+  >
+  </div>
 </div>

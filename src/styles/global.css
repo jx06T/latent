@@ -13,10 +13,10 @@
 
 @layer base {
   /* 確保所有互動元素不會被雙擊放大，且點擊反應會變快 (移除 300ms 延遲) */
-  a, 
-  button, 
-  input, 
-  textarea, 
+  a,
+  button,
+  input,
+  textarea,
   select {
     touch-action: manipulation;
   }
@@ -66,15 +66,18 @@
   --color-line-accent: rgba(227, 124, 70, 0.33);
 
   /* ── Semantic ───────────────────────────────────── */
-  --color-success: #22c55e;
-  --color-success-ghost: rgba(34, 197, 94, 0.12);
-  --color-danger: #ef4444;
-  --color-danger-ghost: rgba(239, 68, 68, 0.12);
-  --color-warning: #facc15;
-  --color-warning-ghost: rgba(250, 204, 21, 0.12);
-  --color-info: #0ea5e9;
-  --color-info-ghost: rgba(14, 165, 233, 0.12);
+  --color-success: #34a46a;
+  --color-success-ghost: rgba(52, 164, 106, 0.1);
 
+  --color-danger: #e05656;
+  --color-danger-ghost: rgba(224, 86, 86, 0.1);
+
+  --color-warning: #e0b94b;
+  --color-warning-ghost: rgba(224, 185, 75, 0.1);
+
+  --color-info: #3da2d9;
+  --color-info-ghost: rgba(61, 162, 217, 0.1);
+  
   /* ── Typography ─────────────────────────────────── */
   --font-sans: "Ubuntu", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Ubuntu", "JetBrains Mono", ui-monospace, "Consolas", monospace;
@@ -115,28 +118,6 @@
   }
 }
 
-@layer base {
-  /* Dark-theme typography — overrides @tailwindcss/typography defaults via CSS variables */
-  .prose {
-    --tw-prose-body: var(--color-ink-muted);
-    --tw-prose-headings: var(--color-ink);
-    --tw-prose-lead: var(--color-ink-dim);
-    --tw-prose-links: var(--color-primary-400);
-    --tw-prose-bold: var(--color-ink);
-    --tw-prose-counters: var(--color-ink-dim);
-    --tw-prose-bullets: var(--color-line-active);
-    --tw-prose-hr: var(--color-line);
-    --tw-prose-quotes: var(--color-ink-muted);
-    --tw-prose-quote-borders: var(--color-line-active);
-    --tw-prose-captions: var(--color-ink-dim);
-    --tw-prose-code: var(--color-accent-400);
-    --tw-prose-pre-code: var(--color-ink-muted);
-    --tw-prose-pre-bg: var(--color-bg-elevated);
-    --tw-prose-th-borders: var(--color-line);
-    --tw-prose-td-borders: var(--color-line);
-  }
-}
-
 @layer utilities {
   /* 掃描框用虛線 */
   .border-dashed-cyber {
@@ -163,12 +144,41 @@
     display: none;
   }
 
-  /* typography 覆寫 */
+  /* typography 覆寫 — in @layer utilities to win over plugin's @layer components defaults */
+  .prose {
+    --tw-prose-body: var(--color-ink-muted);
+    --tw-prose-headings: var(--color-ink);
+    --tw-prose-lead: var(--color-ink-dim);
+    --tw-prose-links: var(--color-primary-400);
+    --tw-prose-bold: var(--color-ink);
+    --tw-prose-counters: var(--color-ink-dim);
+    --tw-prose-bullets: var(--color-line-active);
+    --tw-prose-hr: var(--color-line);
+    --tw-prose-quotes: var(--color-ink-muted);
+    --tw-prose-quote-borders: var(--color-line-active);
+    --tw-prose-captions: var(--color-ink-dim);
+    --tw-prose-code: var(--color-accent-400);
+    --tw-prose-pre-code: var(--color-ink-muted);
+    --tw-prose-pre-bg: var(--color-bg-elevated);
+    --tw-prose-th-borders: var(--color-line);
+    --tw-prose-td-borders: var(--color-line);
+    /* direct override as fallback in case CSS vars don't cascade correctly */
+    color: var(--color-ink-muted);
+  }
+  .prose :where(p, li, td, dd, dt, blockquote) {
+    color: var(--color-ink-muted);
+  }
   .prose :is(h1, h2, h3, h4, h5, h6) {
     color: var(--color-ink);
   }
   .prose a {
     color: var(--color-primary-400);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+  }
+  .prose a:hover {
+    color: var(--color-accent-400);
   }
   .prose code {
     color: var(--color-accent-400);

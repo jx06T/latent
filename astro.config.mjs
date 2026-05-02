@@ -9,15 +9,27 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 
 import vercel from '@astrojs/vercel';
+import rehypeExternalLinks from 'rehype-external-links';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://example.com',
-  integrations: [mdx(), react(),sitemap()],
+  integrations: [mdx(), react(), sitemap()],
   output: "server",
   vite: {
     plugins: [tailwindcss()],
   },
-
+  markdown: {
+    rehypePlugins: [
+      [
+        rehypeExternalLinks,
+        {
+          // 自動幫所有外部連結加上屬性
+          target: '_blank',
+          rel: ['noopener', 'noreferrer']
+        }
+      ]
+    ]
+  },
   adapter: vercel(),
 });

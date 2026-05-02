@@ -32,7 +32,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
 <html lang="zh-TW">
   <head>
     <BaseHead
-      title={`${YEAR} 年度專題 | ${SITE_TITLE}`}
+      title={`Projects-${YEAR} | ${SITE_TITLE}`}
       description={`探索 ${YEAR} 年度學生專題，涵蓋 AI、系統開發、互動遊戲等領域`}
     />
   </head>
@@ -44,9 +44,9 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
 
       <!-- Page header -->
       <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 border-b border-line">
-        <CommentLabel text="year_database" />
+        <!-- <CommentLabel text="year_database" /> -->
         <h1 class="text-4xl sm:text-5xl font-black text-ink text-glow-primary mt-2 tracking-tight">
-          [ {YEAR}_PROJECT_DATABASE ]
+          [ PROJECT_{YEAR} ]
         </h1>
         <div class="flex flex-wrap items-center gap-4 mt-3 font-mono text-sm text-ink-dim">
           <span>TOTAL_RECORDS: <span class="text-ink">{projects.length}</span></span>

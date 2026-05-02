@@ -1,5 +1,7 @@
 ---
 import ProseLayout from "@/layouts/ProseLayout.astro";
+import MarkdownContent from "@/components/ui/MarkdownContent.astro";
+import aboutContent from "@/content/about.md?raw";
 ---
 
 <ProseLayout
@@ -7,51 +9,7 @@ import ProseLayout from "@/layouts/ProseLayout.astro";
   description="LATENT 是一個專為學生專題設計的發表平台，讓每一段學習歷程都有機會被看見。"
   active="about"
 >
-  <div class="prose max-w-none">
-    <h1>關於 LATENT</h1>
-
-    <p class="lead">
-      LATENT 是一個專為學生專題設計的發表平台，讓每一段學習歷程都有機會被看見。
-    </p>
-
-    <h2>這是什麼？</h2>
-    <p>
-      每一年，來自不同領域的學生在這裡展示他們的作品——
-      從 AI 模型、互動遊戲，到硬體裝置與資料視覺化。
-      LATENT 的名字，來自「潛伏的能量」：那些還沒被世界發現、但已悄悄成形的創作。
-    </p>
-    <p>
-      我們相信，每一件學生作品背後都有一段值得記錄的過程。
-      不論是課堂期末專題、競賽作品，還是課外自發的嘗試，都是這裡的歸宿。
-    </p>
-
-    <h2>2026 年度</h2>
-    <p>
-      本年度收錄橫跨六大領域的學生專題：
-    </p>
-    <ul>
-      <li><strong>人工智慧</strong> — 機器學習、自然語言處理、電腦視覺</li>
-      <li><strong>系統與網站開發</strong> — 全端應用、API、工具系統</li>
-      <li><strong>互動與遊戲</strong> — 遊戲設計、互動裝置、體驗設計</li>
-      <li><strong>資料分析與視覺化</strong> — 資料探索、圖表設計、儀表板</li>
-      <li><strong>工具與自動化</strong> — 腳本、工作流程、效率工具</li>
-      <li><strong>硬體</strong> — 嵌入式系統、IoT、實體裝置</li>
-    </ul>
-
-    <h2>如何參與？</h2>
-    <p>
-      如果你是在學學生，歡迎透過<a href="/contact">聯絡頁面</a>提交你的專題。
-      每件作品需通過審核，確認內容完整後方會正式刊出。
-    </p>
-    <p>
-      提交前請確保你的專題包含：清楚的標題與說明、技術堆疊清單、
-      以及至少一個可供展示的連結（Demo 或 GitHub）。
-    </p>
-
-    <h2>關於平台</h2>
-    <p>
-      本站由學生自主開發與維護，使用 Astro + Supabase 構建。
-      若有技術問題或合作意向，歡迎<a href="/contact">聯繫我們</a>。
-    </p>
+  <div class="prose prose-invert max-w-none">
+    <MarkdownContent content={aboutContent} />
   </div>
 </ProseLayout>

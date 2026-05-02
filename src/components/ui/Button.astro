@@ -1,11 +1,10 @@
 ---
-// src/components/ui/Button.astro
 import ScrambleText from "./ScrambleText.astro";
 import { cn } from "@/lib/utils";
 
 interface Props {
   text?: string;
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "plain";
   scramble?: boolean;
   as?: "button" | "a";
   href?: string;
@@ -23,37 +22,50 @@ const {
   ...rest
 } = Astro.props;
 
-const variantStyles = {
-  primary:
-    "bg-accent-500 text-bg hover:bg-accent-400 shadow-accent-sm border-transparent",
-  secondary: "bg-primary-800 text-ink hover:bg-primary-700 border-line-strong",
-  outline:
-    "bg-transparent text-primary-400 border-line  hover:border-line-active",
-};
+const isPlain = variant === "plain";
 
-const baseStyles =
-  "cursor-pointer inline-block items-center justify-center transition-all duration-200 border uppercase tracking-widest group px-3.5 py-2 text-lg";
+const decoratedBase =
+  "cursor-pointer inline-flex items-center justify-center transition-all duration-200 border uppercase tracking-widest group px-3.5 py-2 text-lg";
+
+const plainBase =
+  "cursor-pointer inline-flex items-center transition-colors duration-200 text-sm text-ink-dim hover:text-ink";
+
+const variantStyle = ({
+  primary: "bg-accent-500 text-bg hover:bg-accent-400 shadow-accent-sm border-transparent",
+  secondary: "bg-primary-800 text-ink hover:bg-primary-700 border-line-strong",
+  outline: "bg-transparent text-primary-400 border-line hover:border-line-active",
+} as Record<string, string>)[variant] ?? "";
 ---
 
-<Tag
-  class={cn(baseStyles, variantStyles[variant], className)}
-  href={Tag === "a" ? href : undefined}
-  {...rest}
->
-  <span
-    class=" mr-2 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform"
-    >[</span
+{isPlain ? (
+  <Tag
+    class={cn(plainBase, className)}
+    href={Tag === "a" ? href : undefined}
+    {...rest}
   >
-
-  <span class="relative">
-    {text ? scramble ? <ScrambleText text={text} /> : text : <slot />}
-  </span>
-
-  <span
-    class="ml-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform"
-    >]</span
+    {text ? text : <slot />}
+  </Tag>
+) : (
+  <Tag
+    class={cn(decoratedBase, variantStyle, className)}
+    href={Tag === "a" ? href : undefined}
+    {...rest}
   >
-</Tag>
+    <span
+      class="mr-2 opacity-70 group-hover:opacity-100 group-hover:-translate-x-0.5 transition-transform"
+      >[</span
+    >
+
+    <span class="relative">
+      {text ? scramble ? <ScrambleText text={text} /> : text : <slot />}
+    </span>
+
+    <span
+      class="ml-2 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-transform"
+      >]</span
+    >
+  </Tag>
+)}
 
 <style>
   .group:hover {
