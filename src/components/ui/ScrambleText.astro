@@ -37,6 +37,7 @@ const {
 <script>
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { tr } from "zod/locales";
   gsap.registerPlugin(ScrollTrigger);
 
   const CHARS =
@@ -89,6 +90,7 @@ const {
         ScrollTrigger.create({
           trigger: target,
           start: "top 95%",
+          refreshPriority: -1,
           onEnter: runAnimation,
           once: true,
         });

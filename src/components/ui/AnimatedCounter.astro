@@ -1,0 +1,51 @@
+---
+interface Props {
+  value: number;
+  class?: string;
+  unit?: string;
+}
+
+const { value, class: className, unit = "" } = Astro.props;
+---
+
+<span class={className}>
+  <span data-counter-target={value}>0</span>
+  {unit && <span class="text-sm ml-1">{unit}</span>}
+</span>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  
+  // (可選) 如果想用 Intersection Observer，這裡可以替換
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initCounters() {
+    const elements = document.querySelectorAll("[data-counter-target]:not(.is-initialized)");
+
+    elements.forEach((el) => {
+      el.classList.add("is-initialized");
+      const target = parseInt(el.getAttribute("data-counter-target") || "0", 10);
+      if (target === 0) return;
+
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 2,
+        ease: "power2.out",
+        snap: { val: 1 },
+        onUpdate() {
+          el.textContent = obj.val.toLocaleString("zh-TW");
+        },
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%", // 調整觸發點
+          once: true,
+        },
+      });
+    });
+  }
+
+  initCounters();
+  document.addEventListener("astro:page-load", initCounters);
+</script>

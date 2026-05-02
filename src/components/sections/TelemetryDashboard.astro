@@ -1,12 +1,14 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel.astro";
+import ScrambleText from "../ui/ScrambleText.astro";
+import AnimatedCounter from "@/components/ui/AnimatedCounter.astro";
 
 interface Props {
   totalProjects?: number;
   totalVotes?: number;
 }
 
-const { totalProjects = 0, totalVotes = 0 } = Astro.props;
+const { totalProjects = 150, totalVotes = 444 } = Astro.props;
 
 const STATS = [
   {
@@ -35,22 +37,11 @@ const STATS = [
 
 <section id="telemetry" class="relative py-20 overflow-hidden bg-bg-surface border-t border-line">
 
-  <!-- Scanline overlay -->
-  <div class="scanline-layer absolute inset-0 pointer-events-none" aria-hidden="true"></div>
-
-  <!-- Noise chars background -->
-  <div
-    id="noise-chars"
-    class="absolute inset-0 pointer-events-none overflow-hidden select-none font-mono text-xs text-primary-900/40 leading-[1.1rem] tracking-[0.3rem]"
-    aria-hidden="true"
-    style="word-break: break-all; padding: 8px;"
-  ></div>
-
   <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
     <div class="text-center mb-12">
       <CommentLabel text="system_telemetry" />
       <h2 class="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
-        [ 2026_LATENT_STATUS ]
+        <ScrambleText text="[ 2026_LATENT_STATUS ]"/>
       </h2>
     </div>
 
@@ -64,9 +55,8 @@ const STATS = [
           <div
             id={stat.id}
             class="text-5xl sm:text-6xl font-black text-accent-500 tabular-nums font-mono"
-            data-count={stat.value}
           >
-            0
+             <AnimatedCounter value={stat.value} />
           </div>
           <div class="font-mono text-base text-ink-dim mt-2">{stat.unit}</div>
           <div class="font-mono text-sm text-ink-dim mt-3 tracking-widest uppercase">
@@ -78,97 +68,3 @@ const STATS = [
     </div>
   </div>
 </section>
-
-<style>
-  .scanline-layer::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(116, 156, 186, 0.025) 2px,
-      rgba(116, 156, 186, 0.025) 4px
-    );
-    pointer-events: none;
-  }
-</style>
-
-<script>
-  import gsap from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const NOISE_CHARS =
-    "アイウエオカキクケコサシスセソタチツテトナニヌネノ█▓▒░▌▐┼├─│┬┤◆◇■□▲△";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const section = document.getElementById("telemetry");
-    if (!section) return;
-
-    // ── Counter animations ────────────────────────────────────────
-    const ctx = gsap.context(() => {
-      section.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
-        const target = parseInt(el.dataset.count ?? "0", 10);
-        if (target === 0) return; // skip placeholder zeros
-
-        const obj = { val: 0 };
-        gsap.to(obj, {
-          val: target,
-          duration: 2,
-          ease: "power2.out",
-          snap: { val: 1 },
-          onUpdate() {
-            el.textContent = obj.val.toLocaleString("zh-TW");
-          },
-          scrollTrigger: {
-            trigger: el,
-            start: "top 80%",
-            once: true,
-          },
-        });
-      });
-    }, section);
-
-    // ── Noise chars ticker ────────────────────────────────────────
-    const noiseEl = document.getElementById("noise-chars");
-    let spans: HTMLElement[] = [];
-
-    if (noiseEl) {
-      const COLS = 60;
-      const ROWS = 12;
-
-      for (let i = 0; i < COLS * ROWS; i++) {
-        const span = document.createElement("span");
-        span.textContent =
-          NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
-        noiseEl.appendChild(span);
-        spans.push(span);
-      }
-
-      const interval = setInterval(() => {
-        const count = Math.floor(spans.length * 0.04);
-        for (let i = 0; i < count; i++) {
-          const idx = Math.floor(Math.random() * spans.length);
-          spans[idx].textContent =
-            NOISE_CHARS[Math.floor(Math.random() * NOISE_CHARS.length)];
-        }
-      }, 160);
-
-      document.addEventListener(
-        "astro:before-swap",
-        () => {
-          clearInterval(interval);
-          ctx.revert();
-        },
-        { once: true },
-      );
-    } else {
-      document.addEventListener("astro:before-swap", () => ctx.revert(), {
-        once: true,
-      });
-    }
-  });
-</script>

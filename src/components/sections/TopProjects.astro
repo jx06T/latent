@@ -2,6 +2,7 @@
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
 import Button from "@/components/ui/Button.astro";
+import ScrambleText from "../ui/ScrambleText.astro";
 
 interface ProjectCardProps {
   slug: string;
@@ -67,11 +68,10 @@ const { projects = MOCK_PROJECTS } = Astro.props;
       <h2
         class="text-3xl sm:text-4xl font-black text-ink text-glow-primary mt-2"
       >
-        [ TOP_PROJECTS ]
+        <ScrambleText text="[ TOP_PROJECTS ]" />
       </h2>
-      <p class="text-ink-dim font-mono text-sm mt-2">
-        // 本屆最受矚目的三件專題
-      </p>
+
+      <CommentLabel text="本屆最受矚目的三件專題" />
     </div>
 
     <div id="cards-container" class="relative w-full" style="height: 480px;">

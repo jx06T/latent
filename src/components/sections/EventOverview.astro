@@ -28,7 +28,9 @@ const PANELS = 4;
   </div>
 
   <!-- Section header -->
-  <div class="absolute top-8 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none">
+  <div
+    class="absolute top-8 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none"
+  >
     <CommentLabel text="event_overview" class="text-base md:text-xl" />
   </div>
 
@@ -52,11 +54,11 @@ const PANELS = 4;
     設定 w-max 讓軌道自然往右延伸 
   -->
   <div class="panels-track flex w-max h-screen will-change-transform">
-    <div class="w-[30vw] h-screen shrink-0 "></div>
+    <div class="w-[30vw] h-screen shrink-0"></div>
     <div
       class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
     >
-      <div class="w-full h-full max-w-2xl mx-auto py-20">
+      <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20">
         <PanelInfo />
       </div>
     </div>
@@ -64,7 +66,7 @@ const PANELS = 4;
     <div
       class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
     >
-      <div class="w-full h-full max-w-2xl mx-auto py-20">
+      <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20">
         <PanelTimeline />
       </div>
     </div>
@@ -72,7 +74,7 @@ const PANELS = 4;
     <div
       class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
     >
-      <div class="w-full h-full max-w-2xl mx-auto py-20">
+      <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20">
         <PanelKeynote />
       </div>
     </div>
@@ -80,7 +82,7 @@ const PANELS = 4;
     <div
       class="panel-card px-[15vw] h-screen shrink-0 flex items-center border-r border-line/60"
     >
-      <div class="w-full h-full max-w-2xl mx-auto py-20">
+      <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20">
         <PanelCategories />
       </div>
     </div>
