@@ -9,7 +9,13 @@
     "dev": "astro dev --host",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "sb:init": "supabase init",
+    "sb:login": "supabase login",
+    "sb:link": "supabase link",
+    "sb:pull": "supabase db pull",
+    "sb:start": "supabase start",
+    "sb:stop": "supabase stop"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.3",
@@ -39,6 +45,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/sanitize-html": "^2.16.1"
+    "@types/sanitize-html": "^2.16.1",
+    "supabase": "^2.98.0"
   }
 }

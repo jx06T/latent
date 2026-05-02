@@ -11,7 +11,7 @@ interface Props {
 const {
   position = "top",
   wave = "sine",
-  color = "var(--color-bg)",
+  color = "var(--color-bg-elevated)",
   class: className = "",
   ...rest
 } = Astro.props;
@@ -31,7 +31,10 @@ const path = WAVE_PATHS[wave] ?? WAVE_PATHS.sine;
 <div {...rest} class={cn("relative w-full bg-transparent", className)}>
   {
     (position === "top" || position === "both") && (
-      <div class="absolute -top-19.75 left-0 w-full h-20 pointer-events-none">
+      <div
+        style={`color: ${color};`}
+        class="absolute -top-19.75 left-0 w-full h-20 pointer-events-none"
+      >
         <svg
           class="w-full h-full block"
           viewBox="0 0 1440 80"

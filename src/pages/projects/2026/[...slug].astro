@@ -1,15 +1,12 @@
 ---
 export const prerender = false;
 
-import BaseHead from "@/components/sections/BaseHead.astro";
-import Footer from "@/components/sections/Footer.astro";
-import Header from "@/components/Header.astro";
-import SmoothScroll from "@/components/SmoothScroll.astro";
+import ProseLayout from "@/layouts/ProseLayout.astro";
 import Button from "@/components/ui/Button.astro";
 import Tag from "@/components/ui/Tag.astro";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Link from "@/components/ui/Link.astro";
-import MarkdownContent from "@/components/ui/MarkdownContent.astro"; // 👈 只需引入組件
+import MarkdownContent from "@/components/ui/MarkdownContent.astro";
 
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
@@ -17,6 +14,7 @@ import type { CategoryId } from "@/lib/schema";
 
 const { slug } = Astro.params;
 const CURRENT_YEAR = 2026;
+
 if (!slug) return Astro.redirect("/404");
 
 const cleanSlug = slug?.split("/")[0];
@@ -56,192 +54,177 @@ const subCategoryLabels = project.category_sub
 const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 ---
 
-<!doctype html>
-<html lang="zh-TW">
-  <head>
-    <BaseHead
-      title={`${project.title} · LATENT ${CURRENT_YEAR}`}
-      description={project.description ??
-        `${project.title} — ${categoryLabel} 專題`}
-      image={project.cover_image ?? undefined}
-    />
-  </head>
-  <body class="bg-bg">
-    <SmoothScroll />
-    <Header active="projects" />
+<ProseLayout
+  title={`${project.title} · LATENT ${CURRENT_YEAR}`}
+  description={project.description ??
+    `${project.title} — ${categoryLabel} 專題`}
+  ogImage={project.cover_image ?? undefined}
+  active="projects"
+>
+  <!-- Breadcrumb & Categories -->
+  <div
+    class="flex flex-col md:flex-row justify-start items-start md:justify-between md:items-start mb-8 gap-2"
+  >
+    <nav
+      class="font-mono text-base text-ink-dim flex items-center gap-1.5"
+      aria-label="breadcrumb"
+    >
+      <Link href="/projects">projects</Link>
+      <span>/</span>
+      <span>{CURRENT_YEAR}</span>
+      <span>/</span>
+      <span class="text-ink">{project.slug}</span>
+    </nav>
 
-    <main class="pt-24 pb-32 min-h-screen">
-      <div class="max-w-3xl mx-auto px-4 sm:px-6">
-        <!-- Breadcrumb -->
-        <div class="flex flex-col md:flex-row justify-start items-start md:justify-between md:items-start mb-8 gap-2">
-          <nav
-            class="font-mono text-base text-ink-dim flex items-center gap-1.5"
-            aria-label="breadcrumb"
-          >
-            <Link href="/projects">projects</Link>
-            <span>/</span>
-            <span>{CURRENT_YEAR}</span>
-            <span>/</span>
-            <span class="text-ink">{project.slug}</span>
-          </nav>
+    <div class="flex flex-wrap items-center gap-2">
+      <Tag variant="main">{categoryLabel}</Tag>
+      <Tag variant="sub">{CURRENT_YEAR}</Tag>
+      {subCategoryLabels.map((label) => <Tag variant="sub">{label}</Tag>)}
+    </div>
+  </div>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <Tag variant="main">{categoryLabel}</Tag>
-            <Tag variant="sub">{CURRENT_YEAR}</Tag>
-            {subCategoryLabels.map((label) => <Tag variant="sub">{label}</Tag>)}
-          </div>
-        </div>
-
-        <!-- Cover image -->
-        {
-          project.cover_image && (
-            <div class="w-full h-64 sm:h-80 overflow-hidden border border-line mb-10">
-              <img
-                src={project.cover_image}
-                alt={project.title}
-                class="w-full h-full object-cover opacity-80"
-              />
-            </div>
-          )
-        }
-
-        <!-- Header -->
-        <header class="mb-8 space-y-2">
-          <h1
-            class="text-3xl sm:text-4xl font-black text-ink text-glow-primary leading-tight"
-          >
-            {project.title}
-          </h1>
-          {
-            project.subtitle && (
-              <p class="text-lg text-ink-dim">{project.subtitle}</p>
-            )
-          }
-          <p class="font-mono text-lg text-ink-dim -mt-1">
-            by <span class="text-ink">@{project.author_handle}</span>
-          </p>
-        </header>
-
-        <!-- Link buttons -->
-        {
-          linkEntries.length > 0 && (
-            <div class="flex flex-wrap gap-3 mb-10">
-              {project.links.demo && (
-                <Button
-                  as="a"
-                  href={project.links.demo}
-                  variant="primary"
-                  text="線上展示"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              )}
-              {project.links.github && (
-                <Button
-                  as="a"
-                  href={project.links.github}
-                  variant="outline"
-                  text="原始碼"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              )}
-              {linkEntries
-                .filter(([key]) => key !== "demo" && key !== "github")
-                .map(([key, url]) => (
-                  <Button
-                    as="a"
-                    href={url!}
-                    variant="secondary"
-                    text={key}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  />
-                ))}
-            </div>
-          )
-        }
-
-        <!-- Project metadata -->
-        <div class="border-dashed-cyber p-5 mb-12 space-y-5">
-          <section>
-            <CommentLabel text="project_overview" />
-            <p class="text-base text-ink-muted leading-relaxed mt-2">
-              {project.description}
-            </p>
-          </section>
-
-          {
-            project.tech_stack.length > 0 && (
-              <section>
-                <CommentLabel text="tech_stack" />
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  {project.tech_stack.map((tech) => (
-                    <Tag variant="sub">{tech}</Tag>
-                  ))}
-                </div>
-              </section>
-            )
-          }
-
-          {
-            project.keywords.length > 0 && (
-              <section>
-                <CommentLabel text="keywords" />
-                <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
-                  {project.keywords.map((kw) => (
-                    <span class="font-mono text-base text-primary-400">
-                      <span class=" inline-block mr-0.5">#</span>
-                      {kw}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )
-          }
-
-          <div class="flex items-center gap-1 pt-4 border-t border-line">
-            <span class="text-accent-500 text-base font-mono">♦ VOTES：</span>
-            <span class="text-accent-500 font-mono text-xl inline-block -mt-1"
-              >{project.like_count}</span
-            >
-          </div>
-        </div>
-
-        <!-- Main article content -->
-        <article class="mb-12">
-          <CommentLabel text="project_details" />
-          <MarkdownContent content={project.content!} class="mt-6" />
-        </article>
-
-        <!-- Screenshots -->
-        {
-          project.screenshots.length > 0 && (
-            <section class="mb-12">
-              <CommentLabel text="screenshots" />
-              <div class="space-y-4 mt-4">
-                {project.screenshots.map((src) => (
-                  <div class="border border-line overflow-hidden">
-                    <img src={src} loading="lazy" alt="" class="w-full" />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )
-        }
-
-        <!-- Footer bar -->
-        <footer
-          class="mt-8 pt-3 border-t border-line flex justify-between items-center"
-        >
-          <Link href="/projects/2026">← 返回列表</Link>
-          <span class="font-mono text-xs text-ink-disabled"
-            >ID: {project.id.slice(0, 8)}…</span
-          >
-        </footer>
+  <!-- Cover image -->
+  {
+    project.cover_image && (
+      <div class="w-full h-64 sm:h-80 overflow-hidden border border-line mb-10">
+        <img
+          src={project.cover_image}
+          alt={project.title}
+          class="w-full h-full object-cover opacity-80"
+        />
       </div>
+    )
+  }
 
-      <Footer />
-    </main>
-  </body>
-</html>
+  <!-- Header -->
+  <header class="mb-8 space-y-2">
+    <h1
+      class="text-3xl sm:text-4xl font-black text-ink text-glow-primary leading-tight"
+    >
+      {project.title}
+    </h1>
+    {project.subtitle && <p class="text-lg text-ink-dim">{project.subtitle}</p>}
+    <p class="font-mono text-lg text-ink-dim -mt-1">
+      by <span class="text-ink">@{project.author_handle}</span>
+    </p>
+  </header>
+
+  <!-- Link buttons -->
+  {
+    linkEntries.length > 0 && (
+      <div class="flex flex-wrap gap-3 mb-10">
+        {project.links.demo && (
+          <Button
+            as="a"
+            href={project.links.demo}
+            variant="primary"
+            text="線上展示"
+            target="_blank"
+            rel="noopener noreferrer"
+          />
+        )}
+        {project.links.github && (
+          <Button
+            as="a"
+            href={project.links.github}
+            variant="outline"
+            text="原始碼"
+            target="_blank"
+            rel="noopener noreferrer"
+          />
+        )}
+        {linkEntries
+          .filter(([key]) => key !== "demo" && key !== "github")
+          .map(([key, url]) => (
+            <Button
+              as="a"
+              href={url!}
+              variant="secondary"
+              text={key}
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          ))}
+      </div>
+    )
+  }
+
+  <!-- Project metadata -->
+  <div class="border-dashed-cyber p-5 mb-12 space-y-5">
+    <section>
+      <CommentLabel text="project_overview" />
+      <p class="text-base text-ink-muted leading-relaxed mt-2">
+        {project.description}
+      </p>
+    </section>
+
+    {
+      project.tech_stack.length > 0 && (
+        <section>
+          <CommentLabel text="tech_stack" />
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            {project.tech_stack.map((tech) => (
+              <Tag variant="sub">{tech}</Tag>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {
+      project.keywords.length > 0 && (
+        <section>
+          <CommentLabel text="keywords" />
+          <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
+            {project.keywords.map((kw) => (
+              <span class="font-mono text-base text-primary-400">
+                <span class="inline-block mr-0.5">#</span>
+                {kw}
+              </span>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <div class="flex items-center gap-1 pt-4 border-t border-line">
+      <span class="text-accent-500 text-base font-mono">♦ VOTES：</span>
+      <span class="text-accent-500 font-mono text-xl inline-block -mt-1">
+        {project.like_count}
+      </span>
+    </div>
+  </div>
+
+  <!-- Main article content -->
+  <article class="mb-12">
+    <CommentLabel text="project_details" />
+    <!-- 完美套用 MarkdownContent 元件 -->
+    <MarkdownContent content={project.content!} class="mt-6" />
+  </article>
+
+  <!-- Screenshots -->
+  {
+    project.screenshots.length > 0 && (
+      <section class="mb-12">
+        <CommentLabel text="screenshots" />
+        <div class="space-y-4 mt-4">
+          {project.screenshots.map((src) => (
+            <div class="border border-line overflow-hidden">
+              <img src={src} loading="lazy" alt="" class="w-full" />
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Footer bar -->
+  <footer
+    class="mt-8 pt-3 border-t border-line flex justify-between items-center"
+  >
+    <Link href="/projects/2026">← 返回列表</Link>
+    <span class="font-mono text-xs text-ink-disabled">
+      ID: {project.id.slice(0, 8)}…
+    </span>
+  </footer>
+</ProseLayout>

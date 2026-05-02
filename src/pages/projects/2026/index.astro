@@ -1,8 +1,5 @@
 ---
-import BaseHead from "@/components/sections/BaseHead.astro";
-import Footer from "@/components/sections/Footer.astro";
-import Header from "@/components/Header.astro";
-import SmoothScroll from "@/components/SmoothScroll.astro";
+import Layout from "@/layouts/Layout.astro";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Input from "@/components/ui/Input.astro";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
@@ -28,57 +25,61 @@ const YEAR = 2026;
 const allCategories = Object.entries(CATEGORIES) as [string, string][];
 ---
 
-<!doctype html>
-<html lang="zh-TW">
-  <head>
-    <BaseHead
-      title={`Projects-${YEAR} | ${SITE_TITLE}`}
-      description={`探索 ${YEAR} 年度學生專題，涵蓋 AI、系統開發、互動遊戲等領域`}
-    />
-  </head>
-  <body class="bg-bg">
-    <SmoothScroll />
-    <Header active="projects" />
+<Layout
+  title={`Projects-${YEAR} | ${SITE_TITLE}`}
+  description={`探索 ${YEAR} 年度學生專題，涵蓋 AI、系統開發、互動遊戲等領域`}
+  activeNav="projects"
+>
+  <main class="pt-24 min-h-screen">
+    <!-- Page header -->
+    <section
+      class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 border-b border-line"
+    >
+      <!-- <CommentLabel text="year_database" /> -->
+      <h1
+        class="text-4xl sm:text-5xl font-black text-ink text-glow-primary mt-2 tracking-tight"
+      >
+        [ PROJECT_{YEAR} ]
+      </h1>
+      <div
+        class="flex flex-wrap items-center gap-4 mt-3 font-mono text-sm text-ink-dim"
+      >
+        <span
+          >TOTAL_RECORDS: <span class="text-ink">{projects.length}</span></span
+        >
+        <span class="text-line-active">│</span>
+        <span>STATUS: <span class="text-success">PUBLISHED</span></span>
+      </div>
+    </section>
 
-    <main class="pt-24 min-h-screen">
-
-      <!-- Page header -->
-      <section class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 border-b border-line">
-        <!-- <CommentLabel text="year_database" /> -->
-        <h1 class="text-4xl sm:text-5xl font-black text-ink text-glow-primary mt-2 tracking-tight">
-          [ PROJECT_{YEAR} ]
-        </h1>
-        <div class="flex flex-wrap items-center gap-4 mt-3 font-mono text-sm text-ink-dim">
-          <span>TOTAL_RECORDS: <span class="text-ink">{projects.length}</span></span>
-          <span class="text-line-active">│</span>
-          <span>STATUS: <span class="text-success">PUBLISHED</span></span>
+    <!-- Search & filter hook (data attributes ready for future JS wiring) -->
+    <section
+      id="search-interface"
+      class="max-w-6xl mx-auto px-4 sm:px-6 py-6 border-b border-line"
+    >
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <CommentLabel text="query_filter" />
+          <Input
+            id="search-input"
+            placeholder="search title, author, keyword..."
+            class="w-full"
+          />
         </div>
-      </section>
+      </div>
 
-      <!-- Search & filter hook (data attributes ready for future JS wiring) -->
-      <section id="search-interface" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 border-b border-line">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
-            <CommentLabel text="query_filter" />
-            <Input
-              id="search-input"
-              placeholder="search title, author, keyword..."
-              class="w-full"
-            />
-          </div>
-        </div>
-
-        <!-- Category filter buttons -->
-        <div id="category-filters" class="flex flex-wrap gap-2 mt-4">
-          <button
-            data-category="all"
-            class="font-mono text-xs px-3 py-1.5 border border-line-active text-accent-500
+      <!-- Category filter buttons -->
+      <div id="category-filters" class="flex flex-wrap gap-2 mt-4">
+        <button
+          data-category="all"
+          class="font-mono text-xs px-3 py-1.5 border border-line-active text-accent-500
                    hover:bg-accent-500/10 transition-colors duration-150
                    [&.active]:bg-accent-500/20 [&.active]:border-accent-500 active"
-          >
-            全部
-          </button>
-          {allCategories.map(([id, label]) => (
+        >
+          全部
+        </button>
+        {
+          allCategories.map(([id, label]) => (
             <button
               data-category={id}
               class="font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
@@ -87,13 +88,15 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
             >
               {label}
             </button>
-          ))}
-        </div>
-      </section>
+          ))
+        }
+      </div>
+    </section>
 
-      <!-- Project grid -->
-      <section class="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24">
-        {projects.length === 0 ? (
+    <!-- Project grid -->
+    <section class="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24">
+      {
+        projects.length === 0 ? (
           <div class="flex flex-col items-center justify-center py-24 text-center border-dashed-cyber">
             <CommentLabel text="no_records_found" />
             <p class="font-mono text-ink-dim mt-4">// 目前尚無已發佈的專題</p>
@@ -124,20 +127,23 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
               </li>
             ))}
           </ul>
-        )}
-      </section>
-    </main>
-
-    <Footer />
-  </body>
-</html>
+        )
+      }
+    </section>
+  </main>
+</Layout>
 
 <script>
   // Search & category filter — client-side, no API call.
   // Reads data-* attributes rendered server-side; toggles `hidden` class on <li>.
-  const searchInput = document.getElementById("search-input") as HTMLInputElement | null;
-  const categoryButtons = document.querySelectorAll<HTMLButtonElement>("#category-filters [data-category]");
-  const projectItems = document.querySelectorAll<HTMLLIElement>("#project-grid li");
+  const searchInput = document.getElementById(
+    "search-input",
+  ) as HTMLInputElement | null;
+  const categoryButtons = document.querySelectorAll<HTMLButtonElement>(
+    "#category-filters [data-category]",
+  );
+  const projectItems =
+    document.querySelectorAll<HTMLLIElement>("#project-grid li");
 
   let activeCategory = "all";
 
@@ -151,8 +157,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
         (li.dataset.keywords ?? "").includes(query);
 
       const matchesCategory =
-        activeCategory === "all" ||
-        li.dataset.category === activeCategory;
+        activeCategory === "all" || li.dataset.category === activeCategory;
 
       li.classList.toggle("hidden", !(matchesSearch && matchesCategory));
     });

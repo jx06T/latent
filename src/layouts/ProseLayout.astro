@@ -1,38 +1,26 @@
 ---
-import BaseHead from "@/components/sections/BaseHead.astro";
-import Footer from "@/components/sections/Footer.astro";
-import Header from "@/components/Header.astro";
-import SmoothScroll from "@/components/SmoothScroll.astro";
+// src/layouts/ProseLayout.astro
+import BaseLayout from "./Layout.astro";
 
 interface Props {
   title: string;
   description: string;
   ogImage?: string;
-  lang?: string;
   active?: "home" | "about" | "projects" | "profile";
 }
 
-const {
-  title,
-  description,
-  ogImage,
-  lang = "zh-TW",
-  active,
-} = Astro.props;
+const { title, description, ogImage, active } = Astro.props;
 ---
 
-<html lang={lang}>
-  <head>
-    <BaseHead title={title} description={description} image={ogImage} />
-  </head>
-  <body class="bg-bg">
-    <SmoothScroll />
-    <Header active={active} />
-    <main class="pt-24 pb-32 min-h-screen">
-      <article class="mx-auto w-full max-w-[720px] px-4 sm:px-6">
-        <slot />
-      </article>
-    </main>
-    <Footer />
-  </body>
-</html>
+<BaseLayout
+  title={title}
+  description={description}
+  image={ogImage}
+  activeNav={active}
+>
+  <main class="pt-24 pb-32 min-h-screen">
+    <article class="mx-auto w-full max-w-3xl px-4 sm:px-8">
+      <slot />
+    </article>
+  </main>
+</BaseLayout>

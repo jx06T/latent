@@ -1,17 +1,33 @@
 ---
-import "../styles/global.css";
+// src/layouts/BaseLayout.astro
+import "@/styles/global.css"; // 確保全域 CSS 引入
 import BaseHead from "@/components/sections/BaseHead.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/sections/Footer.astro";
 import SmoothScroll from "@/components/SmoothScroll.astro";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  title: string;
+  description: string;
+  image?: string;
+  activeNav?: "home" | "about" | "projects" | "profile";
+  bodyClass?: string;
+}
+
+const { title, description, image, activeNav, bodyClass = "" } = Astro.props;
 ---
 
-<html lang="zh-Hant">
+<!doctype html>
+<html lang="zh-TW">
   <head>
-    <BaseHead title={"Empty"} description={"嗨嗨嗨"} />
+    <BaseHead title={title} description={description} image={image} />
   </head>
-  <body class=" bg-bg-elevated">
+  <body class={cn("", bodyClass)}>
     <SmoothScroll />
-    <main>
-        <slot />
-    </main>
+    <Header active={activeNav} />
+    <slot />
+
+    <Footer />
   </body>
 </html>
