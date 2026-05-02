@@ -131,10 +131,10 @@
 
   /* 文字 glow */
   .text-glow-primary {
-    text-shadow: 0 0 8px rgba(116, 156, 186, 0.6);
+    text-shadow: 0 0 6px rgba(116, 156, 186, 0.3);
   }
   .text-glow-accent {
-    text-shadow: 0 0 8px rgba(227, 124, 70, 0.7);
+    text-shadow: 0 0 6px rgba(227, 124, 70, 0.5);
   }
 
   /* 隱藏捲軸 */

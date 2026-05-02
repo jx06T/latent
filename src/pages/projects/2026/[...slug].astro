@@ -103,7 +103,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
     >
       {project.title}
     </h1>
-    {project.subtitle && <p class="text-lg text-ink-dim">{project.subtitle}</p>}
+    {project.subtitle && <p class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</p>}
     <p class="font-mono text-lg text-ink-dim -mt-1">
       by <span class="text-ink">@{project.author_handle}</span>
     </p>
@@ -153,7 +153,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   <div class="border-dashed-cyber p-5 mb-12 space-y-5">
     <section>
       <CommentLabel text="project_overview" />
-      <p class="text-base text-ink-muted leading-relaxed mt-2">
+      <p class="text-base text-ink-muted leading-relaxed -mt-1">
         {project.description}
       </p>
     </section>
@@ -175,7 +175,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
       project.keywords.length > 0 && (
         <section>
           <CommentLabel text="keywords" />
-          <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2">
+          <div class="flex flex-wrap gap-x-3 gap-y-1.5 -mt-1.5">
             {project.keywords.map((kw) => (
               <span class="font-mono text-base text-primary-400">
                 <span class="inline-block mr-0.5">#</span>
@@ -197,7 +197,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 
   <!-- Main article content -->
   <article class="mb-12">
-    <CommentLabel text="project_details" />
+    <CommentLabel text="project_details" class=" text-lg" />
     <!-- 完美套用 MarkdownContent 元件 -->
     <MarkdownContent content={project.content!} class="mt-6" />
   </article>
