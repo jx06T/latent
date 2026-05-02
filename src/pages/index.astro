@@ -1,10 +1,43 @@
 ---
 import Hero from "@/components/hero/Hero.astro";
 import Layout from "@/layouts/Layout.astro";
+import EventOverview from "@/components/sections/EventOverview.astro";
+import TopProjects from "@/components/sections/TopProjects.astro";
+import TelemetryDashboard from "@/components/sections/TelemetryDashboard.astro";
+import Partners from "@/components/sections/Partners.astro";
+import FAQ from "@/components/sections/FAQ.astro";
+import CTA from "@/components/sections/CTA.astro";
+import { supabase } from "@/lib/supabase";
+
+const { count: totalProjects } = await supabase
+  .from("projects")
+  .select("*", { count: "exact", head: true })
+  .eq("status", "published");
+
+const { data: voteData } = await supabase
+  .from("projects")
+  .select("like_count")
+  .eq("status", "published");
+
+const totalVotes =
+  voteData?.reduce((sum, p) => sum + (p.like_count ?? 0), 0) ?? 0;
 ---
 
-<Layout title="Home | Latent" description="超棒棒的社展網站" activeNav="home">
+<Layout
+  title="Home | Latent"
+  description="LATENT 2026 — 學生專題的發光基地。探索年輕創作者在 AI、硬體、互動設計等領域的作品。"
+  activeNav="home"
+>
   <main>
     <Hero />
+    <EventOverview />
+    <TopProjects />
+    <TelemetryDashboard
+      totalProjects={totalProjects ?? 0}
+      totalVotes={totalVotes}
+    />
+    <Partners />
+    <FAQ />
+    <CTA />
   </main>
 </Layout>

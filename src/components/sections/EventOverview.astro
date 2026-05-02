@@ -1,0 +1,122 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import PanelInfo from "./event/PanelInfo.astro";
+import PanelTimeline from "./event/PanelTimeline.astro";
+import PanelKeynote from "./event/PanelKeynote.astro";
+import PanelCategories from "./event/PanelCategories.astro";
+import PanelContact from "./event/PanelContact.astro";
+
+const PANELS = 5;
+---
+
+<section id="event-overview" class="relative overflow-hidden bg-bg">
+  <!-- Circuit-board background pattern -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true" style="
+    background-image:
+      linear-gradient(rgba(116,156,186,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(116,156,186,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    background-position: -1px -1px;
+  "></div>
+
+  <!-- Section header (visible before horizontal scroll starts) -->
+  <div class="absolute top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none">
+    <CommentLabel text="event_overview" />
+  </div>
+
+  <!-- Panel progress dots -->
+  <div id="panel-dots" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2" aria-hidden="true">
+    {Array.from({ length: PANELS }).map((_, i) => (
+      <div
+        class={`panel-dot w-1.5 h-1.5 rounded-full transition-colors duration-300 ${i === 0 ? "bg-accent-500" : "bg-line-active"}`}
+        data-panel={i}
+      ></div>
+    ))}
+  </div>
+
+  <!-- Panels track -->
+  <div class="panels-track flex will-change-transform">
+    <!-- Each panel: w-screen h-screen flex-shrink-0 overflow-y-auto -->
+    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
+      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+        <PanelInfo />
+      </div>
+    </div>
+
+    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
+      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+        <PanelTimeline />
+      </div>
+    </div>
+
+    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
+      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+        <PanelKeynote />
+      </div>
+    </div>
+
+    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center border-r border-line/30">
+      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+        <PanelCategories />
+      </div>
+    </div>
+
+    <div class="w-screen h-screen flex-shrink-0 overflow-y-auto flex items-center">
+      <div class="mx-auto px-8 sm:px-16 py-20 w-full max-w-2xl">
+        <PanelContact />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Ensure panel-inner elements have their base styles scoped here */
+  :global(.panel-inner) {
+    /* No extra styles needed — panels rely on utility classes */
+  }
+</style>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const section = document.getElementById("event-overview");
+    if (!section) return;
+
+    const track = section.querySelector<HTMLElement>(".panels-track");
+    const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
+    if (!track) return;
+
+    const ctx = gsap.context(() => {
+      const st = ScrollTrigger.create({
+        trigger: section,
+        pin: true,
+        scrub: 1,
+        snap: 1 / 4,
+        end: () => "+=" + (track.scrollWidth - document.documentElement.clientWidth),
+        invalidateOnRefresh: true,
+        animation: gsap.to(track, {
+          x: () => -(track.scrollWidth - document.documentElement.clientWidth) + "px",
+          ease: "none",
+        }),
+        onUpdate(self) {
+          // Update progress dots
+          const activePanel = Math.round(self.progress * 4);
+          dots.forEach((dot, i) => {
+            dot.style.backgroundColor =
+              i === activePanel
+                ? "var(--color-accent-500)"
+                : "var(--color-line-active)";
+          });
+        },
+      });
+    }, section);
+
+    document.addEventListener("astro:before-swap", () => ctx.revert(), {
+      once: true,
+    });
+  });
+</script>

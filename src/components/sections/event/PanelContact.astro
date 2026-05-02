@@ -1,0 +1,57 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import Button from "@/components/ui/Button.astro";
+import Tag from "@/components/ui/Tag.astro";
+---
+
+<div class="panel-inner">
+  <CommentLabel text="registration_and_contact" />
+  <h3 class="text-2xl font-black text-ink mt-3 mb-8">報名與聯絡</h3>
+
+  <!-- Lecture registration -->
+  <div class="border-dashed-cyber p-5 mb-5">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="font-mono text-xs text-accent-500">// 主題講座</span>
+      <Tag variant="sub">需報名</Tag>
+    </div>
+    <p class="text-sm text-ink-muted leading-relaxed mb-4">
+      講座採事先報名制，座位有限，額滿為止。<br />
+      報名後請於活動當天憑報名資訊入場。
+    </p>
+    <Button
+      as="a"
+      href="#"
+      variant="primary"
+      text="REGISTER_NOW"
+      target="_blank"
+      rel="noopener noreferrer"
+    />
+    <p class="font-mono text-xs text-ink-disabled mt-2">// Google Form — 即將開放</p>
+  </div>
+
+  <!-- Exhibition -->
+  <div class="border-dashed-cyber p-5 mb-8">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="font-mono text-xs text-primary-400">// 專題展覽</span>
+      <Tag variant="sub">自由入場</Tag>
+    </div>
+    <p class="text-sm text-ink-muted leading-relaxed">
+      展覽區全程免費開放，歡迎直接前往 <strong class="text-ink">夢紅樓藝廊</strong> 參觀。
+    </p>
+  </div>
+
+  <!-- Contact -->
+  <div>
+    <CommentLabel text="contact_info" />
+    <div class="mt-3 space-y-2 font-mono text-sm">
+      <div class="flex gap-3">
+        <span class="text-ink-disabled w-14 shrink-0">Email</span>
+        <span class="text-primary-400">latent.2026@example.com</span>
+      </div>
+      <div class="flex gap-3">
+        <span class="text-ink-disabled w-14 shrink-0">IG</span>
+        <span class="text-ink-muted">@latent.2026</span>
+      </div>
+    </div>
+  </div>
+</div>

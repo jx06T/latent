@@ -1,0 +1,86 @@
+---
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  items: { q: string; a: string }[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+---
+
+<div class={cn("border-t border-line", className)}>
+  {items.map((item, i) => (
+    <div class="accordion-item border-b border-line" data-open="false">
+      <button
+        class="accordion-trigger w-full flex justify-between items-start gap-4 py-4 px-1 text-left font-mono text-sm text-ink hover:text-primary-400 transition-colors duration-200"
+        aria-expanded="false"
+      >
+        <span class="flex gap-3">
+          <span class="text-ink-disabled shrink-0 select-none">
+            Q{(i + 1).toString().padStart(2, "0")}
+          </span>
+          <span>{item.q}</span>
+        </span>
+        <ChevronDown size={16} className="accordion-icon shrink-0 mt-0.5 text-ink-dim" />
+      </button>
+      <div class="accordion-outer">
+        <div class="accordion-inner">
+          <p class="pb-5 pl-10 pr-1 text-sm text-ink-muted leading-relaxed">
+            {item.a}
+          </p>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .accordion-outer {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.32s ease;
+  }
+  .accordion-item[data-open="true"] .accordion-outer {
+    grid-template-rows: 1fr;
+  }
+  .accordion-inner {
+    overflow: hidden;
+  }
+  .accordion-icon {
+    transition: transform 0.25s ease;
+  }
+  .accordion-item[data-open="true"] .accordion-icon {
+    transform: rotate(180deg);
+  }
+  .accordion-item[data-open="true"] .accordion-trigger {
+    color: var(--color-primary-400);
+  }
+  .accordion-item[data-open="true"] .accordion-inner p {
+    animation: accordion-fade-in 0.3s ease 0.08s both;
+  }
+  @keyframes accordion-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".accordion-item").forEach((item) => {
+      const trigger = item.querySelector(".accordion-trigger");
+      trigger?.addEventListener("click", () => {
+        const isOpen = item.getAttribute("data-open") === "true";
+        item.setAttribute("data-open", isOpen ? "false" : "true");
+        trigger.setAttribute("aria-expanded", isOpen ? "false" : "true");
+      });
+    });
+  });
+</script>

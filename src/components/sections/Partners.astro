@@ -1,0 +1,86 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import { PARTNERS } from "@/data/partners";
+
+// Duplicate for seamless loop
+const doubled = [...PARTNERS, ...PARTNERS];
+const reversed = [...PARTNERS].reverse();
+const reversedDoubled = [...reversed, ...reversed];
+---
+
+<section id="partners" class="py-16 border-t border-line bg-bg overflow-hidden">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 mb-8">
+    <CommentLabel text="organizers_and_partners" />
+    <h2 class="text-xl font-black text-ink mt-1">主辦 & 協辦單位</h2>
+  </div>
+
+  <!-- Row 1: forward -->
+  <div class="marquee-wrapper overflow-hidden mb-3">
+    <div class="marquee-track flex gap-4 w-max">
+      {doubled.map((partner) => (
+        <div class="marquee-item flex-shrink-0">
+          {partner.logo ? (
+            <img
+              src={partner.logo}
+              alt={partner.name}
+              class="h-8 w-auto object-contain grayscale opacity-40 hover:opacity-100 transition-opacity duration-300"
+            />
+          ) : (
+            <div class={`font-mono text-xs border px-3 py-2 whitespace-nowrap transition-all duration-300
+              opacity-50 hover:opacity-100
+              ${partner.role === "主辦"
+                ? "border-accent-500/40 text-accent-400 hover:border-accent-500"
+                : "border-line text-ink-dim hover:border-line-active hover:text-ink"
+              }`}>
+              {partner.name}
+              {partner.role === "主辦" && <span class="ml-1 text-accent-500">✦</span>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Row 2: reverse -->
+  <div class="marquee-wrapper overflow-hidden">
+    <div class="marquee-track marquee-reverse flex gap-4 w-max">
+      {reversedDoubled.map((partner) => (
+        <div class="marquee-item flex-shrink-0">
+          {partner.logo ? (
+            <img
+              src={partner.logo}
+              alt={partner.name}
+              class="h-8 w-auto object-contain grayscale opacity-30 hover:opacity-90 transition-opacity duration-300"
+            />
+          ) : (
+            <div class="font-mono text-xs border border-line/50 px-3 py-2 whitespace-nowrap text-ink-disabled opacity-40 hover:opacity-80 transition-opacity duration-300">
+              {partner.name}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .marquee-track {
+    animation: marquee-scroll 28s linear infinite;
+    will-change: transform;
+  }
+
+  .marquee-reverse {
+    animation-direction: reverse;
+    animation-duration: 35s;
+  }
+
+  /* Pause on hover */
+  .marquee-wrapper:hover .marquee-track {
+    animation-play-state: paused;
+  }
+</style>

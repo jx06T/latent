@@ -1,0 +1,49 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import Tag from "@/components/ui/Tag.astro";
+---
+
+<div class="panel-inner">
+  <CommentLabel text="keynote_speaker" />
+
+  <div class="mt-4 border-dashed-cyber p-5">
+    <div class="font-mono text-xs text-ink-dim mb-3">KEYNOTE // 主題講座</div>
+
+    <h3 class="text-xl sm:text-2xl font-black text-ink leading-snug">
+      人工智慧時代的攝影
+    </h3>
+    <p class="font-mono text-accent-400 text-sm mt-1">
+      Photography in the Age of AI
+    </p>
+
+    <div class="mt-6 border-t border-line pt-4 space-y-2">
+      <div class="flex gap-3 font-mono text-sm">
+        <span class="text-ink-disabled w-14 shrink-0">講者</span>
+        <span class="text-ink font-bold">莊永裕 教授</span>
+      </div>
+      <div class="flex gap-3 font-mono text-sm">
+        <span class="text-ink-disabled w-14 shrink-0">單位</span>
+        <span class="text-ink-muted">台灣大學 資訊工程學系</span>
+      </div>
+      <div class="flex gap-3 font-mono text-sm">
+        <span class="text-ink-disabled w-14 shrink-0">時間</span>
+        <span class="text-ink-muted">10:30 — 12:00</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="mt-6 text-sm text-ink-muted leading-relaxed max-w-sm">
+    生成式 AI 已讓任何人都能創作出「看起來真實」的影像。在這個技術與藝術邊界模糊的時代，
+    攝影的定義、創作的價值，以及觀看影像的方式，正在經歷前所未有的轉變。
+  </p>
+  <p class="mt-3 text-sm text-ink-muted leading-relaxed max-w-sm">
+    本場講座將從電腦視覺的技術視角出發，探討 AI 如何重塑攝影這門藝術，
+    以及身為創作者的我們，如何在演算法之中找到人類觀點的位置。
+  </p>
+
+  <div class="mt-6 flex gap-2 flex-wrap">
+    <Tag variant="sub">報名制</Tag>
+    <Tag variant="sub">座位有限</Tag>
+    <Tag variant="sub">免費</Tag>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import Button from "@/components/ui/Button.astro";
+---
+
+<section id="cta" class="py-32 border-t border-line bg-bg relative overflow-hidden">
+
+  <!-- Subtle radial glow behind content -->
+  <div
+    class="absolute inset-0 pointer-events-none"
+    aria-hidden="true"
+    style="background: radial-gradient(ellipse 60% 40% at 50% 60%, rgba(116,156,186,0.06) 0%, transparent 70%);"
+  ></div>
+
+  <div class="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center">
+    <CommentLabel text="access_databank" />
+
+    <h2 class="text-4xl sm:text-5xl font-black text-ink text-glow-primary mt-4 mb-3 leading-tight">
+      探索所有專題
+    </h2>
+    <p class="text-ink-dim text-base mb-12 font-mono">
+      // 發現每一份潛伏的能量
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-5 justify-center items-center">
+      <Button
+        as="a"
+        href="/projects"
+        variant="primary"
+        text="EXPLORE_DATABANKS"
+        scramble
+      />
+      <Button
+        as="a"
+        href="/contact"
+        variant="outline"
+        text="SUBMIT_PROJECT"
+      />
+    </div>
+  </div>
+</section>

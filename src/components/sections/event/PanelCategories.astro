@@ -1,0 +1,62 @@
+---
+import CommentLabel from "@/components/ui/CommentLabel.astro";
+import { Brain, Globe, Gamepad2, BarChart3, Wrench, CircuitBoard } from "lucide-react";
+
+const CATEGORIES = [
+  {
+    name: "人工智慧",
+    en: "AI & ML",
+    desc: "機器學習、電腦視覺、自然語言處理",
+    icon: Brain,
+  },
+  {
+    name: "系統與網站開發",
+    en: "Systems & Web",
+    desc: "全端應用、API 設計、工具系統",
+    icon: Globe,
+  },
+  {
+    name: "互動與遊戲",
+    en: "Interactive & Games",
+    desc: "遊戲設計、互動裝置、體驗設計",
+    icon: Gamepad2,
+  },
+  {
+    name: "資料分析與視覺化",
+    en: "Data & Visualization",
+    desc: "資料探索、圖表設計、儀表板",
+    icon: BarChart3,
+  },
+  {
+    name: "工具與自動化",
+    en: "Tools & Automation",
+    desc: "腳本、工作流程、效率工具",
+    icon: Wrench,
+  },
+  {
+    name: "硬體工程",
+    en: "Hardware",
+    desc: "嵌入式系統、IoT、實體裝置",
+    icon: CircuitBoard,
+  },
+];
+---
+
+<div class="panel-inner">
+  <CommentLabel text="exhibition_categories" />
+  <h3 class="text-2xl font-black text-ink mt-3 mb-6">六大展覽類別</h3>
+
+  <div class="grid grid-cols-2 gap-3 max-w-xl">
+    {CATEGORIES.map((cat) => (
+      <div class="border-dashed-cyber p-4 hover:border-line-active transition-colors duration-200 group">
+        <cat.icon
+          size={20}
+          className="text-accent-500 mb-2.5 group-hover:text-accent-400 transition-colors"
+        />
+        <h4 class="font-bold text-sm text-ink leading-snug">{cat.name}</h4>
+        <p class="font-mono text-xs text-ink-disabled mt-0.5">{cat.en}</p>
+        <p class="text-xs text-ink-dim mt-1.5 leading-snug">{cat.desc}</p>
+      </div>
+    ))}
+  </div>
+</div>
