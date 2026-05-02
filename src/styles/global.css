@@ -148,6 +148,8 @@
 
   /* typography 覆寫 — in @layer utilities to win over plugin's @layer components defaults */
   .prose {
+    font-size: 1rem;
+    line-height: 1.75;
     --tw-prose-body: var(--color-ink-muted);
     --tw-prose-headings: var(--color-ink);
     --tw-prose-lead: var(--color-ink-dim);
