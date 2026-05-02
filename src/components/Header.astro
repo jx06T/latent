@@ -74,43 +74,6 @@ const {
       {(views - 124).toLocaleString()}
     </span>
 
-    {/* sparkline — static SVG, generated server-side */}
-    <!-- <svg
-      width="36"
-      height="12"
-      viewBox="0 -1 36 12"
-      class="block shrink-0"
-      aria-hidden="true"
-    >
-      {
-        (() => {
-          const seed = 7;
-          const n = 12;
-          const pts: [number, number][] = [];
-          let x = seed;
-          for (let i = 0; i < n; i++) {
-            x = (x * 9301 + 49297) % 233280;
-            const y = 2 + (x / 233280) * 8;
-            pts.push([(i / (n - 1)) * 36, y]);
-          }
-          const d = pts
-            .map(
-              (p, i) =>
-                `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
-            )
-            .join(" ");
-          return (
-            <path
-              d={d}
-              fill="none"
-              stroke="rgb(116, 156, 186)"
-              stroke-width="1"
-              stroke-linecap="square"
-            />
-          );
-        })()
-      }
-    </svg> -->
   </div>
 </header>
 
