@@ -37,7 +37,7 @@ const STATS = [
 
 <section id="telemetry" class="relative py-20 overflow-hidden bg-bg-surface border-t border-line">
 
-  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
+  <div class="relative z-10 max-w-6xl mx-auto px-[10%]">
     <div class="text-center mb-12">
       <CommentLabel text="system_telemetry" />
       <h2 class="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
@@ -45,7 +45,7 @@ const STATS = [
       </h2>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-line">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border border-line ">
       {STATS.map((stat, i) => (
         <div class={`relative p-8 sm:p-10 text-center ${i < 2 ? "border-b sm:border-b-0 sm:border-r border-line" : ""}`}>
           <!-- Corner accents -->

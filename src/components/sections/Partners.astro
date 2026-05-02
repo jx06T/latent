@@ -18,7 +18,7 @@ const reversedDoubled = [...reversed, ...reversed];
   <div class="marquee-wrapper overflow-hidden mb-3">
     <div class="marquee-track flex gap-4 w-max">
       {doubled.map((partner) => (
-        <div class="marquee-item flex-shrink-0">
+        <div class="marquee-item shrink-0">
           {partner.logo ? (
             <img
               src={partner.logo}
@@ -45,7 +45,7 @@ const reversedDoubled = [...reversed, ...reversed];
   <div class="marquee-wrapper overflow-hidden">
     <div class="marquee-track marquee-reverse flex gap-4 w-max">
       {reversedDoubled.map((partner) => (
-        <div class="marquee-item flex-shrink-0">
+        <div class="marquee-item shrink-0">
           {partner.logo ? (
             <img
               src={partner.logo}
