@@ -3,13 +3,10 @@ import BaseHead from "@/components/sections/BaseHead.astro";
 import Footer from "@/components/sections/Footer.astro";
 import Header from "@/components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "@/consts";
-import HeaderLink from "@/components/HeaderLink.astro";
+import Link from "@/components/ui/Link.astro";
 
 export async function getStaticPaths() {
-  return [
-    { params: { year: "2025" } },
-    { params: { year: "2026" } }
-  ];
+  return [{ params: { year: "2025" } }, { params: { year: "2026" } }];
 }
 
 const { year } = Astro.params;
@@ -96,7 +93,7 @@ const { year } = Astro.params;
       <section>
         <ul>
           <li>
-            <HeaderLink href={"./projects/2026/wb-001"}> wb-001 </HeaderLink>
+            <Link href={"./projects/2026/wb-001"}> wb-001 </Link>
           </li>
         </ul>
       </section>
