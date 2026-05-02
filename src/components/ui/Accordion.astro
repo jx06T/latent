@@ -14,11 +14,11 @@ const { items, class: className } = Astro.props;
   {items.map((item, i) => (
     <div class="accordion-item border-b border-line" data-open="false">
       <button
-        class="accordion-trigger w-full flex justify-between items-start gap-4 py-4 px-1 text-left font-mono text-sm text-ink hover:text-primary-400 transition-colors duration-200"
+        class="accordion-trigger w-full flex justify-between items-start gap-4 pt-4 pb-2 px-1 text-left font-mono text-base text-ink hover:text-primary-400 transition-colors duration-200"
         aria-expanded="false"
       >
         <span class="flex gap-3">
-          <span class="text-ink-disabled shrink-0 select-none">
+          <span class="text-ink-ddim shrink-0 select-none">
             Q{(i + 1).toString().padStart(2, "0")}
           </span>
           <span>{item.q}</span>
@@ -27,11 +27,12 @@ const { items, class: className } = Astro.props;
       </button>
       <div class="accordion-outer">
         <div class="accordion-inner">
-          <p class="pb-5 pl-10 pr-1 text-sm text-ink-muted leading-relaxed">
+          <p class="pb-5 pl-10 pr-1 text-base text-ink-muted leading-relaxed">
             {item.a}
           </p>
         </div>
       </div>
+      <div class=" w-full h-2"></div>
     </div>
   ))}
 </div>
