@@ -1,11 +1,8 @@
 ---
-// LogConsole：黑色區域內的終端機 log 串流
-// 在 WaveSection variant="hero" 的 slot 中使用
-
 interface LogEntry {
   level: "OK" | "INFO" | "WARN" | "ERR";
   message: string;
-  delay: number; // ms
+  delay: number;
 }
 
 const logs: LogEntry[] = [
@@ -29,12 +26,13 @@ const levelClass: Record<LogEntry["level"], string> = {
 ---
 
 <div
-  class="log-console"
+  class="pt-8 px-6 pb-6 text-[clamp(0.8rem,2.5vw,1rem)] leading-[1.9] text-[#a8a090] select-none"
+  style="font-family: 'IBM Plex Mono', 'Courier New', monospace;"
   data-log-console
   aria-label="System log output"
   role="log"
 >
-  <ul class="log-list" aria-live="polite">
+  <ul class="list-none m-0 p-0" aria-live="polite">
     {
       logs.map((entry) => (
         <li
@@ -49,41 +47,21 @@ const levelClass: Record<LogEntry["level"], string> = {
       ))
     }
   </ul>
-
-  <!-- 游標閃爍 -->
-  <!-- <span class="log-cursor" aria-hidden="true">█</span> -->
 </div>
 
 <style>
-  .log-console {
-    padding: 2rem 1.5rem 1.5rem;
-    font-family: "IBM Plex Mono", "Courier New", monospace;
-    font-size: clamp(0.8rem, 2.5vw, 1rem);
-    line-height: 1.9;
-    color: #a8a090;
-    user-select: none;
-  }
-
-  .log-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
+  /* Structural — used by both static HTML and JS-created entries */
   .log-entry {
-    display: flex;
-    gap: 0.75em;
-    white-space: nowrap;
-    overflow: hidden;
-    /* 個別動畫由 GSAP 在 ScrollTrigger onEnter 時觸發 */
+    @apply flex gap-[0.75em] whitespace-nowrap overflow-hidden;
   }
-
   .log-level {
-    min-width: 6em;
-    display: inline-block;
+    @apply min-w-[6em] inline-block;
   }
 
-  /* 顏色系統 */
+  /* Color tokens — descendant selectors can't move to Tailwind cleanly */
+  .log-message {
+    color: #7a7060;
+  }
   .log--ok .log-level {
     color: #6a8a5a;
   }
@@ -93,6 +71,7 @@ const levelClass: Record<LogEntry["level"], string> = {
   .log--warn .log-level {
     color: #b89040;
   }
+
   .log--err {
     background: rgba(180, 40, 30, 0.12);
     border-left: 2px solid #8a2010;
@@ -104,19 +83,6 @@ const levelClass: Record<LogEntry["level"], string> = {
   }
   .log--err .log-message {
     color: #c8a090;
-  }
-
-  .log-message {
-    color: #7a7060;
-  }
-
-  /* 游標 */
-  .log-cursor {
-    display: inline-block;
-    color: #c8601a;
-    font-size: 0.9em;
-    animation: cursorBlink 1.1s step-end infinite;
-    opacity: 0;
   }
 
   @keyframes cursorBlink {
