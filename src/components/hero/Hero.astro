@@ -48,18 +48,21 @@ import Wavesection from "../sections/Wavesection.astro";
   </div>
 
   <div
-    data-log
-    data-speed="0.03"
+    data-log-wrapper
     class="absolute left-0 right-0 top-[50vh] z-30 h-[120vh]"
   >
-    <Wavesection position="top" class="inset-0 bg-bg h-full px-[5%]">
+    <Wavesection
+      data-log-content
+      position="top"
+      class="inset-0 bg-bg h-full px-[5%]"
+    >
       <LogConsole />
     </Wavesection>
   </div>
 </section>
 
 <section
-  class="w-full h-[150vh] p-[5%]  text-white flex items-center justify-center text-4xl"
+  class="w-full h-[150vh] p-[5%] text-white flex items-center justify-center text-4xl"
 >
   我是下一個 Section (往下滾動時，上面的 Hero 會自然往上滑)
 </section>
@@ -125,9 +128,9 @@ import Wavesection from "../sections/Wavesection.astro";
         cleanups.push(initUfoTracking(els.ufoWrappers));
       }
 
-      if (els.log) {
-        initTargetDropAnimation(masterTl, els.log);
-        initLogAnimations(els.log);
+      if (els.log.wrapper && els.log.content) {
+        initTargetDropAnimation(masterTl, els.log.content);
+        initLogAnimations(els.log.wrapper);
       }
 
       if (els.laserTarget && els.svg) {

@@ -12,8 +12,9 @@ export function initLogAnimations(logContainer: HTMLElement): void {
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: logContainer,
-      start: "top 75%",
-      toggleActions: "play none none none",
+      end: "top 20%",
+      start: "top bottom",
+      toggleActions: "play return play return",
     },
     onComplete: () => startContinuousLogs(logContainer),
   });

@@ -2,7 +2,10 @@
 export const ATTRS = {
     hero: 'data-hero',
     bgStatic: 'data-bg-static',
-    log: 'data-log',
+    log: {
+        wrapper: 'data-log-wrapper',
+        content: 'data-log-content'
+    },
     floating: 'data-floating-element',
     logo: 'data-latent-logo',
     scanner: {
@@ -33,7 +36,10 @@ export const SELECTORS = {
     hero: getSel(ATTRS.hero),
     bgStatic: getSel(ATTRS.bgStatic),
     logo: getSel(ATTRS.logo),
-    log: getSel(ATTRS.log),
+    log: {
+        wrapper: getSel(ATTRS.log.wrapper),
+        content: getSel(ATTRS.log.content),
+    },
     floatingElements: getSel(ATTRS.floating),
     scanner: {
         wrappers: getSel(ATTRS.scanner.wrapper),
@@ -62,7 +68,10 @@ export function getHeroRoot(root: HTMLElement) {
         bgStatic: root.querySelector<HTMLElement>(SELECTORS.bgStatic),
         laserTarget: root.querySelector<HTMLElement>(SELECTORS.laserTarget),
         logo: root.querySelector<HTMLElement>(SELECTORS.logo),
-        log: root.querySelector<HTMLElement>(SELECTORS.log),
+        log: {
+            wrapper: root.querySelector<HTMLElement>(SELECTORS.log.wrapper),
+            content: root.querySelector<HTMLElement>(SELECTORS.log.content),
+        },
         svg: root.querySelector<SVGSVGElement>(SELECTORS.scanner.svg),
         floatingEls: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.floatingElements)),
         ufoWrappers: Array.from(root.querySelectorAll<HTMLElement>(SELECTORS.ufo.wrappers)),
