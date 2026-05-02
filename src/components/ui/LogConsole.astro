@@ -1,28 +1,12 @@
 ---
-interface LogEntry {
-  level: "OK" | "INFO" | "WARN" | "ERR";
-  message: string;
-  delay: number;
-}
+import { initialLogs } from "../hero/log-data";
 
-const logs: LogEntry[] = [
-  { level: "OK", message: "classified in 5.3ms", delay: 0 },
-  { level: "OK", message: "classified in 11.2ms", delay: 300 },
-  { level: "INFO", message: "obj classified: 3/4", delay: 600 },
-  { level: "ERR", message: "timeout", delay: 900 },
-  { level: "INFO", message: "retrying... (1/2)", delay: 1200 },
-  { level: "WARN", message: "distribution shift", delay: 1500 },
-  { level: "INFO", message: "retrying... (2/2)", delay: 1800 },
-  { level: "ERR", message: "index out of bounds", delay: 2100 },
-  { level: "ERR", message: "classification failed", delay: 2400 },
-];
-
-const levelClass: Record<LogEntry["level"], string> = {
-  OK: "log--ok",
+const levelClass = {
+  OK:   "log--ok",
   INFO: "log--info",
   WARN: "log--warn",
-  ERR: "log--err",
-};
+  ERR:  "log--err",
+} as const;
 ---
 
 <div
@@ -34,7 +18,7 @@ const levelClass: Record<LogEntry["level"], string> = {
 >
   <ul class="log-list list-none m-0 p-0" aria-live="polite">
     {
-      logs.map((entry) => (
+      initialLogs.map((entry) => (
         <li
           class={`log-entry ${levelClass[entry.level]}`}
           data-log-delay={entry.delay}
@@ -49,8 +33,7 @@ const levelClass: Record<LogEntry["level"], string> = {
   </ul>
 </div>
 
-<style>
-  /* Structural — used by both static HTML and JS-created entries */
+<style is:global>
   .log-entry {
     @apply flex gap-[0.75em] whitespace-nowrap overflow-hidden;
   }
@@ -58,19 +41,10 @@ const levelClass: Record<LogEntry["level"], string> = {
     @apply min-w-[6em] inline-block;
   }
 
-  /* Color tokens — descendant selectors can't move to Tailwind cleanly */
-  .log-message {
-    color: #7a7060;
-  }
-  .log--ok .log-level {
-    color: #6a8a5a;
-  }
-  .log--info .log-level {
-    color: #7a8a9a;
-  }
-  .log--warn .log-level {
-    color: #b89040;
-  }
+  .log-message          { color: #7a7060; }
+  .log--ok   .log-level { color: #6a8a5a; }
+  .log--info .log-level { color: #7a8a9a; }
+  .log--warn .log-level { color: #b89040; }
 
   .log--err {
     background: rgba(180, 40, 30, 0.12);
@@ -78,20 +52,6 @@ const levelClass: Record<LogEntry["level"], string> = {
     padding-left: 0.4em;
     margin-left: -0.4em;
   }
-  .log--err .log-level {
-    color: #c04030;
-  }
-  .log--err .log-message {
-    color: #c8a090;
-  }
-
-  @keyframes cursorBlink {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0;
-    }
-  }
+  .log--err .log-level   { color: #c04030; }
+  .log--err .log-message { color: #c8a090; }
 </style>

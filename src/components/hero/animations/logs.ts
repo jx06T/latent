@@ -1,19 +1,5 @@
 import gsap from "gsap";
-
-const continuousPool: Array<{ level: string; message: string }> = [
-  { level: "OK",   message: "classified in 7.8ms" },
-  { level: "INFO", message: "batch complete: 12/12" },
-  { level: "WARN", message: "memory usage: 84%" },
-  { level: "OK",   message: "classified in 4.1ms" },
-  { level: "INFO", message: "uptime: 2h 14m" },
-  { level: "ERR",  message: "connection reset" },
-  { level: "WARN", message: "retry limit approaching" },
-  { level: "OK",   message: "classified in 9.2ms" },
-  { level: "INFO", message: "queue depth: 0" },
-  { level: "OK",   message: "classified in 6.5ms" },
-  { level: "INFO", message: "model loaded: v2.3.1" },
-  { level: "WARN", message: "throughput below threshold" },
-];
+import { continuousPool } from "../log-data";
 
 const MAX_VISIBLE = 9;
 
@@ -27,7 +13,6 @@ export function initLogAnimations(logContainer: HTMLElement): void {
     scrollTrigger: {
       trigger: logContainer,
       start: "top 75%",
-      // play once on enter, never reverse — eliminates stutter on scroll back
       toggleActions: "play none none none",
     },
     onComplete: () => startContinuousLogs(logContainer),
@@ -53,7 +38,6 @@ function startContinuousLogs(container: HTMLElement): void {
     const { level, message } = continuousPool[idx % continuousPool.length];
     idx++;
 
-    // Evict oldest entry when at limit
     const current = list.querySelectorAll<HTMLElement>(".log-entry");
     if (current.length >= MAX_VISIBLE) {
       const oldest = current[0];
@@ -65,7 +49,6 @@ function startContinuousLogs(container: HTMLElement): void {
       });
     }
 
-    // Build and animate new entry
     const li = document.createElement("li");
     li.className = `log-entry log--${level.toLowerCase()}`;
     li.setAttribute("aria-hidden", "true");
@@ -74,10 +57,10 @@ function startContinuousLogs(container: HTMLElement): void {
     list.appendChild(li);
     gsap.to(li, { opacity: 1, x: 0, duration: 0.2, ease: "power2.out" });
 
-    timerId = window.setTimeout(tick, 2500);
+    timerId = window.setTimeout(tick, 1000);
   };
 
-  let timerId = window.setTimeout(tick, 2500);
+  let timerId = window.setTimeout(tick, 1000);
 
   document.addEventListener(
     "astro:before-swap",
