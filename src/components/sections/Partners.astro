@@ -35,8 +35,8 @@ const reversedTripled = [...reversed, ...reversed, ...reversed];
               >
                 {/* 視覺提示：針對手機端，始終顯示一個微小的指示器 */}
                 {isLink && (
-                  <div class="absolute top-0 right-0 z-10 md:hidden">
-                    <ArrowUpRight className=" text-accent-500" />
+                  <div class="absolute -top-0.5 right-0.5 z-10 w-5 md:hidden">
+                    <ArrowUpRight className=" text-accent-500 inline-block w-full " />
                   </div>
                 )}
 
