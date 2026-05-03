@@ -4,48 +4,29 @@ import PanelInfo from "./event/PanelInfo.astro";
 import PanelTimeline from "./event/PanelTimeline.astro";
 import PanelKeynote from "./event/PanelKeynote.astro";
 import PanelCategories from "./event/PanelCategories.astro";
-import PanelContact from "./event/PanelContact.astro";
 
 const PANELS = 4;
 ---
 
-<!--
-  外層容器：提供實體捲動高度（400vh ≈ 4 張卡片的橫向距離）。
-  讓瀏覽器預先知道總捲動距離，修正下方元件座標算錯的問題。
-  不設 overflow-hidden，確保 sticky 子層能正常運作。
--->
-<section
-  id="event-overview"
-  class="relative w-full h-[400vh] bg-bg-surface"
->
-  <!--
-    黏性視窗：sticky top-0 讓此層固定在螢幕頂部，直到外層 400vh 捲完為止。
-    h-[100svh] 使用 Small Viewport Height，不隨網址列伸縮而改變。
-    overflow-hidden 裁切橫向溢出的 panels-track（sticky 元素本身設 overflow 不影響其黏性）。
-  -->
-  <div class="sticky top-0 w-full h-svh overflow-hidden">
-    <!-- Circuit-board background pattern -->
+<section id="event-overview" class="relative w-full h-[400vh] bg-bg-surface">
+  <!-- 黏性視窗層 -->
+  <div class="sticky top-0 w-full h-screen overflow-hidden">
+    <!-- 背景紋理 -->
     <div
-      class="absolute inset-0 pointer-events-none"
+      class="absolute inset-0 pointer-events-none opacity-40"
       aria-hidden="true"
-      style="
-      background-image:
-        linear-gradient(rgba(116,156,186,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(116,156,186,0.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      background-position: -1px -1px;
-    "
+      style="background-image: linear-gradient(rgba(116,156,186,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(116,156,186,0.04) 1px, transparent 1px); background-size: 60px 60px; background-position: -1px -1px;"
     >
     </div>
 
     <!-- Section header -->
     <div
-      class="absolute top-8 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none"
+      class="absolute top-7 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none"
     >
       <CommentLabel text="event_overview" class="text-base md:text-xl" />
     </div>
 
-    <!-- Panel progress dots -->
+    <!-- 進度圓點 -->
     <div
       id="panel-dots"
       class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2"
@@ -60,156 +41,137 @@ const PANELS = 4;
       }
     </div>
 
-    <!--
-      橫向滑動軌道：GSAP 對此元素做 translateX 動畫。
-      h-full 填滿黏性視窗高度（100svh）。
-    -->
-    <div class="panels-track flex w-max h-full will-change-transform">
-      <div class="panel-spacer shrink-0 h-full"></div>
+    <div class="panels-track flex h-full will-change-transform items-center">
+      <div class="w-[8.3rem] xs:w-[calc(50vw-224px+9.8rem)] lg:w-[calc(50vw-224px+11.3)]  shrink-0 h-full"></div>
+
       <div
-        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center border-r border-line/60"
+        class="flex justify-start *:bg-accent-500/50 gap-20 xs:gap-30 lg:gap-40 bg-green-400 h-full will-change-transform items-center pt-18 pb-18"
       >
-        <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20 overflow-y-auto no-scrollbar">
+        <div
+          class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
+        >
           <PanelInfo />
         </div>
-      </div>
 
-      <div
-        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center border-r border-line/60"
-      >
-        <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20 overflow-y-auto no-scrollbar">
+        <div class="w-px border-none h-full bg-line"></div>
+
+        <div
+          class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
+        >
           <PanelTimeline />
         </div>
-      </div>
 
-      <div
-        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center border-r border-line/60"
-      >
-        <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20 overflow-y-auto no-scrollbar">
+        <div class="w-px border-none h-full bg-line"></div>
+
+        <div
+          class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
+        >
           <PanelKeynote />
         </div>
-      </div>
 
-      <div
-        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center"
-      >
-        <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20 overflow-y-auto no-scrollbar">
+        <div class="w-px border-none h-full bg-line"></div>
+
+        <div
+          class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
+        >
           <PanelCategories />
         </div>
       </div>
 
-      <!-- <div class="panel-card px-[15vw] h-full shrink-0 flex items-center">
-        <div class="w-full max-w-2xl mx-auto py-20">
-          <PanelContact />
-        </div>
-      </div> -->
-      <div class="panel-spacer shrink-0 h-full"></div>
+      <div class="w-[8.3rem] xs:w-[calc(50vw-224px+9.8rem)] lg:w-[calc(50vw-224px+11.3)]  shrink-0 h-full"></div>
     </div>
+
+    <style>
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+
+    <script>
+      import gsap from "gsap";
+      import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const section = document.getElementById("event-overview");
+        if (!section) return;
+
+        const track = section.querySelector<HTMLElement>(".panels-track");
+        const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
+        const panels = gsap.utils.toArray<HTMLElement>(".panel-card");
+
+        if (!track || panels.length === 0) return;
+
+        const ctx = gsap.context(() => {
+          const getScrollAmount = () =>
+            track.scrollWidth - document.documentElement.clientWidth;
+
+          const getSnapPoints = () => {
+            const scrollAmount = getScrollAmount();
+            const vW = document.documentElement.clientWidth;
+
+            return panels.map((panel) => {
+              const panelLeft = panel.offsetLeft;
+              const panelW = panel.offsetWidth;
+              // 置中點 X = 卡片左座標 - (視窗一半 - 卡片一半)
+              const targetX = panelLeft - (vW - panelW) / 2;
+              const clampedX = Math.max(0, Math.min(targetX, scrollAmount));
+              return clampedX / scrollAmount;
+            });
+          };
+
+          let currentSnapPoints = getSnapPoints();
+
+          // 建立動畫與滾動觸發
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top 20%",
+            end: "bottom 80%",
+            scrub: true,
+            markers: true,
+            invalidateOnRefresh: true,
+
+            onRefresh: () => {
+              currentSnapPoints = getSnapPoints();
+            },
+
+            animation: gsap.to(track, {
+              x: () => -getScrollAmount() + "px",
+              ease: "none",
+            }),
+
+            // snap: {
+            //   snapTo: (progress) =>
+            //     gsap.utils.snap(currentSnapPoints, progress),
+            //   duration: { min: 0.1, max: 0.2 },
+            //   delay: 0,
+            //   ease: "power1.inOut",
+            // },
+
+            onUpdate(self) {
+              const progress = self.progress;
+              const closestPoint = gsap.utils.snap(currentSnapPoints, progress);
+              const closestIndex = currentSnapPoints.indexOf(closestPoint);
+
+              dots.forEach((dot, i) => {
+                dot.style.backgroundColor =
+                  i === closestIndex
+                    ? "var(--color-accent-500)"
+                    : "var(--color-line-active)";
+              });
+            },
+          });
+        }, section);
+
+        document.addEventListener("astro:before-swap", () => ctx.revert(), {
+          once: true,
+        });
+      });
+    </script>
   </div>
 </section>
-
-<script>
-  import gsap from "gsap";
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const section = document.getElementById("event-overview");
-    if (!section) return;
-
-    const track = section.querySelector<HTMLElement>(".panels-track");
-    const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
-    const panels = gsap.utils.toArray<HTMLElement>(".panel-card");
-    const panelSpacers = track?.querySelectorAll<HTMLElement>(".panel-spacer");
-    const startSpacer = panelSpacers?.[0] ?? null;
-    const endSpacer = panelSpacers?.[panelSpacers.length - 1] ?? null;
-    if (!track || panels.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      const updateSpacers = () => {
-        // Reset transform and spacers before measuring so GSAP's current
-        // translation doesn't interfere with offsetWidth reads.
-        gsap.set(track, { x: 0 });
-        if (startSpacer) startSpacer.style.cssText = "width:0px;min-width:0px";
-        if (endSpacer) endSpacer.style.cssText = "width:0px;min-width:0px";
-
-        const vW = document.documentElement.clientWidth;
-
-        if (startSpacer && panels[0]) {
-          const w = Math.max(0, (vW - panels[0].offsetWidth) / 2);
-          startSpacer.style.cssText = `width:${w}px;min-width:${w}px`;
-        }
-        if (endSpacer && panels[panels.length - 1]) {
-          const w = Math.max(0, (vW - panels[panels.length - 1].offsetWidth) / 2);
-          endSpacer.style.cssText = `width:${w}px;min-width:${w}px`;
-        }
-      };
-
-      const getScrollAmount = () => track.scrollWidth - window.innerWidth;
-
-      const getSnapPoints = () => {
-        const scrollAmount = getScrollAmount();
-        return panels.map((panel) => {
-          const panelLeft = panel.offsetLeft;
-          const panelWidth = panel.offsetWidth;
-
-          const targetX = panelLeft - (window.innerWidth - panelWidth) / 2;
-
-          const clampedX = Math.max(0, Math.min(targetX, scrollAmount));
-
-          return clampedX / scrollAmount;
-        });
-      };
-
-      updateSpacers();
-      let currentSnapPoints = getSnapPoints();
-
-      // CSS sticky 負責「在哪裡停多久」，GSAP 負責「這段期間動什麼」。
-      // trigger 綁定外層 400vh 容器；start/end 對齊其頂底邊，取代原本的 pin: true。
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: true,
-        invalidateOnRefresh: true,
-
-        onRefresh: () => {
-          updateSpacers();
-          currentSnapPoints = getSnapPoints();
-        },
-
-        animation: gsap.to(track, {
-          x: () => -getScrollAmount() + "px",
-          ease: "none",
-        }),
-
-        snap: {
-          snapTo: (progress) => gsap.utils.snap(currentSnapPoints, progress),
-
-          duration: { min: 0.1, max: 0.2 },
-          delay: 0,
-          ease: "power1.inOut",
-        },
-
-        onUpdate(self) {
-          const progress = self.progress;
-
-          const closestPoint = gsap.utils.snap(currentSnapPoints, progress);
-          const closestIndex = currentSnapPoints.indexOf(closestPoint);
-
-          dots.forEach((dot, i) => {
-            dot.style.backgroundColor =
-              i === closestIndex
-                ? "var(--color-accent-500)"
-                : "var(--color-line-active)";
-          });
-        },
-      });
-    }, section);
-
-    document.addEventListener("astro:before-swap", () => ctx.revert(), {
-      once: true,
-    });
-  });
-</script>

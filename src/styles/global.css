@@ -79,7 +79,7 @@
 
   --color-info: #3da2d9;
   --color-info-ghost: rgba(61, 162, 217, 0.1);
-  
+
   /* ── Typography ─────────────────────────────────── */
   --font-sans: "Ubuntu", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Ubuntu", "JetBrains Mono", ui-monospace, "Consolas", monospace;
@@ -89,6 +89,10 @@
   --shadow-primary: 0 0 16px rgba(116, 156, 186, 0.35);
   --shadow-accent-sm: 0 0 8px rgba(227, 124, 70, 0.3);
   --shadow-accent: 0 0 16px rgba(227, 124, 70, 0.45);
+}
+
+@theme {
+  --breakpoint-xs: 28rem; /* ≈ 448px */
 }
 
 @layer base {
