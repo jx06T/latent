@@ -2,6 +2,7 @@
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import { PARTNERS } from "@/data/partners";
 import ScrambleText from "../ui/ScrambleText.astro";
+import { ArrowUpRight } from "lucide-react";
 
 // 為了無縫滾動，需要複製三份 (在大螢幕或間距寬時更穩)
 const tripled = [...PARTNERS, ...PARTNERS, ...PARTNERS];
@@ -20,33 +21,55 @@ const reversedTripled = [...reversed, ...reversed, ...reversed];
   <div class="marquee-wrapper overflow-hidden mb-8">
     <div class="marquee-track flex gap-8 sm:gap-16 w-max items-center">
       {
-        tripled.map((partner) => (
-          <div class="marquee-item shrink-0 group">
-            {partner.logo ? (
-              <img
-                src={partner.logo}
-                alt={partner.name}
-                class="h-10 sm:h-14 w-auto object-contain grayscale opacity-70 group-hover:opacity-100 transition-all duration-300"
-              />
-            ) : (
-              <div
-                class={`font-mono text-sm sm:text-base border-2 px-6 py-3 whitespace-nowrap transition-all duration-300
-              opacity-80 group-hover:opacity-100 group-hover:scale-105
-              
-              ${
-                partner.role === "主辦"
-                  ? "border-accent-500/60 text-accent-400 bg-accent-500/5 shadow-[0_0_15px_rgba(200,96,26,0.1)]"
-                  : "border-line text-ink-dim hover:border-accent-500/40 hover:text-ink"
-              }`}
+        tripled.map((partner) => {
+          const isLink = !!partner.url;
+          const Element = isLink ? "a" : "div";
+
+          return (
+            <div class="marquee-item shrink-0 group">
+              <Element
+                href={partner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class={`relative block transition-all duration-300 ${isLink ? "cursor-pointer" : "cursor-default"}`}
               >
-                {partner.role === "主辦" && (
-                  <span class="text-accent-500 animate-pulse">✦</span>
+                {/* 視覺提示：針對手機端，始終顯示一個微小的指示器 */}
+                {isLink && (
+                  <div class="absolute top-0 right-0 z-10 md:hidden">
+                    <ArrowUpRight className=" text-accent-500" />
+                  </div>
                 )}
-                {partner.name}
-              </div>
-            )}
-          </div>
-        ))
+
+                {partner.logo ? (
+                  <img
+                    src={partner.logo}
+                    alt={partner.name}
+                    class={`h-10 sm:h-14 w-auto object-contain grayscale transition-all duration-300
+                  ${isLink ? "opacity-80 md:opacity-70 group-hover:opacity-100" : "opacity-40"}`}
+                  />
+                ) : (
+                  <div
+                    class={`font-mono text-sm sm:text-base border-2 px-6 py-3 whitespace-nowrap transition-all duration-300
+                  ${
+                    partner.role === "主辦"
+                      ? "border-accent-500/60 text-accent-400 bg-accent-500/5"
+                      : "border-line text-ink-dim"
+                  }`}
+                  >
+                    {partner.role === "主辦" && (
+                      <span class="mr-2 text-accent-500">✦</span>
+                    )}
+                    <span
+                      class={`${isLink ? "border-dashed md:border-solid md:group-hover:underline underline-offset-4" : ""}`}
+                    >
+                      {partner.name}
+                    </span>
+                  </div>
+                )}
+              </Element>
+            </div>
+          );
+        })
       }
     </div>
   </div>
