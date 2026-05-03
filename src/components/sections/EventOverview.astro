@@ -9,13 +9,12 @@ const PANELS = 4;
 ---
 
 <section id="event-overview" class="relative w-full h-[400vh] bg-bg-surface">
-  <!-- 黏性視窗層 -->
   <div class="sticky top-0 w-full h-screen overflow-hidden">
     <!-- 背景紋理 -->
     <div
       class="absolute inset-0 pointer-events-none opacity-40"
       aria-hidden="true"
-      style="background-image: linear-gradient(rgba(116,156,186,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(116,156,186,0.04) 1px, transparent 1px); background-size: 60px 60px; background-position: -1px -1px;"
+      style="background-image: linear-gradient(rgba(116,156,186,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(116,156,186,0.15) 1px, transparent 1px); background-size: 60px 60px; background-position: -1px -1px;"
     >
     </div>
 
@@ -42,10 +41,12 @@ const PANELS = 4;
     </div>
 
     <div class="panels-track flex h-full will-change-transform items-center">
+      <!-- 前置 Spacer -->
       <div
         class="w-[calc(100vw+10rem)] xs:w-[calc(50vw+22rem)] sm:w-[calc(90vw+12rem)] shrink-0 h-full"
       >
       </div>
+
       <div
         class="flex justify-start gap-20 sm:gap-[20vw] h-full will-change-transform items-center pt-18 pb-18 shrink-0"
       >
@@ -54,25 +55,19 @@ const PANELS = 4;
         >
           <PanelInfo />
         </div>
-
         <div class="w-px border-none h-full bg-line"></div>
-
         <div
           class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
         >
           <PanelTimeline />
         </div>
-
         <div class="w-px border-none h-full bg-line"></div>
-
         <div
           class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
         >
           <PanelKeynote />
         </div>
-
         <div class="w-px border-none h-full bg-line"></div>
-
         <div
           class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
         >
@@ -80,104 +75,127 @@ const PANELS = 4;
         </div>
       </div>
 
+      <!-- 後置 Spacer -->
       <div
         class="w-[calc(100vw+10rem)] xs:w-[calc(50vw+22rem)] sm:w-[calc(90vw+12rem)] shrink-0 h-full"
       >
       </div>
     </div>
-
-    <style>
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    </style>
-
-    <script>
-      import gsap from "gsap";
-      import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-      gsap.registerPlugin(ScrollTrigger);
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const section = document.getElementById("event-overview");
-        if (!section) return;
-
-        const track = section.querySelector<HTMLElement>(".panels-track");
-        const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
-        const panels = gsap.utils.toArray<HTMLElement>(".panel-card");
-
-        if (!track || panels.length === 0) return;
-
-        const ctx = gsap.context(() => {
-          const getScrollAmount = () =>
-            track.scrollWidth - document.documentElement.clientWidth;
-          // track.scrollWidth - 448 ;
-
-          const getSnapPoints = () => {
-            const scrollAmount = getScrollAmount();
-            const vW = document.documentElement.clientWidth;
-
-            return panels.map((panel) => {
-              const panelLeft = panel.offsetLeft;
-              const panelW = panel.offsetWidth;
-              // 置中點 X = 卡片左座標 - (視窗一半 - 卡片一半)
-              const targetX = panelLeft - (vW - panelW) / 2;
-              const clampedX = Math.max(0, Math.min(targetX, scrollAmount));
-              return clampedX / (0.6 * scrollAmount) + 0.2;
-            });
-          };
-
-          let currentSnapPoints = getSnapPoints();
-
-          // 建立動畫與滾動觸發
-          ScrollTrigger.create({
-            trigger: section,
-            start: "top 100%",
-            end: "bottom 0%",
-            markers: true,
-            scrub: true,
-            invalidateOnRefresh: true,
-
-            onRefresh: () => {
-              currentSnapPoints = getSnapPoints();
-            },
-
-            animation: gsap.to(track, {
-              x: () => -getScrollAmount() + "px",
-              ease: "none",
-            }),
-
-            // snap: {
-            //   snapTo: (progress) =>
-            //     gsap.utils.snap(currentSnapPoints, progress),
-            //   duration: { min: 0.1, max: 0.2 },
-            //   delay: 0,
-            //   ease: "power1.inOut",
-            // },
-
-            onUpdate(self) {
-              const progress = self.progress;
-              const closestPoint = gsap.utils.snap(currentSnapPoints, progress);
-              const closestIndex = currentSnapPoints.indexOf(closestPoint);
-
-              dots.forEach((dot, i) => {
-                dot.style.backgroundColor =
-                  i === closestIndex
-                    ? "var(--color-accent-500)"
-                    : "var(--color-line-active)";
-              });
-            },
-          });
-        }, section);
-
-        document.addEventListener("astro:before-swap", () => ctx.revert(), {
-          once: true,
-        });
-      });
-    </script>
   </div>
 </section>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const section = document.getElementById("event-overview");
+    if (!section) return;
+
+    const track = section.querySelector<HTMLElement>(".panels-track");
+    const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
+    if (!track) return;
+
+    /**
+     * 動態計算基於公式的斷點
+     */
+    const calculateSnapPoints = () => {
+      const winW = window.innerWidth;
+      if (winW < 448) {
+        // 小螢幕配置 (xs 以下)
+        return [0.2, 0.4, 0.6, 0.8];
+      } else {
+        // 大螢幕配置
+        const rem = 16;
+        let x = 0;
+        if (winW >= 640) {
+          x = winW * 0.2; // 基於 CSS sm:gap-[20vw]
+        } else {
+          x = 10 * rem; // 基於 CSS xs:w-... + gap-20 (估算值)
+        }
+
+        // 套用使用者提供的公式
+        // 0.2 | 0.2 + (0.6 / (78+3x) * (25+x)) | 0.2 + (0.6 / (78+3x) * (50+2x)) | 0.8
+        const factor = 0.6 / (78 * rem + 3 * x);
+        return [
+          0.2,
+          0.2 + factor * (25 * rem + x),
+          0.2 + factor * (50 * rem + 2 * x),
+          0.8,
+        ];
+      }
+    };
+
+    const ctx = gsap.context(() => {
+      const getScrollAmount = () =>
+        track.scrollWidth - document.documentElement.clientWidth;
+      let snapPoints = calculateSnapPoints();
+
+      // 判斷是否為手機/觸控設備 (GSAP 輔助判斷)
+      const isTouch = ScrollTrigger.isTouch;
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: "top 100%",
+        end: "bottom 0%",
+        scrub: true,
+        invalidateOnRefresh: true,
+
+        onRefresh: () => {
+          snapPoints = calculateSnapPoints();
+        },
+
+        animation: gsap.to(track, {
+          x: () => -getScrollAmount() + "px",
+          ease: "none",
+        }),
+
+        // 條件式 Snap：非觸控設備才啟用自動吸附
+        snap: isTouch
+          ? undefined
+          : {
+              snapTo: (progress) => {
+                if (progress < 0.16 || progress > 0.84) {
+                  return progress;
+                }
+
+                return gsap.utils.snap(snapPoints, progress);
+              },
+              duration: { min: 0.1, max: 0.3 },
+              delay: 0,
+              ease: "power1.inOut",
+            },
+
+        onUpdate(self) {
+          const progress = self.progress;
+          // 找出最接近的點點索引
+          const closestValue = gsap.utils.snap(snapPoints, progress);
+          const closestIndex = snapPoints.indexOf(closestValue);
+
+          dots.forEach((dot, i) => {
+            dot.style.backgroundColor =
+              i === closestIndex
+                ? "var(--color-accent-500)"
+                : "var(--color-line-active)";
+          });
+        },
+      });
+    }, section);
+
+    document.addEventListener("astro:before-swap", () => ctx.revert(), {
+      once: true,
+    });
+  });
+</script>
