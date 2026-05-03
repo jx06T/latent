@@ -65,7 +65,7 @@ const PANELS = 4;
       h-full 填滿黏性視窗高度（100svh）。
     -->
     <div class="panels-track flex w-max h-full will-change-transform">
-      <div class="w-0 md:w-[10vw] lg:w-[20vw] xl:w-[30vw] h-full shrink-0"></div>
+      <div class="panel-spacer shrink-0 h-full"></div>
       <div
         class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center border-r border-line/60"
       >
@@ -91,7 +91,7 @@ const PANELS = 4;
       </div>
 
       <div
-        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center border-r border-line/60"
+        class="panel-card px-[25vw] md:px-[15vw] h-full shrink-0 flex items-center"
       >
         <div class="w-full h-full max-w-2xl mx-auto py-16 pb-20 overflow-y-auto no-scrollbar">
           <PanelCategories />
@@ -103,7 +103,7 @@ const PANELS = 4;
           <PanelContact />
         </div>
       </div> -->
-      <div class="w-0 md:w-[10vw] lg:w-[20vw] xl:w-[30vw] h-full shrink-0"></div>
+      <div class="panel-spacer shrink-0 h-full"></div>
     </div>
   </div>
 </section>
@@ -121,9 +121,31 @@ const PANELS = 4;
     const track = section.querySelector<HTMLElement>(".panels-track");
     const dots = section.querySelectorAll<HTMLElement>(".panel-dot");
     const panels = gsap.utils.toArray<HTMLElement>(".panel-card");
+    const panelSpacers = track?.querySelectorAll<HTMLElement>(".panel-spacer");
+    const startSpacer = panelSpacers?.[0] ?? null;
+    const endSpacer = panelSpacers?.[panelSpacers.length - 1] ?? null;
     if (!track || panels.length === 0) return;
 
     const ctx = gsap.context(() => {
+      const updateSpacers = () => {
+        // Reset transform and spacers before measuring so GSAP's current
+        // translation doesn't interfere with offsetWidth reads.
+        gsap.set(track, { x: 0 });
+        if (startSpacer) startSpacer.style.cssText = "width:0px;min-width:0px";
+        if (endSpacer) endSpacer.style.cssText = "width:0px;min-width:0px";
+
+        const vW = document.documentElement.clientWidth;
+
+        if (startSpacer && panels[0]) {
+          const w = Math.max(0, (vW - panels[0].offsetWidth) / 2);
+          startSpacer.style.cssText = `width:${w}px;min-width:${w}px`;
+        }
+        if (endSpacer && panels[panels.length - 1]) {
+          const w = Math.max(0, (vW - panels[panels.length - 1].offsetWidth) / 2);
+          endSpacer.style.cssText = `width:${w}px;min-width:${w}px`;
+        }
+      };
+
       const getScrollAmount = () => track.scrollWidth - window.innerWidth;
 
       const getSnapPoints = () => {
@@ -140,6 +162,7 @@ const PANELS = 4;
         });
       };
 
+      updateSpacers();
       let currentSnapPoints = getSnapPoints();
 
       // CSS sticky 負責「在哪裡停多久」，GSAP 負責「這段期間動什麼」。
@@ -152,6 +175,7 @@ const PANELS = 4;
         invalidateOnRefresh: true,
 
         onRefresh: () => {
+          updateSpacers();
           currentSnapPoints = getSnapPoints();
         },
 
