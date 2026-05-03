@@ -2,14 +2,14 @@
 import ProseLayout from "@/layouts/ProseLayout.astro";
 import MarkdownContent from "@/components/ui/MarkdownContent.astro";
 
-import privacyContent from "@/content/copyright.md?raw";
+import copyrightContent from "@/content/copyright.md?raw";
 ---
 
 <ProseLayout
-  title="隱私權政策 | Latent"
-  description="Latent 平台的隱私權政策，說明我們如何處理您的資料。"
+  title="版權聲明與開源協議 | Latent"
+  description="Latent 平台的版權相關說明，說明本網站各區塊的版權歸屬及使用者權力。"
 >
   <div class="prose prose-invert max-w-none">
-    <MarkdownContent content={privacyContent} />
+    <MarkdownContent content={copyrightContent} />
   </div>
 </ProseLayout>
