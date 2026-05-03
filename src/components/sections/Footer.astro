@@ -14,26 +14,25 @@ import LatentIcon from "../ui/LatentIcon.astro";
     <nav class="space-x-5" aria-label="Footer navigation">
       <Link href="/privacy" underLine={false}>Privacy</Link>
       <Link href="/about" underLine={false}>About</Link>
+      <Link href="/copyright" underLine={false}>Copyright</Link>
       <Link href="/contact" underLine={false}>Contact</Link>
     </nav>
 
     <div class="text-center space-y-0">
-      <p class="text-primary-400 text-sm">
-        © {new Date().getFullYear()} latent. All rights reserved.
+      <p class="text-ink-dim text-sm">
+        <span class=" font-mono text-lg inline-block -mt-1">©</span> {new Date().getFullYear()} latent.
       </p>
-      <p class="text-ink-ddim text-sm font-mono uppercase tracking-widest">
+      <p class="text-ink-dim text-sm font-mono tracking-widest">
         Crafted by
         <Link
           href="https://github.com/jx06t"
           isExternal
-          underLine={false}
           class="text-ink-dim hover:text-accent-400 p-0 m-0">jx06t</Link
         >
-        | Jointly owned by
+        |
         <Link
           href="https://www.ckefgisc.org/"
           isExternal
-          underLine={false}
           class="text-ink-dim hover:text-accent-400 p-0 m-0"
         >
           CKEFGISC
@@ -42,13 +41,13 @@ import LatentIcon from "../ui/LatentIcon.astro";
     </div>
 
     <div
-      class="w-full flex justify-between px-2 md:px-[5%] text-xs mt-2 text-black leading-3 md:leading-4"
+      class="w-full flex flex-col-reverse md:flex-row fle items-center md:items-start gap-1.5 md:justify-between px-2 md:px-[2%] text-xs mt-2 text-black leading-3"
     >
       <div class="bg-gray-600 w-fit py-0.5 px-1">
         <pre>Latent [adj.]
 present bot not yet visible or active</pre>
       </div>
-      <div class="w-8 md:w-12">
+      <div class="w-8">
         <LatentIcon class="h-full text-gray-600" />
       </div>
     </div>
