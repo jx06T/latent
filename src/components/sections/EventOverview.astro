@@ -42,10 +42,12 @@ const PANELS = 4;
     </div>
 
     <div class="panels-track flex h-full will-change-transform items-center">
-      <div class="w-[8.3rem] xs:w-[calc(50vw-224px+9.8rem)] lg:w-[calc(50vw-224px+11.3)]  shrink-0 h-full"></div>
-
       <div
-        class="flex justify-start gap-20 xs:gap-30 lg:gap-40 h-full will-change-transform items-center pt-18 pb-18"
+        class="w-[calc(100vw+10rem)] xs:w-[calc(50vw+22rem)] sm:w-[calc(90vw+12rem)] shrink-0 h-full"
+      >
+      </div>
+      <div
+        class="flex justify-start gap-20 sm:gap-[20vw] h-full will-change-transform items-center pt-18 pb-18 shrink-0"
       >
         <div
           class="panel-card shrink-0 grow-0 h-full max-w-2xl overflow-y-visible no-scrollbar"
@@ -78,7 +80,10 @@ const PANELS = 4;
         </div>
       </div>
 
-      <div class="w-[8.3rem] xs:w-[calc(50vw-224px+9.8rem)] lg:w-[calc(50vw-224px+11.3)]  shrink-0 h-full"></div>
+      <div
+        class="w-[calc(100vw+10rem)] xs:w-[calc(50vw+22rem)] sm:w-[calc(90vw+12rem)] shrink-0 h-full"
+      >
+      </div>
     </div>
 
     <style>
@@ -110,6 +115,7 @@ const PANELS = 4;
         const ctx = gsap.context(() => {
           const getScrollAmount = () =>
             track.scrollWidth - document.documentElement.clientWidth;
+          // track.scrollWidth - 448 ;
 
           const getSnapPoints = () => {
             const scrollAmount = getScrollAmount();
@@ -121,7 +127,7 @@ const PANELS = 4;
               // 置中點 X = 卡片左座標 - (視窗一半 - 卡片一半)
               const targetX = panelLeft - (vW - panelW) / 2;
               const clampedX = Math.max(0, Math.min(targetX, scrollAmount));
-              return clampedX / scrollAmount;
+              return clampedX / (0.6 * scrollAmount) + 0.2;
             });
           };
 
@@ -130,10 +136,10 @@ const PANELS = 4;
           // 建立動畫與滾動觸發
           ScrollTrigger.create({
             trigger: section,
-            start: "top 20%",
-            end: "bottom 80%",
-            scrub: true,
+            start: "top 100%",
+            end: "bottom 0%",
             markers: true,
+            scrub: true,
             invalidateOnRefresh: true,
 
             onRefresh: () => {

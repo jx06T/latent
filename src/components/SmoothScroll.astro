@@ -4,7 +4,7 @@
 ---
 
 <script>
-  import Lenis from "@studio-freight/lenis";
+  import Lenis from "lenis";
   import gsap from "gsap";
   import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -37,7 +37,7 @@
   window.addEventListener("pagehide", () => {
     sessionStorage.setItem(
       `lenis-scroll:${location.pathname}`,
-      String(Math.round(lenis.scroll))
+      String(Math.round(lenis.scroll)),
     );
   });
 

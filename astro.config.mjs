@@ -18,6 +18,9 @@ export default defineConfig({
   output: "server",
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['astro/runtime/client/dev-toolbar/entrypoint.js'],
+    },
   },
   markdown: {
     rehypePlugins: [

@@ -93,12 +93,12 @@ export type FloatElement = {
 };
 
 export const floatElements: FloatElement[] = [
-    { id: "f-1", num: "01", top: 60, left: 65,  width: 20, speed: 0.05, wUnit: 20 },
-    { id: "b-1", num: "02", top: 15, left: 70,  width: 18, speed: 0.15, wUnit: 18 },
-    { id: "c-1", num: "03", top: 20, left: 20,  width: 20, speed: 0.05, wUnit: 20 },
-    { id: "f-2", num: "04", top: 70, left: 15,  width: 10, speed: 0.1,  wUnit: 10 },
-    { id: "j-1", num: "05", top: 72, left: 80,  width: 16, speed: 0.1,  wUnit: 16 },
-    { id: "j-1", num: "07", top: 75, left: 18,  width: 15, speed: 0.13, wUnit: 15 },
-    { id: "c-2", num: "09", top: 25, left: 80,  width: 28, speed: 0.17, wUnit: 28 },
-    { id: "o-1", num: "10", top: 58, left: -7,  width: 22, speed: 0.2,  wUnit: 22 },
+    { id: "f-1", num: "01", top: 60, left: 65, width: 20, speed: 0.05, wUnit: 20 },
+    { id: "b-1", num: "02", top: 15, left: 70, width: 18, speed: 0.15, wUnit: 18 },
+    { id: "c-1", num: "03", top: 20, left: 20, width: 20, speed: 0.05, wUnit: 20 },
+    { id: "f-2", num: "04", top: 70, left: 15, width: 10, speed: 0.1, wUnit: 10 },
+    { id: "j-1", num: "05", top: 72, left: 80, width: 16, speed: 0.1, wUnit: 16 },
+    { id: "j-1", num: "07", top: 75, left: 18, width: 15, speed: 0.13, wUnit: 15 },
+    { id: "c-2", num: "09", top: 25, left: 80, width: 28, speed: 0.17, wUnit: 28 },
+    { id: "o-1", num: "10", top: 58, left: -7, width: 22, speed: 0.2, wUnit: 22 },
 ];
