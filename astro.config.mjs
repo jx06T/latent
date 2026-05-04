@@ -8,14 +8,34 @@ import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
-import netlify from '@astrojs/netlify';
 import rehypeExternalLinks from 'rehype-external-links';
+
+// 引入兩種 Adapter
+import netlify from '@astrojs/netlify';
+import vercel from '@astrojs/vercel/serverless'; // Vercel 的 SSR Adapter
+
+// 動態判斷部署環境
+const getAdapter = () => {
+  if (process.env.VERCEL) {
+    console.log('🚀 偵測到 Vercel 環境，使用 @astrojs/vercel');
+    return vercel();
+  }
+  
+  if (process.env.NETLIFY) {
+    console.log('🚀 偵測到 Netlify 環境，使用 @astrojs/netlify');
+    return netlify();
+  }
+
+  // 本地開發或其他環境的預設值 (保留你原本的 Netlify)
+  console.log('💻 本地/未識別環境，使用預設 Netlify Adapter');
+  return netlify();
+};
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://example.com', // 之後記得改回你真實的網域
   integrations: [mdx(), react(), sitemap()],
-  output: "server",
+  output: "server", // 保持 SSR 模式
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
@@ -34,5 +54,5 @@ export default defineConfig({
       ]
     ]
   },
-  adapter: netlify(),
+  adapter: getAdapter(), // 自動注入對應的 Adapter
 });
