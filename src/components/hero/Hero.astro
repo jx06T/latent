@@ -18,7 +18,6 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
   class="relative w-full h-[160vh] md:h-[180vh] lg:h-[220vh] xl:h-[240vh] 2xl:h-[260vh] overflow-hidden bg-[#b5ae9e] min-h-300"
   style="container-type: size;"
 >
-  <!-- 2. 使用 cqw 和 cqh 來完美模擬 object-cover -->
   <div
     class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none
     top-1/2"
@@ -40,15 +39,17 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
         <FloatingElements type="pixel" />
         <UfoSystem type="pixel" />
       </div>
+      <ScannerUI />
+      <div
+        data-laser-target
+        class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
+      >
+      </div>
+
+      
     </div>
   </div>
 
-  <ScannerUI />
-  <div
-    data-laser-target
-    class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
-  >
-  </div>
   <div
     data-latent-logo
     data-speed="0.03"
@@ -56,7 +57,7 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
   >
     <LatentLogo class="text-black -translate-x-1/2 lg:translate-x-0" />
   </div>
-  
+
   <div
     data-log-wrapper
     class="absolute left-0 right-0 top-[50vh] z-30 h-[120vh]"

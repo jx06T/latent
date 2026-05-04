@@ -32,6 +32,53 @@ import { scanBoxes } from "./hero-data";
     }
   </g>
 
+  <g id="scanner-label">
+    {
+      scanBoxes.map((box) => (
+        <svg
+          data-scanner-label={box.id}
+          x={`${box.x}%`}
+          y={`${box.y}%`}
+          overflow="visible" 
+        >
+          <defs>
+            <clipPath id={`label-mask-${box.id}`}>
+              <rect
+                data-scanner-label-mask={box.id}
+                x="-1"
+                y="-24"
+                width="210"
+                height="24"
+              />
+            </clipPath>
+          </defs> 
+
+          <g clip-path={`url(#label-mask-${box.id})`}>
+            <rect
+              x="-1"
+              y="-24"
+              fill="#d18e12"
+              class="translate-y-1.5 md:translate-y-1 lg:translate-y-0 w-31.25 h-4.5 md:w-37.5 md:h-5 lg:w-45 lg:h-6 xl:w-50 xl:h-7 xl:-translate-y-1"
+            />
+            <text
+              x="6"
+              y="-8"
+              fill="#111"
+              font-family="Ubuntu"
+              class="translate-y-0.5 md:translate-y-px lg:translate-y-0 text-[11px] md:text-[13px] lg:text-[16px] xl:text-[18px]"
+            >
+              {box.label}{" "}
+              <tspan data-scanner-conf={box.id}>
+                {String(box.confidence).padStart(2, "0")}%
+              </tspan>{" "}
+              ]
+            </text>
+          </g>
+        </svg>
+      ))
+    }
+  </g>
+
   <g id="scanner-boxes">
     {
       scanBoxes.map((box) => (
@@ -44,15 +91,6 @@ import { scanBoxes } from "./hero-data";
           overflow="visible"
           class="scanner-wrapper"
         >
-          <rect
-            class="scanner-frame"
-            x="0"
-            y="0"
-            width="100%"
-            height="100%"
-            fill="transparent"
-          />
-
           <g
             data-scanner-frame={box.id}
             class="scanner-frame"
@@ -73,40 +111,6 @@ import { scanBoxes } from "./hero-data";
               stroke="#d18e12"
               stroke-width="2"
             />
-
-            <defs>
-              <clipPath id={`label-mask-${box.id}`}>
-                <rect
-                  data-scanner-label-mask={box.id}
-                  x="-1"
-                  y="-24"
-                  width="210"
-                  height="24"
-                  style="scale: 0 1;"
-                  />
-              </clipPath>
-            </defs>
-
-            <g
-              data-scanner-label={box.id}
-              clip-path={`url(#label-mask-${box.id})`}
-              >
-              <rect
-                x="-1"
-                y="-24"
-                fill="#d18e12"
-                class=" translate-y-1.5 md:translate-y-1 lg:translate-y-0 w-31.25 y- h-4.5 md:w-37.5  md:h-5 lg:w-45 lg:h-6 xl:w-50 xl:h-7 xl:-translate-y-1"
-              />
-              <text
-                x="6"
-                y="-8"
-                fill="#111"
-                font-family="Ubuntu"
-                class="translate-y-0.5 md:translate-y-px lg:translate-y-0 text-[11px] md:text-[13px] lg:text-[16px] xl:text-[18px]"
-              >
-                {box.label} <tspan data-scanner-conf={box.id}>{String(box.confidence).padStart(2, "0")}%</tspan> ]
-              </text>
-            </g>
           </g>
         </svg>
       ))
@@ -115,34 +119,10 @@ import { scanBoxes } from "./hero-data";
 </svg>
 
 <style>
-  .mask-rect {
-    transform-box: fill-box;
-    transform-origin: 50% 0%;
-    will-change: transform;
-
-    transform: translate(
-        var(--float-x, 0px),
-        calc(var(--parallax-y, 0px) + var(--float-y, 0px))
-      )
-      scale(var(--scale-x, 0), var(--scale-y, 0.01));
-  }
-
-  .scanner-wrapper {
-  }
-
-  .scanner-frame {
-    transform-box: fill-box;
-    transform-origin: 50% 0%;
-    will-change: transform;
-
-    translate: var(--float-x, 0px)
-      calc(var(--parallax-y, 0px) + var(--float-y, 0px));
-  }
+  /* 只需要維持 GPU 加速宣告即可，所有的動畫邏輯都交給 JS */
+  .mask-rect,
+  .scanner-frame,
   .scanner-box {
-    transform-box: fill-box;
-    transform-origin: 50% 0%;
     will-change: transform;
-
-    scale: var(--scale-x, 0) var(--scale-y, 0.01);
   }
 </style>
