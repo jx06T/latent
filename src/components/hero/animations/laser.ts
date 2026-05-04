@@ -59,46 +59,100 @@ export function initLaserTarget(target: HTMLElement): () => void {
     };
 }
 
+
+
 export function initLaserLines(
     target: HTMLElement,
     svg: SVGSVGElement,
     wrappers: SVGElement[]
-): void {
-    gsap.ticker.add(() => {
-        const targetRect = target.getBoundingClientRect();
-        const centerX = targetRect.left + targetRect.width / 2;
-        const centerY = targetRect.top + targetRect.height / 2;
-        const svgRect = svg.getBoundingClientRect();
+): () => void {
+    let boxesCache: any[] = [];
+    let svgSize = { width: 0, height: 0 };
 
-        wrappers.forEach((wrapper) => {
+    const updateCache = () => {
+        const rawSvgRect = svg.getBoundingClientRect();
+
+        // Target 永遠在畫面正中央，所以相對座標就是寬高的一半
+        svgSize = { width: rawSvgRect.width, height: rawSvgRect.height };
+
+        boxesCache = wrappers.map((wrapper) => {
             const id = wrapper.getAttribute(ATTRS.scanner.wrapper);
             const line = document.querySelector(`[${ATTRS.scanner.line}="${id}"]`);
+            const frame = wrapper.querySelector(`[${ATTRS.scanner.frame}="${id}"]`);
             const box = wrapper.querySelector(`[${ATTRS.scanner.box}="${id}"]`);
-            if (!box || !line) return;
 
-            const boxRect = box.getBoundingClientRect();
+            const staticRectEl = wrapper.querySelector(`[${ATTRS.scanner.static}="${id}"]`);
+
+            if (!frame || !line || !staticRectEl) return null;
+
+            const sRect = staticRectEl.getBoundingClientRect();
+
+            return {
+                line,
+                frame,
+                box,
+                base: {
+                    left: sRect.left - rawSvgRect.left,
+                    top: sRect.top - rawSvgRect.top,
+                    width: sRect.width,
+                    height: sRect.height
+                }
+            };
+        }).filter(Boolean);
+    };
+
+    updateCache();
+
+    const resizeObserver = new ResizeObserver(() => updateCache());
+    resizeObserver.observe(svg);
+
+    const tickerFn = () => {
+        const targetX = gsap.getProperty(target, "x") as number;
+        const targetY = gsap.getProperty(target, "y") as number;
+
+        const relativeTargetX = (svgSize.width / 2) + targetX;
+        const relativeTargetY = (svgSize.height / 2) + targetY;
+
+        boxesCache.forEach(({ line, frame,box, base }) => {
+            const tx = gsap.getProperty(frame, "x") as number;
+            const ty = gsap.getProperty(frame, "y") as number;
+            const sx = gsap.getProperty(box, "scaleX") as number;
+            const sy = gsap.getProperty(box, "scaleY") as number;
+
+            const currentLeft = base.left + tx;
+            const currentRight = base.left + tx + (base.width * sx);
+            const currentTop = base.top + ty;
+            const currentBottom = base.top + ty + (base.height * sy);
+
             const corners = [
-                { x: boxRect.left, y: boxRect.top },
-                { x: boxRect.right, y: boxRect.top },
-                { x: boxRect.left, y: boxRect.bottom },
-                { x: boxRect.right, y: boxRect.bottom },
+                { x: currentLeft, y: currentTop },
+                { x: currentRight, y: currentTop },
+                { x: currentLeft, y: currentBottom },
+                { x: currentRight, y: currentBottom },
             ];
 
             let closestCorner = corners[0];
             let minDist = Infinity;
             corners.forEach((corner) => {
-                const dist = Math.hypot(corner.x - centerX, corner.y - centerY);
+                const dist = Math.hypot(corner.x - relativeTargetX, corner.y - relativeTargetY);
                 if (dist < minDist) { minDist = dist; closestCorner = corner; }
             });
 
             gsap.set(line, {
                 attr: {
-                    x1: centerX - svgRect.left,
-                    y1: centerY - svgRect.top,
-                    x2: closestCorner.x - svgRect.left,
-                    y2: closestCorner.y - svgRect.top,
+                    x1: relativeTargetX,
+                    y1: relativeTargetY,
+                    x2: closestCorner.x,
+                    y2: closestCorner.y,
                 },
             });
         });
-    });
+    };
+
+    gsap.ticker.add(tickerFn);
+
+    return () => {
+        resizeObserver.disconnect();
+        gsap.ticker.remove(tickerFn);
+    };
 }

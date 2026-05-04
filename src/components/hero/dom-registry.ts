@@ -10,6 +10,7 @@ export const ATTRS = {
     logo: 'data-latent-logo',
     scanner: {
         wrapper: 'data-scanner-wrapper',
+        static: 'data-scanner-static',
         frame: 'data-scanner-frame',
         box: 'data-scanner-box',
         label: 'data-scanner-label',
@@ -43,6 +44,7 @@ export const SELECTORS = {
     floatingElements: getSel(ATTRS.floating),
     scanner: {
         wrappers: getSel(ATTRS.scanner.wrapper),
+        statics: getSel(ATTRS.scanner.static),
         frames: getSel(ATTRS.scanner.frame),
         box: getSel(ATTRS.scanner.box),
         labels: getSel(ATTRS.scanner.label),

@@ -19,35 +19,47 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
   style="container-type: size;"
 >
   <div
-    class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none
+    class="absolute w-full h-full inset-0 2xl:translate-y-[calc(20*(100vw-1536px))]"
+  >
+    <div
+      class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none
     top-1/2"
-    style={`
+      style={`
       width: max(100cqw, 100cqh * ${RATIO_W_H});
       height: max(100cqh, 100cqw * ${RATIO_H_W});
     `}
-  >
-    <div class="absolute inset-0 2xl:translate-y-[calc(20*(100vw-1536px))]">
+    >
       <StaticBackground type="normal" />
-      <FloatingElements type="normal" />
       <UfoSystem type="normal" />
+    </div>
+    <FloatingElements type="normal" />
 
+    <div
+      class="absolute inset-0 w-full h-full"
+      style="clip-path: url(#scan-mask);"
+    >
       <div
-        class="absolute inset-0 w-full h-full"
-        style="clip-path: url(#scan-mask);"
+        class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none
+    top-1/2"
+        style={`
+      width: max(100cqw, 100cqh * ${RATIO_W_H});
+      height: max(100cqh, 100cqw * ${RATIO_H_W});
+    `}
       >
         <StaticBackground type="pixel" />
-        <FloatingElements type="pixel" />
         <UfoSystem type="pixel" />
       </div>
-      <ScannerUI />
-      <div
-        data-laser-target
-        class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
-      >
-      </div>
 
-      
+      <FloatingElements type="pixel" />
     </div>
+
+    <div
+      data-laser-target
+      class="absolute left-1/2 top-1/2 w-2 h-2 bg-accent-500 rounded-full -translate-x-1/2 -translate-y-1/2 z-30"
+    >
+    </div>
+
+    <ScannerUI />
   </div>
 
   <div

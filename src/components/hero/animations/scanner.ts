@@ -35,13 +35,11 @@ export function initScannerAnimations(
         const state = { pY: 0, fX: 0, fY: 0, sX: 0, sY: 0.02 };
 
         const renderTransforms = () => {
-            // 1. 位移層：Frame、Mask 以及獨立出來的 Label 都要一起移動！
             gsap.set([frame, mask, label], {
                 x: state.fX,
                 y: state.pY + state.fY,
             });
 
-            // 2. 縮放層：只有 Box 和 Mask 需要縮放
             gsap.set([box, mask], {
                 scaleX: state.sX,
                 scaleY: state.sY,
@@ -49,7 +47,6 @@ export function initScannerAnimations(
             });
         };
 
-        // 初始化 Label Mask (取代寫在 HTML 的 style="scale...")
         gsap.set(labelMask, { scaleX: 0, transformOrigin: "0% 0%" });
         gsap.set(line, { opacity: 0 });
         renderTransforms();
@@ -87,7 +84,7 @@ export function initScannerAnimations(
                         start: "top top",
                         end: "bottom top",
                         scrub: true,
-                        invalidateOnRefresh: true, // 🌟 關鍵：視窗改變大小時強制重算 () => 的數值
+                        invalidateOnRefresh: true, // 視窗改變大小時強制重算 () => 的數值
                     },
                     onUpdate: renderTransforms
                 }
@@ -121,7 +118,6 @@ export function initScannerAnimations(
 
     // ... updateSizes ...
     function updateSizes() {
-        console.log("!!")
         const baseUnit = getBaseUnit(window.innerWidth);
         sizeTargets.forEach(({ targets, wUnit, hUnit }) => {
             gsap.set(targets, {
