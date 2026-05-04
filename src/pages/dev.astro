@@ -4,12 +4,30 @@ import Button from "@/components/ui/Button.astro";
 import Link from "@/components/ui/Link.astro";
 import Tag from "@/components/ui/Tag.astro";
 import ScrambleText from "@/components/ui/ScrambleText.astro";
-import { House, List } from "lucide-react";
+import { House } from "lucide-react";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Input from "@/components/ui/Input.astro";
 import Progress from "@/components/ui/Progress.astro";
 import StatusLog from "@/components/ui/StatusLog.astro";
 import LogManager from "@/components/modules/LogManager.astro";
+import ImageUploadEditor from "@/components/editor/ImageUploadEditor";
+
+// 測試用：從已存在的 projects 中取一筆 pending 專案
+import { createServiceClient } from "@/lib/supabase-server";
+
+let testProjectId = "";
+try {
+  const db = createServiceClient();
+  const { data } = await db
+    .from("projects")
+    .select("id")
+    .in("status", ["draft", "pending"])
+    .limit(1)
+    .single();
+  testProjectId = data?.id ?? "";
+} catch {
+  // 無 service role key 時跳過
+}
 
 // 強制讓 Tailwind 編譯這些類名
 const safelist = [
@@ -62,7 +80,7 @@ const colorGroups = [
 ];
 ---
 
-<Layout>
+<Layout title="DEBUG · Latent" description="系統偵錯儀表板">
   <!-- 隱藏的 div 確保類名被掃描 (另一種白嫖 Tailwind 的方式) -->
   <div class="hidden" class:list={safelist}></div>
 
@@ -187,5 +205,46 @@ const colorGroups = [
         });
       </script>
     </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         08_圖片上傳編輯器測試
+         測試方式：
+           1. 確認 .env 已設定 R2_* / SUPABASE_SERVICE_ROLE_KEY
+           2. 執行 pnpm dlx supabase migration up（套用 project_images 遷移）
+           3. 以 Google 帳號登入（確保 Supabase session 存在）
+           4. 在下方輸入有效的 project_id（需為你自己建立的 pending/draft 專案）
+           5. 拖曳圖片或點選「插入圖片」，觀察 Auto GC 與配額控制
+           6. 點擊 PUBLISH 觸發背景函式（需 netlify dev 或已部署）
+    ═══════════════════════════════════════════════════════════════ -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
+        08_圖片上傳編輯器
+      </h2>
+
+      {testProjectId ? (
+        <p class="text-xs font-mono text-green-400">
+          ✓ 自動偵測到測試 project_id: <code>{testProjectId}</code>
+        </p>
+      ) : (
+        <p class="text-xs font-mono text-yellow-400">
+          ⚠ 未偵測到可用專案，請手動在元件中設定 project_id，或先建立一筆 pending 專案
+        </p>
+      )}
+
+      <div class="border border-line p-4 space-y-2">
+        <p class="text-[10px] font-mono uppercase text-ink-muted">
+          project_id · {testProjectId || "（未設定）"}
+        </p>
+        <ImageUploadEditor
+          client:only="react"
+          projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
+          workerUrl={import.meta.env.PUBLIC_R2_WORKER_URL ?? ""}
+          supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL ?? ""}
+          supabaseAnonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ""}
+          initialMarkdown="# 測試文章\n\n在此拖曳圖片進行測試。\n"
+        />
+      </div>
+    </section>
+
   </main>
 </Layout>

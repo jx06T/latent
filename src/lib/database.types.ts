@@ -34,6 +34,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      project_images: {
+        Row: {
+          id:          string
+          project_id:  string | null
+          author_id:   string | null
+          storage_key: string
+          image_type:  'cover' | 'content' | null
+          status:      'draft' | 'published'
+          created_at:  string | null
+        }
+        Insert: {
+          id?:          string
+          project_id?:  string | null
+          author_id?:   string | null
+          storage_key:  string
+          image_type?:  'cover' | 'content' | null
+          status?:      'draft' | 'published'
+          created_at?:  string | null
+        }
+        Update: {
+          id?:          string
+          project_id?:  string | null
+          author_id?:   string | null
+          storage_key?: string
+          image_type?:  'cover' | 'content' | null
+          status?:      'draft' | 'published'
+          created_at?:  string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'project_images_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       projects: {
         Row: {
           author_handle: string

@@ -1,0 +1,23 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Astro 產生的 SSR 函式由 adapter 自動放入 dist/
+# 獨立的自訂函式放在 netlify/functions/
+[functions]
+  node_bundler = "esbuild"
+
+# publish-background 使用 nft 以正確打包 Sharp 原生二進位
+[functions."publish-background"]
+  node_bundler = "nft"
+
+# 開發環境 redirects（本機 netlify dev 使用）
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = false
+  conditions = { Role = ["dev"] }
