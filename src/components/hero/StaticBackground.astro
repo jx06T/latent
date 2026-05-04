@@ -12,14 +12,14 @@ const { type } = Astro.props;
 
 <div
   data-bg-static
-  class="absolute inset-0 w-full h-full pointer-events-none overflow-hidden"
+  class="absolute inset-0 w-full h-full overflow-hidden"
 >
   {
     type == "normal" ? (
       <Image
         src={bgLines}
         alt="Base Background"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="w-full h-full object-fill"
         widths={[640, 960, 1280, 1920]}
         sizes="100vw"
         loading="eager"
@@ -29,7 +29,7 @@ const { type } = Astro.props;
       <Image
         src={bgPixels}
         alt="Pixel Background"
-        class="absolute inset-0 w-full h-full object-cover"
+        class="w-full h-full object-fill"
         widths={[640, 960, 1280, 1920]}
         sizes="100vw"
         loading="eager"

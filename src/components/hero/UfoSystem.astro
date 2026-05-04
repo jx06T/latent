@@ -31,20 +31,58 @@ const imgs = {
 <!-- 
   UFO 總容器
   設定 data-speed 讓它也能無痛吃我們寫好的 initFloatParallax！
-  RWD: 手機上佔 60vw，電腦上佔 30vw，置中偏上定位
 -->
 <div
   data-ufo-wrapper
   data-speed="0.02"
-  class="absolute inset-0 top-4  lg:top-8 w-full h-full pointer-events-none overflow-hidden will-change-transform"
+  class="absolute will-change-transform pointer-events-none"
+  style="left: 22%; top: 29%; width: 56.5%;"
 >
-  <!-- 底盤 (Body)：移動最少 -->
-  <Image src={imgs.body} alt="UFO Body" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-body loading="eager" />
+  <!-- 底盤 (Body)：佔畫面約 60%，給予較高的優先級與較大的寬度選擇 -->
+  <Image
+    src={imgs.body}
+    alt="UFO Body"
+    class="w-full h-auto"
+    widths={[400, 800, 1200, 1600]}
+    sizes="60vw"
+    fetchpriority="high"
+    loading="eager"
+    data-ufo-body
+  />
 
-      <!-- 嘴巴 (Mouth)：移動中等 -->
-      <Image src={imgs.mouth} alt="UFO Mouth" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-mouth loading="eager" />
+  <!-- 嘴巴 (Mouth)：佔畫面極小，生成小尺寸圖檔即可 -->
+  <Image
+    src={imgs.mouth}
+    alt="UFO Mouth"
+    class="absolute"
+    style="left: 46.5%; top: 7%; width: 8%;"
+    widths={[50, 100, 200]}
+    sizes="5vw"
+    loading="eager"
+    data-ufo-mouth
+  />
 
-      <!-- 雙眼 (Eyes)：移動最多，創造 3D 凸出感 -->
-      <Image src={imgs.eyeL} alt="Left Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-l loading="eager" />
-      <Image src={imgs.eyeR} alt="Right Eye" class="absolute inset-0 w-full h-full object-cover will-change-transform" data-ufo-eye-r loading="eager" />
+  <!-- 左眼 (Left Eye)：佔畫面極小，生成小尺寸圖檔即可 -->
+  <Image
+    src={imgs.eyeL}
+    alt="Left Eye"
+    class="absolute"
+    style="left: 40.5%; top: 5%; width: 6%;"
+    widths={[50, 100, 200]}
+    sizes="5vw"
+    loading="eager"
+    data-ufo-eye-l
+  />
+
+  <!-- 右眼 (Right Eye)：佔畫面極小，生成小尺寸圖檔即可 -->
+  <Image
+    src={imgs.eyeR}
+    alt="Right Eye"
+    class="absolute"
+    style="left: 54.5%; top: 5%; width: 6.1%;"
+    widths={[50, 100, 200]}
+    sizes="5vw"
+    loading="eager"
+    data-ufo-eye-r
+  />
 </div>

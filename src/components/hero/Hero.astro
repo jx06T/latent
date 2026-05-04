@@ -6,30 +6,40 @@ import UfoSystem from "./UfoSystem.astro";
 import LatentLogo from "../ui/LatentLogo.astro";
 import LogConsole from "../ui/LogConsole.astro";
 import Wavesection from "../sections/Wavesection.astro";
+
+const BG_WIDTH = 2481;
+const BG_HEIGHT = 3508;
+const RATIO_W_H = BG_WIDTH / BG_HEIGHT;
+const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
 ---
 
 <section
   data-hero
   class="relative w-full h-[160vh] md:h-[180vh] lg:h-[220vh] xl:h-[240vh] 2xl:h-[260vh] overflow-hidden bg-[#b5ae9e] min-h-300"
+  style="container-type: size;"
 >
+  <!-- 2. 使用 cqw 和 cqh 來完美模擬 object-cover -->
   <div
-    class="inset-0 absolute w-full h-full 2xl:inset-auto 2xl:left-0 2xl:right-0 2xl:top-auto 2xl:bottom-0 2xl:h-[calc(100%+(0.3*(100vw-1536px)))]"
+    class="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none
+    top-1/2"
+    style={`
+      width: max(100cqw, 100cqh * ${RATIO_W_H});
+      height: max(100cqh, 100cqw * ${RATIO_H_W});
+    `}
   >
-    <StaticBackground type="normal" />
-    <FloatingElements type="normal" />
-    <UfoSystem type="normal" />
-  </div>
+    <div class="absolute inset-0 2xl:translate-y-[calc(20*(100vw-1536px))]">
+      <StaticBackground type="normal" />
+      <FloatingElements type="normal" />
+      <UfoSystem type="normal" />
 
-  <div
-    class="absolute inset-0 w-full h-full pointer-events-none"
-    style="clip-path: url(#scan-mask);"
-  >
-    <div
-      class="inset-0 absolute w-full h-full 2xl:inset-auto 2xl:left-0 2xl:right-0 2xl:top-auto 2xl:bottom-0 2xl:h-[calc(100%+(0.3*(100vw-1536px)))]"
-    >
-      <StaticBackground type="pixel" />
-      <FloatingElements type="pixel" />
-      <UfoSystem type="pixel" />
+      <div
+        class="absolute inset-0 w-full h-full"
+        style="clip-path: url(#scan-mask);"
+      >
+        <StaticBackground type="pixel" />
+        <FloatingElements type="pixel" />
+        <UfoSystem type="pixel" />
+      </div>
     </div>
   </div>
 
@@ -46,7 +56,7 @@ import Wavesection from "../sections/Wavesection.astro";
   >
     <LatentLogo class="text-black -translate-x-1/2 lg:translate-x-0" />
   </div>
-
+  
   <div
     data-log-wrapper
     class="absolute left-0 right-0 top-[50vh] z-30 h-[120vh]"
