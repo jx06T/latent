@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const ProjectSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string(),
+  updated_at: z.string().nullable().optional(),
   year: z.number().int(),
   slug: z.string(),
 
@@ -25,11 +26,11 @@ export const ProjectSchema = z.object({
 
   links: z.record(z.string(), z.string().nullable().optional()).default({}), //存 demo, github 等
 
-  cover_image: z.string().url().nullable().optional(),
-  screenshots: z.array(z.string().url()).default([]),
+  cover_image_id: z.string().url().nullable().optional(),
   poster_url: z.string().url().nullable().optional(),
 
-  status: z.enum(['pending', 'published', 'rejected']).default('pending'),
+  status: z.enum(['draft', 'published', 'processing']).default('draft'),
+  
   like_count: z.number().int().default(0),
 });
 

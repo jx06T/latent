@@ -98,7 +98,7 @@ export type Database = {
           poster_url: string | null
           private_data: Json | null
           slug: string
-          status: string | null
+          status: Database["public"]["Enums"]["status"]
           subtitle: string | null
           tech_stack: string[] | null
           title: string
@@ -121,7 +121,7 @@ export type Database = {
           poster_url?: string | null
           private_data?: Json | null
           slug: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["status"]
           subtitle?: string | null
           tech_stack?: string[] | null
           title: string
@@ -144,7 +144,7 @@ export type Database = {
           poster_url?: string | null
           private_data?: Json | null
           slug?: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["status"]
           subtitle?: string | null
           tech_stack?: string[] | null
           title?: string
