@@ -139,9 +139,12 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
         floatElements,
       );
 
-      function updateSizes() {
+      function updateSizes(isInit?: boolean) {
         scannerUpdate();
         floatUpdate();
+        if (isInit) {
+          return;
+        }
         ScrollTrigger.refresh();
       }
 
@@ -161,13 +164,16 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
         initLaserLines(els.laserTarget, els.svg, els.scanWrappers);
       }
 
-      const throttledResize = throttle(updateSizes, 200);
+      const throttledResize = throttle(() => {
+        updateSizes(false);
+      }, 200);
+
       window.addEventListener("resize", throttledResize);
       cleanups.push(() =>
         window.removeEventListener("resize", throttledResize),
       );
 
-      updateSizes();
+      updateSizes(true);
 
       return () => cleanups.forEach((fn) => fn());
     }, heroSection);

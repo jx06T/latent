@@ -8,7 +8,7 @@ import eyeRN from "@/assets/hero/eye_r_normal.png";
 import moN from "@/assets/hero/mo_normal.png";
 
 // 載入像素版
-import ufoP from "@/assets/hero/ufo_pixel.png"; // 原文為 png，若為 jpg 請自行更改
+import ufoP from "@/assets/hero/ufo_pixel.png";
 import eyeLP from "@/assets/hero/eye_l_pixel.png";
 import eyeRP from "@/assets/hero/eye_r_pixel.png";
 import moP from "@/assets/hero/mo_pixel.png";
@@ -19,38 +19,34 @@ interface Props {
 
 const { type } = Astro.props;
 
-// 根據所屬宇宙選擇圖片包
 const imgs = {
   body: type === "normal" ? ufoN : ufoP,
   eyeL: type === "normal" ? eyeLN : eyeLP,
   eyeR: type === "normal" ? eyeRN : eyeRP,
   mouth: type === "normal" ? moN : moP,
 };
+
+const imgQuality = type === "normal" ? 75 : 30;
 ---
 
-<!-- 
-  UFO 總容器
-  設定 data-speed 讓它也能無痛吃我們寫好的 initFloatParallax！
--->
 <div
   data-ufo-wrapper
   data-speed="0.02"
   class="absolute will-change-transform pointer-events-none"
   style="left: 22%; top: 29%; width: 56.5%;"
 >
-  <!-- 底盤 (Body)：佔畫面約 60%，給予較高的優先級與較大的寬度選擇 -->
   <Image
     src={imgs.body}
     alt="UFO Body"
     class="w-full h-auto"
     widths={[400, 800, 1200, 1600]}
     sizes="60vw"
+    quality={imgQuality}
     fetchpriority="high"
     loading="eager"
     data-ufo-body
   />
 
-  <!-- 嘴巴 (Mouth)：佔畫面極小，生成小尺寸圖檔即可 -->
   <Image
     src={imgs.mouth}
     alt="UFO Mouth"
@@ -58,11 +54,11 @@ const imgs = {
     style="left: 46.5%; top: 7%; width: 8%;"
     widths={[50, 100, 200]}
     sizes="5vw"
+    quality={imgQuality}
     loading="eager"
     data-ufo-mouth
   />
 
-  <!-- 左眼 (Left Eye)：佔畫面極小，生成小尺寸圖檔即可 -->
   <Image
     src={imgs.eyeL}
     alt="Left Eye"
@@ -70,11 +66,11 @@ const imgs = {
     style="left: 40.5%; top: 5%; width: 6%;"
     widths={[50, 100, 200]}
     sizes="5vw"
+    quality={imgQuality}
     loading="eager"
     data-ufo-eye-l
   />
 
-  <!-- 右眼 (Right Eye)：佔畫面極小，生成小尺寸圖檔即可 -->
   <Image
     src={imgs.eyeR}
     alt="Right Eye"
@@ -82,6 +78,7 @@ const imgs = {
     style="left: 54.5%; top: 5%; width: 6.1%;"
     widths={[50, 100, 200]}
     sizes="5vw"
+    quality={imgQuality}
     loading="eager"
     data-ufo-eye-r
   />
