@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request }) => {
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
 
   // 不等待回應，讓背景函式自行處理
-  fetch(`${siteUrl}/.netlify/functions/publish-background`, {
+  fetch(`${siteUrl}/api/publish-background`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

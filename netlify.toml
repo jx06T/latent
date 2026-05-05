@@ -10,9 +10,8 @@
 [functions]
   node_bundler = "esbuild"
 
-# publish-background 使用 nft 以正確打包 Sharp 原生二進位
-[functions."publish-background"]
-  node_bundler = "nft"
+[functions."keep-alive"]
+  schedule = "0 0 */5 * *"
 
 # 開發環境 redirects（本機 netlify dev 使用）
 [[redirects]]
