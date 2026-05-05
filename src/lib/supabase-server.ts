@@ -20,8 +20,8 @@ export function createServiceClient() {
  * @throws Error('Unauthorized') when token is invalid
  */
 export async function verifyToken(token: string): Promise<string> {
-  const url    = import.meta.env.PUBLIC_SUPABASE_URL
-  const anon   = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  const url = import.meta.env.PUBLIC_SUPABASE_URL
+  const anon = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !anon) throw new Error('Supabase not configured')
 

@@ -36,40 +36,40 @@ export type Database = {
     Tables: {
       project_images: {
         Row: {
-          alt_text: string | null
-          author_id: string | null
+          author_id: string
           available_sizes: string[] | null
           created_at: string | null
           id: string
-          project_id: string | null
+          project_id: string
           published_ext: string | null
-          source_ext: string | null
-          status: string | null
+          source_ext: string
+          status: Database["public"]["Enums"]["status"]
           updated_at: string | null
+          uploaded_at: string | null
         }
         Insert: {
-          alt_text?: string | null
-          author_id?: string | null
+          author_id: string
           available_sizes?: string[] | null
           created_at?: string | null
           id?: string
-          project_id?: string | null
+          project_id: string
           published_ext?: string | null
-          source_ext?: string | null
-          status?: string | null
+          source_ext: string
+          status?: Database["public"]["Enums"]["status"]
           updated_at?: string | null
+          uploaded_at?: string | null
         }
         Update: {
-          alt_text?: string | null
-          author_id?: string | null
+          author_id?: string
           available_sizes?: string[] | null
           created_at?: string | null
           id?: string
-          project_id?: string | null
+          project_id?: string
           published_ext?: string | null
-          source_ext?: string | null
-          status?: string | null
+          source_ext?: string
+          status?: Database["public"]["Enums"]["status"]
           updated_at?: string | null
+          uploaded_at?: string | null
         }
         Relationships: [
           {
@@ -88,8 +88,8 @@ export type Database = {
           category_main: number
           category_sub: number[] | null
           content: string | null
-          cover_image: string | null
-          created_at: string | null
+          cover_image_id: string | null
+          created_at: string
           description: string | null
           id: string
           keywords: string[] | null
@@ -102,6 +102,7 @@ export type Database = {
           subtitle: string | null
           tech_stack: string[] | null
           title: string
+          updated_at: string | null
           year: number
         }
         Insert: {
@@ -110,8 +111,8 @@ export type Database = {
           category_main: number
           category_sub?: number[] | null
           content?: string | null
-          cover_image?: string | null
-          created_at?: string | null
+          cover_image_id?: string | null
+          created_at?: string
           description?: string | null
           id?: string
           keywords?: string[] | null
@@ -124,6 +125,7 @@ export type Database = {
           subtitle?: string | null
           tech_stack?: string[] | null
           title: string
+          updated_at?: string | null
           year?: number
         }
         Update: {
@@ -132,8 +134,8 @@ export type Database = {
           category_main?: number
           category_sub?: number[] | null
           content?: string | null
-          cover_image?: string | null
-          created_at?: string | null
+          cover_image_id?: string | null
+          created_at?: string
           description?: string | null
           id?: string
           keywords?: string[] | null
@@ -146,6 +148,7 @@ export type Database = {
           subtitle?: string | null
           tech_stack?: string[] | null
           title?: string
+          updated_at?: string | null
           year?: number
         }
         Relationships: []
@@ -158,7 +161,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      status: "draft" | "published"
+      status: "draft" | "published" | "processing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -289,7 +292,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      status: ["draft", "published"],
+      status: ["draft", "published", "processing"],
     },
   },
 } as const

@@ -2,34 +2,22 @@ import type { APIRoute } from 'astro'
 import { z } from 'zod'
 import { createServiceClient, verifyToken } from '@/lib/supabase-server'
 
-const bodySchema = z.object({
-  project_id: z.string().uuid(),
-})
+const bodySchema = z.object({ project_id: z.string().uuid() })
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })
-}
+const json = (d: unknown, s = 200) =>
+  new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } })
 
 export const POST: APIRoute = async ({ request }) => {
-  // ── 1. 驗證 JWT ──────────────────────────────────────────────────────────
   const auth = request.headers.get('Authorization')
   if (!auth?.startsWith('Bearer ')) return json({ error: 'Unauthorized' }, 401)
 
   let userId: string
-  try {
-    userId = await verifyToken(auth.slice(7))
-  } catch {
-    return json({ error: 'Unauthorized' }, 401)
-  }
+  try { userId = await verifyToken(auth.slice(7)) }
+  catch { return json({ error: 'Unauthorized' }, 401) }
 
-  // ── 2. 解析 body ─────────────────────────────────────────────────────────
   let raw: unknown
-  try { raw = await request.json() } catch {
-    return json({ error: 'Invalid JSON' }, 400)
-  }
+  try { raw = await request.json() }
+  catch { return json({ error: 'Invalid JSON' }, 400) }
 
   const parsed = bodySchema.safeParse(raw)
   if (!parsed.success) return json({ error: 'Invalid request' }, 400)
@@ -37,7 +25,6 @@ export const POST: APIRoute = async ({ request }) => {
   const { project_id } = parsed.data
   const db = createServiceClient()
 
-  // ── 3. 確認所有權 ─────────────────────────────────────────────────────────
   const { data: project } = await db
     .from('projects')
     .select('id, author_id, status')
@@ -47,28 +34,23 @@ export const POST: APIRoute = async ({ request }) => {
   if (!project || project.author_id !== userId) return json({ error: 'Not found or forbidden' }, 403)
   if (project.status === 'processing') return json({ error: 'Already processing' }, 409)
 
-  // ── 4. 鎖定專案（防止重複發布） ──────────────────────────────────────────
-  const { error: lockErr } = await db
+  // 原子鎖：只有 status=draft 才能轉 processing
+  const { data: locked, error: lockErr } = await db
     .from('projects')
     .update({ status: 'processing' })
     .eq('id', project_id)
+    .eq('status', 'draft')
+    .select('id')
+    .single()
 
-  if (lockErr) {
-    console.error('[publish] lock failed:', lockErr)
-    return json({ error: 'Database error' }, 500)
-  }
+  if (lockErr || !locked) return json({ error: 'Failed to acquire lock' }, 409)
 
-  // ── 5. 觸發背景函式（Fire-and-forget，立刻回 202） ────────────────────────
-  const siteUrl       = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
+  const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
 
-  // 不等待回應，讓背景函式自行處理
   fetch(`${siteUrl}/api/publish-background`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Internal-Token': internalToken,
-    },
+    headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
     body: JSON.stringify({ project_id, author_id: userId }),
   }).catch(err => console.error('[publish] background trigger failed:', err))
 

@@ -55,11 +55,11 @@ export default function ImageUploadEditor({
   supabaseUrl,
   supabaseAnonKey,
 }: Props) {
-  const [markdown, setMarkdown]       = useState(initialMarkdown)
-  const [uploads, setUploads]         = useState<Record<string, UploadInfo>>({})
-  const [authToken, setAuthToken]     = useState<string | null>(null)
-  const [publishMsg, setPublishMsg]   = useState<string>('')
-  const [isDragging, setIsDragging]   = useState(false)
+  const [markdown, setMarkdown] = useState(initialMarkdown)
+  const [uploads, setUploads] = useState<Record<string, UploadInfo>>({})
+  const [authToken, setAuthToken] = useState<string | null>(null)
+  const [publishMsg, setPublishMsg] = useState<string>('')
+  const [isDragging, setIsDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const markdownRef = useRef(initialMarkdown) // 總是持有最新值，供上傳閉包使用
 
@@ -86,7 +86,7 @@ export default function ImageUploadEditor({
       return
     }
     const start = ta.selectionStart
-    const end   = ta.selectionEnd
+    const end = ta.selectionEnd
     setMarkdown(prev => {
       const updated = prev.slice(0, start) + text + prev.slice(end)
       markdownRef.current = updated
@@ -106,7 +106,7 @@ export default function ImageUploadEditor({
     }
     if (!file.type.startsWith('image/')) return
 
-    const tempId   = `temp-${crypto.randomUUID()}`
+    const tempId = `temp-${crypto.randomUUID()}`
     const localUrl = URL.createObjectURL(file)
 
     // 插入佔位符（Loading UI）
@@ -125,11 +125,11 @@ export default function ImageUploadEditor({
           Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
-          project_id:      projectId,
+          project_id: projectId,
           markdown_content: markdownRef.current,
-          image_type:      'content',
-          content_type:    blob.type,
-          file_size:       blob.size,
+          image_type: 'content',
+          content_type: blob.type,
+          file_size: blob.size,
         }),
       })
 
@@ -172,7 +172,7 @@ export default function ImageUploadEditor({
 
   // ── 拖曳事件 ──────────────────────────────────────────────────────────────
   const handleDragOver = (e: DragEvent) => { e.preventDefault(); setIsDragging(true) }
-  const handleDragLeave = ()            => setIsDragging(false)
+  const handleDragLeave = () => setIsDragging(false)
   const handleDrop = async (e: DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
@@ -226,9 +226,8 @@ export default function ImageUploadEditor({
 
       {/* ── 編輯區 + 拖曳 ───────────────────────────────────────────────── */}
       <div
-        className={`relative border transition-colors ${
-          isDragging ? 'border-accent-500 bg-accent-500/5' : 'border-line'
-        }`}
+        className={`relative border transition-colors ${isDragging ? 'border-accent-500 bg-accent-500/5' : 'border-line'
+          }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -240,7 +239,7 @@ export default function ImageUploadEditor({
             setMarkdown(e.target.value)
             markdownRef.current = e.target.value
           }}
-          className="w-full min-h-[320px] bg-bg-surface text-ink font-mono text-sm p-4 resize-y outline-none"
+          className="w-full min-h-80 bg-bg-surface text-ink font-mono text-sm p-4 resize-y outline-none"
           placeholder="在此輸入 Markdown 內容，或將圖片拖曳至此..."
           spellCheck={false}
         />
@@ -287,11 +286,10 @@ export default function ImageUploadEditor({
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-mono text-ink-muted truncate">{id}</p>
-                <p className={`text-xs font-mono ${
-                  info.status === 'done'      ? 'text-green-400'
-                  : info.status === 'error'   ? 'text-red-400'
-                  : 'text-yellow-400 animate-pulse'
-                }`}>
+                <p className={`text-xs font-mono ${info.status === 'done' ? 'text-green-400'
+                    : info.status === 'error' ? 'text-red-400'
+                      : 'text-yellow-400 animate-pulse'
+                  }`}>
                   {info.status === 'uploading' ? '上傳中...' : info.status === 'done' ? '完成' : `錯誤: ${info.error}`}
                 </p>
               </div>

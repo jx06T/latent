@@ -1,27 +1,27 @@
-/**
- * Netlify Background Function (V2 Syntax)
- * 由 /api/publish 觸發，執行耗時的圖片處理流程：
- *   1. 從 R2 下載草稿原圖
- *   2. Sharp 產出 sm/md/lg 三尺寸 WebP (封面圖只需 lg)
- *   3. 上傳至 R2 processed/
- *   4. 替換 Markdown 中的 image-id / 更新 cover_image
- *   5. 刪除 R2 草稿原圖
- *   6. 更新 DB 狀態為 published
- */
 import type { Config, Context } from '@netlify/functions'
 import sharp from 'sharp'
 import { createClient } from '@supabase/supabase-js'
 import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  DeleteObjectCommand,
+  S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand,
 } from '@aws-sdk/client-s3'
 
-// ── 型別 ─────────────────────────────────────────────────────────────────────
 interface Payload {
   project_id: string
   author_id: string
+}
+
+interface DraftImage {
+  id: string
+  project_id: string
+  source_ext: string
+}
+
+interface ProcessedImage {
+  id: string
+  draftKey: string
+  uploads: Array<{ key: string; body: Buffer }>
+  available_sizes: string[]
+  published_ext: string
 }
 
 const SIZES = [
@@ -30,178 +30,210 @@ const SIZES = [
   { name: 'lg', width: 1200 },
 ] as const
 
-// ── R2 工具 ──────────────────────────────────────────────────────────────────
-function createS3() {
-  const accountId = process.env.R2_ACCOUNT_ID!
+const PUBLISHED_EXT = 'webp'
+const CONCURRENCY_LIMIT = 4
+
+// ── R2 ────────────────────────────────────────────────────────────────────
+function s3() {
   return new S3Client({
     region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     credentials: {
       accessKeyId: process.env.R2_ACCESS_KEY_ID!,
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
     },
   })
 }
-
 const BUCKET = () => process.env.R2_BUCKET_NAME ?? 'latent-img'
 
-async function downloadFromR2(key: string): Promise<Buffer> {
-  const res = await createS3().send(new GetObjectCommand({ Bucket: BUCKET(), Key: key }))
-  if (!res.Body) throw new Error(`Empty R2 body: ${key}`)
-
-  // AWS SDK v3 提供的新方法，直接轉為 Uint8Array 再轉 Buffer
-  const byteArray = await res.Body.transformToByteArray()
-  return Buffer.from(byteArray)
+async function r2Head(key: string): Promise<boolean> {
+  try {
+    await s3().send(new HeadObjectCommand({ Bucket: BUCKET(), Key: key }))
+    return true
+  } catch { return false }
+}
+async function r2Get(key: string): Promise<Buffer> {
+  const res = await s3().send(new GetObjectCommand({ Bucket: BUCKET(), Key: key }))
+  if (!res.Body) throw new Error(`Empty body: ${key}`)
+  return Buffer.from(await res.Body.transformToByteArray())
+}
+async function r2Put(key: string, body: Buffer, contentType: string) {
+  await s3().send(new PutObjectCommand({ Bucket: BUCKET(), Key: key, Body: body, ContentType: contentType }))
+}
+async function r2Delete(key: string) {
+  await s3().send(new DeleteObjectCommand({ Bucket: BUCKET(), Key: key }))
 }
 
-async function uploadToR2(key: string, data: Buffer, contentType: string) {
-  await createS3().send(
-    new PutObjectCommand({ Bucket: BUCKET(), Key: key, Body: data, ContentType: contentType })
-  )
+// ── Path helpers（與 src/lib/image-paths.ts 規則需保持一致） ────────────
+function draftKey(projectId: string, id: string, ext: string) {
+  return `drafts/${projectId}/${id}.${ext}`
+}
+function publishedKey(projectId: string, id: string, size: string, ext: string) {
+  return `projects/${projectId}/${size}/${id}.${ext}`
 }
 
-async function deleteFromR2(key: string) {
-  await createS3().send(new DeleteObjectCommand({ Bucket: BUCKET(), Key: key }))
+// ── Concurrency limiter ──────────────────────────────────────────────────
+async function mapWithLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let cursor = 0
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = cursor++
+      if (i >= items.length) return
+      results[i] = await fn(items[i])
+    }
+  })
+  await Promise.all(workers)
+  return results
 }
 
-// ── Supabase (Service Role 繞過 RLS) ───────────────────────────────────────
-function createSupa() {
+// ── Supabase ──────────────────────────────────────────────────────────────
+function db() {
   return createClient(
     process.env.PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    { auth: { autoRefreshToken: false, persistSession: false } },
   )
 }
 
-// ── Handler (Netlify V2 寫法) ────────────────────────────────────────────────
-export default async (req: Request, context: Context) => {
-  // ── 安全驗證（僅接受內部呼叫）─────────────────────────────────────────────
-  const receivedToken = req.headers.get('x-internal-token') ?? ''
+// ── Handler ───────────────────────────────────────────────────────────────
+export default async (req: Request, _ctx: Context) => {
   const expectedToken = process.env.INTERNAL_TOKEN ?? ''
-
-  if (!expectedToken || receivedToken !== expectedToken) {
-    console.error('[publish-background] Unauthorized call')
-    // Background Function 回傳值不會被客戶端收到，但會記錄在 Log 中
+  if (!expectedToken || req.headers.get('x-internal-token') !== expectedToken) {
+    console.error('[publish-bg] unauthorized')
     return new Response('Unauthorized', { status: 401 })
   }
 
   let payload: Payload
-  try {
-    payload = await req.json()
-  } catch {
-    return new Response('Invalid JSON', { status: 400 })
-  }
+  try { payload = await req.json() }
+  catch { return new Response('Invalid JSON', { status: 400 }) }
 
   const { project_id, author_id } = payload
-  if (!project_id || !author_id) {
-    return new Response('Missing payload', { status: 400 })
+  if (!project_id || !author_id) return new Response('Missing payload', { status: 400 })
+
+  const supa = db()
+  console.log(`[publish-bg] start project=${project_id}`)
+
+  const rollback = async () => {
+    await supa.from('projects').update({ status: 'draft' }).eq('id', project_id)
   }
 
-  const db = createSupa()
-  const publicUrl = process.env.PUBLIC_R2_DOMAIN ?? ''
-  let finalCoverUrl: string | null = null
-
-  console.log(`[publish-background] Start project=${project_id}`)
-
   try {
-    // ── 1. 取得所有草稿圖片與當前專案資料 ────────────────────────────────────
-    const [
-      { data: images, error: fetchErr },
-      { data: project, error: projErr }
-    ] = await Promise.all([
-      db.from('project_images')
-        .select('id, storage_key, image_type')
-        .eq('project_id', project_id)
-        .eq('author_id', author_id)
-        .eq('status', 'draft'),
-
-      db.from('projects')
-        .select('content, cover_image')
-        .eq('id', project_id)
-        .eq('author_id', author_id)
-        .single()
-    ])
-
+    // Phase 1: 撈 draft 圖
+    const { data: drafts, error: fetchErr } = await supa
+      .from('project_images')
+      .select('id, project_id, source_ext')
+      .eq('project_id', project_id)
+      .eq('author_id', author_id)
+      .eq('status', 'draft')
 
     if (fetchErr) throw fetchErr
-    if (projErr || !project) {
-      throw new Error('Project not found or you are not the owner')
+    const draftImages: DraftImage[] = drafts ?? []
+
+    // Phase 2: Lazy verify
+    const verified: DraftImage[] = []
+    const missingIds: string[] = []
+    await mapWithLimit(draftImages, CONCURRENCY_LIMIT, async img => {
+      const key = draftKey(img.project_id, img.id, img.source_ext)
+      if (await r2Head(key)) verified.push(img)
+      else missingIds.push(img.id)
+    })
+
+    if (missingIds.length > 0) {
+      console.warn(`[publish-bg] removing ${missingIds.length} unverified rows`)
+      await supa.from('project_images').delete().in('id', missingIds)
     }
 
-    let content: string = project.content ?? ''
-    finalCoverUrl = project.cover_image
+    if (verified.length === 0) {
+      const { error: pubErr } = await supa
+        .from('projects')
+        .update({ status: 'published' })
+        .eq('id', project_id)
+      if (pubErr) throw pubErr
+      console.log(`[publish-bg] done (no images) project=${project_id}`)
+      return new Response('OK', { status: 200 })
+    }
 
-    // ── 2. 逐張處理草稿圖片 ──────────────────────────────────────────────
-    if (images && images.length > 0) {
-      for (const img of images) {
-        // 解析 UUID
-        const filename = img.storage_key.split('/').pop(); // 拿到 "550e8400-e29b.jpg"
-        if (!filename) {
-          console.warn(`[publish-background] Cannot parse UUID: ${img.storage_key}`)
-          continue;
-        }
-        const imageId = filename.substring(0, filename.lastIndexOf('.')); // 拿到 "550e8400-e29b"
+    // Phase 3: 全處理到記憶體
+    const processed: ProcessedImage[] = await mapWithLimit(verified, CONCURRENCY_LIMIT, async img => {
+      const dKey = draftKey(img.project_id, img.id, img.source_ext)
+      const original = await r2Get(dKey)
 
-        // 下載原圖
-        const original = await downloadFromR2(img.storage_key)
-
-        if (img.image_type === 'content') {
-          // 內文圖：產出三個尺寸
-          await Promise.all(
-            SIZES.map(async ({ name, width }) => {
-              const processed = await sharp(original)
-                .resize(width, undefined, { withoutEnlargement: true })
-                .webp({ quality: 85 })
-                .toBuffer()
-
-              await uploadToR2(`processed/${project_id}/${name}/${imageId}.webp`, processed, 'image/webp')
-            })
-          )
-
-          // 更新 DB 狀態
-          await db.from('project_images').update({ status: 'published', storage_key: `processed/${project_id}/md/${imageId}.webp` }).eq('id', img.id)
-
-        } else if (img.image_type === 'cover') {
-          // 封面圖：產出最大尺寸 (lg) 即可
-          const processed = await sharp(original)
-            .resize(1200, undefined, { withoutEnlargement: true })
+      const variants = await Promise.all(
+        SIZES.map(async ({ name, width }) => {
+          const body = await sharp(original)
+            .resize(width, undefined, { withoutEnlargement: true })
             .webp({ quality: 85 })
             .toBuffer()
+          const key = publishedKey(img.project_id, img.id, name, PUBLISHED_EXT)
+          return { key, body }
+        }),
+      )
 
-          const coverPath = `processed/${project_id}/cover/${imageId}.webp`
-          await uploadToR2(coverPath, processed, 'image/webp')
-
-          finalCoverUrl = `${publicUrl}/${coverPath}`
-          await db.from('project_images').update({ status: 'published', storage_key: coverPath }).eq('id', img.id)
-        }
-
-        // 毀屍滅跡：刪除草稿原圖
-        await deleteFromR2(img.storage_key)
-        console.log(`✅ [publish-background] Processed image ${imageId} (${img.image_type})`)
+      return {
+        id: img.id,
+        draftKey: dKey,
+        uploads: variants,
+        available_sizes: SIZES.map(s => s.name),
+        published_ext: PUBLISHED_EXT,
       }
-    } else {
-      console.log('[publish-background] No draft images found. Proceeding to publish.')
+    })
+
+    // Phase 4: 批次上傳 R2
+    const uploadedKeys: string[] = []
+    try {
+      const allUploads = processed.flatMap(p => p.uploads)
+      await mapWithLimit(allUploads, CONCURRENCY_LIMIT, async u => {
+        await r2Put(u.key, u.body, 'image/webp')
+        uploadedKeys.push(u.key)
+      })
+    } catch (uploadErr) {
+      console.error('[publish-bg] phase 4 failed, cleaning up:', uploadErr)
+      await Promise.allSettled(uploadedKeys.map(k => r2Delete(k)))
+      throw uploadErr
     }
 
-    // ── 3. 更新 Markdown 內容、封面與專案狀態 ────────────────────────────
-    await db
-      .from('projects')
-      .update({ cover_image: finalCoverUrl, status: 'published' })
-      .eq('id', project_id)
+    // Phase 5: 批次更新 DB
+    try {
+      await mapWithLimit(processed, CONCURRENCY_LIMIT, async p => {
+        const { error } = await supa
+          .from('project_images')
+          .update({
+            status: 'published',
+            published_ext: p.published_ext,
+            available_sizes: p.available_sizes,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', p.id)
+        if (error) throw error
+      })
 
-    console.log(`[publish-background] Done project=${project_id}`)
+      const { error: pubErr } = await supa
+        .from('projects')
+        .update({ status: 'published' })
+        .eq('id', project_id)
+      if (pubErr) throw pubErr
+    } catch (dbErr) {
+      console.error('[publish-bg] phase 5 failed, cleaning up:', dbErr)
+      await Promise.allSettled(uploadedKeys.map(k => r2Delete(k)))
+      await supa
+        .from('project_images')
+        .update({ status: 'draft', published_ext: null, available_sizes: null })
+        .in('id', processed.map(p => p.id))
+      throw dbErr
+    }
+
+    // Phase 6: 刪草稿原檔（best-effort）
+    await Promise.allSettled(processed.map(p => r2Delete(p.draftKey)))
+
+    console.log(`[publish-bg] done project=${project_id}, images=${processed.length}`)
     return new Response('OK', { status: 200 })
 
   } catch (err) {
-    console.error('❌ [publish-background] Error:', err)
-
-    // Rollback 狀態為 draft
-    await db.from('projects').update({ status: 'draft' }).eq('id', project_id)
+    console.error('[publish-bg] error, rolling back:', err)
+    await rollback()
     return new Response('Internal error', { status: 500 })
   }
 }
 
-// 告訴 Netlify 這是 Background Function
-export const config: Config = {
-  path: "/api/publish-background",
-};
+export const config: Config = { path: '/api/publish-background' }
