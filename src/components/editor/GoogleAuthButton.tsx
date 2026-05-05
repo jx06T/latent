@@ -1,43 +1,7 @@
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import type { User } from '@supabase/supabase-js'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 
-interface Props {
-  supabaseUrl: string
-  supabaseAnonKey: string
-}
-
-export default function GoogleAuthButton({ supabaseUrl, supabaseAnonKey }: Props) {
-  const [user, setUser]       = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const supa = createClient(supabaseUrl, supabaseAnonKey)
-
-  useEffect(() => {
-    supa.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    const { data: { subscription } } = supa.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signIn = async () => {
-    await supa.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: typeof window !== 'undefined' ? window.location.href : undefined,
-      },
-    })
-  }
-
-  const signOut = async () => {
-    await supa.auth.signOut()
-    setUser(null)
-  }
+export default function GoogleAuthButton() {
+  const { user, loading, signIn, signOut } = useSupabaseAuth()
 
   if (loading) {
     return (

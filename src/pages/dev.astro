@@ -12,6 +12,7 @@ import StatusLog from "@/components/ui/StatusLog.astro";
 import LogManager from "@/components/modules/LogManager.astro";
 import ImageUploadEditor from "@/components/editor/ImageUploadEditor";
 import GoogleAuthButton from "@/components/editor/GoogleAuthButton";
+import PublishTestPanel from "@/components/editor/PublishTestPanel";
 
 // 測試用：從已存在的 projects 中取一筆 pending 專案
 import { createServiceClient } from "@/lib/supabase-server";
@@ -22,7 +23,7 @@ try {
   const { data } = await db
     .from("projects")
     .select("id")
-    .in("status", ["draft", "pending"])
+    .in("status", ["draft"])
     .limit(1)
     .single();
   testProjectId = data?.id ?? "";
@@ -225,11 +226,7 @@ const colorGroups = [
       <!-- Google 認證 -->
       <div class="flex items-center gap-4">
         <span class="text-[10px] font-mono uppercase text-ink-muted">AUTH_STATUS</span>
-        <GoogleAuthButton
-          client:only="react"
-          supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL ?? ""}
-          supabaseAnonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ""}
-        />
+        <GoogleAuthButton client:only="react" />
       </div>
 
       {testProjectId ? (
@@ -249,9 +246,39 @@ const colorGroups = [
         <ImageUploadEditor
           client:only="react"
           projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
-          supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL ?? ""}
-          supabaseAnonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ""}
           initialMarkdown="# 測試文章\n\n在此拖曳圖片進行測試。\n"
+        />
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         09_發布流程測試
+         測試順序：
+           1. 確認已用 Google 帳號登入（AUTH_STATUS 顯示 session active）
+           2. 點 RELOAD_DB 載入目前 DB 中的圖片列表
+           3. 上傳一張或多張圖片（+ UPLOAD_IMAGE）
+           4. 測試 REPLACE（僅限 draft 狀態圖）
+           5. 測試 DELETE
+           6. 點 PUBLISH_PROJECT → 觀察日誌，專案狀態應變 processing
+              （需 netlify dev 或已部署才會真正觸發 background function）
+    ═══════════════════════════════════════════════════════════════ -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
+        09_發布流程測試
+      </h2>
+
+      <div class="flex items-center gap-4">
+        <span class="text-[10px] font-mono uppercase text-ink-muted">AUTH_STATUS</span>
+        <GoogleAuthButton client:only="react" />
+      </div>
+
+      <div class="border border-line p-4">
+        <p class="text-[10px] font-mono uppercase text-ink-muted mb-3">
+          project_id · {testProjectId || "（未設定，請先建立 draft 專案）"}
+        </p>
+        <PublishTestPanel
+          client:only="react"
+          projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
         />
       </div>
     </section>

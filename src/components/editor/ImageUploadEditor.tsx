@@ -1,20 +1,17 @@
 import { useState, useRef, useEffect, useCallback, type DragEvent, type ChangeEvent } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 
 // ── 型別 ─────────────────────────────────────────────────────────────────────
 interface UploadInfo {
   status: 'uploading' | 'done' | 'error'
   localUrl: string
-  previewUrl?: string  // Presigned GET URL（1 小時有效），上傳後由 API 回傳
+  previewUrl?: string
   error?: string
 }
 
 interface Props {
   projectId: string
   initialMarkdown?: string
-  /** Supabase anon key（client-side） */
-  supabaseUrl: string
-  supabaseAnonKey: string
 }
 
 // ── Canvas 預縮圖（最長邊不超過 2000px，輸出 JPEG） ───────────────────────────
@@ -52,31 +49,16 @@ function resizeImage(file: File, maxPx = 2000): Promise<Blob> {
 export default function ImageUploadEditor({
   projectId,
   initialMarkdown = '',
-  supabaseUrl,
-  supabaseAnonKey,
 }: Props) {
+  const { accessToken } = useSupabaseAuth()
   const [markdown, setMarkdown] = useState(initialMarkdown)
   const [uploads, setUploads] = useState<Record<string, UploadInfo>>({})
-  const [authToken, setAuthToken] = useState<string | null>(null)
   const [publishMsg, setPublishMsg] = useState<string>('')
   const [isDragging, setIsDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const markdownRef = useRef(initialMarkdown) // 總是持有最新值，供上傳閉包使用
+  const markdownRef = useRef(initialMarkdown)
 
-  // 同步 ref
   useEffect(() => { markdownRef.current = markdown }, [markdown])
-
-  // ── 取得 Supabase session token ────────────────────────────────────────────
-  useEffect(() => {
-    const supa = createClient(supabaseUrl, supabaseAnonKey)
-    supa.auth.getSession().then(({ data: { session } }) => {
-      setAuthToken(session?.access_token ?? null)
-    })
-    const { data: { subscription } } = supa.auth.onAuthStateChange((_, session) => {
-      setAuthToken(session?.access_token ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [supabaseUrl, supabaseAnonKey])
 
   // ── 在游標位置插入文字 ────────────────────────────────────────────────────
   const insertAtCursor = useCallback((text: string) => {
@@ -100,7 +82,7 @@ export default function ImageUploadEditor({
 
   // ── 核心上傳流程 ──────────────────────────────────────────────────────────
   const uploadImage = useCallback(async (file: File) => {
-    if (!authToken) {
+    if (!accessToken) {
       alert('請先登入 Supabase 再上傳圖片')
       return
     }
@@ -109,25 +91,20 @@ export default function ImageUploadEditor({
     const tempId = `temp-${crypto.randomUUID()}`
     const localUrl = URL.createObjectURL(file)
 
-    // 插入佔位符（Loading UI）
     insertAtCursor(`![](${tempId})`)
     setUploads(prev => ({ ...prev, [tempId]: { status: 'uploading', localUrl } }))
 
     try {
-      // 1. Canvas 預縮圖
       const blob = await resizeImage(file)
 
-      // 2. 取得 Presigned URL + Auto GC
-      const res = await fetch('/api/upload-url', {
+      const res = await fetch('/api/images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           project_id: projectId,
-          markdown_content: markdownRef.current,
-          image_type: 'content',
           content_type: blob.type,
           file_size: blob.size,
         }),
@@ -140,24 +117,22 @@ export default function ImageUploadEditor({
 
       const { upload_url, preview_url, image_id } = await res.json()
 
-      // 3. 直傳 R2（Presigned PUT）
-      const putRes = await fetch(upload_url, {
+      const putRes = await fetch(upload_url as string, {
         method: 'PUT',
         body: blob,
         headers: { 'Content-Type': blob.type },
       })
       if (!putRes.ok) throw new Error(`R2 PUT failed: ${putRes.status}`)
 
-      // 4. 替換佔位符 ID 為真實 image_id
       setMarkdown(prev => {
-        const updated = prev.replaceAll(`(${tempId})`, `(${image_id})`)
+        const updated = prev.replaceAll(`(${tempId})`, `(${image_id as string})`)
         markdownRef.current = updated
         return updated
       })
 
       setUploads(prev => {
         const { [tempId]: _, ...rest } = prev
-        return { ...rest, [image_id]: { status: 'done', localUrl, previewUrl: preview_url } }
+        return { ...rest, [image_id as string]: { status: 'done', localUrl, previewUrl: preview_url as string } }
       })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -168,7 +143,7 @@ export default function ImageUploadEditor({
       })
       setUploads(prev => ({ ...prev, [tempId]: { status: 'error', localUrl, error: msg } }))
     }
-  }, [authToken, projectId, insertAtCursor])
+  }, [accessToken, projectId, insertAtCursor])
 
   // ── 拖曳事件 ──────────────────────────────────────────────────────────────
   const handleDragOver = (e: DragEvent) => { e.preventDefault(); setIsDragging(true) }
@@ -184,28 +159,26 @@ export default function ImageUploadEditor({
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
     for (const f of files) await uploadImage(f)
-    e.target.value = '' // 允許重複選同檔
+    e.target.value = ''
   }
 
   // ── 發布 ──────────────────────────────────────────────────────────────────
   const handlePublish = async () => {
-    if (!authToken) { setPublishMsg('請先登入'); return }
+    if (!accessToken) { setPublishMsg('請先登入'); return }
     setPublishMsg('送出中...')
     try {
       const res = await fetch('/api/publish', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ project_id: projectId }),
       })
       const data = await res.json()
-      setPublishMsg(res.ok ? `✓ 背景處理中（project_id: ${projectId}）` : `✗ ${data.error}`)
+      setPublishMsg(res.ok ? `✓ 背景處理中（project_id: ${projectId}）` : `✗ ${data.error as string}`)
     } catch (err: unknown) {
       setPublishMsg(`✗ ${err instanceof Error ? err.message : 'Network error'}`)
     }
   }
 
-  // ── 構建草稿圖片的預覽 URL ────────────────────────────────────────────────
-  // 優先使用本地 object URL（當次 session 上傳），其次是 API 回傳的 Presigned GET URL
   const previewUrl = (id: string): string => {
     const info = uploads[id]
     return info?.localUrl ?? info?.previewUrl ?? ''
@@ -217,7 +190,7 @@ export default function ImageUploadEditor({
     <div className="space-y-4">
       {/* ── 認證狀態 ────────────────────────────────────────────────────── */}
       <div className="text-xs font-mono text-ink-muted border border-line px-3 py-1.5">
-        {authToken ? (
+        {accessToken ? (
           <span className="text-green-400">● session active</span>
         ) : (
           <span className="text-yellow-400">● no session · 請先登入 Supabase</span>
