@@ -73,10 +73,20 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
   <div
     data-log-wrapper
     class="absolute left-0 right-0 top-[50vh] z-30 h-[120vh]"
+    style="backface-visibility: hidden;"
   >
-    <Wavesection data-log-content position="top" class="inset-0 h-full px-[5%]">
-      <LogConsole />
-    </Wavesection>
+    <div
+      data-log-content
+      class="absolute inset-0 h-full w-full transform-gpux will-change-transform"
+    >
+      <div class="absolute px-[5%] z-35 w-full h-full inset-0">
+        <LogConsole />
+      </div>
+      <Wavesection
+        position="top"
+        class="w-full h-full transform-gpux will-change-transform"
+      />
+    </div>
   </div>
 </section>
 

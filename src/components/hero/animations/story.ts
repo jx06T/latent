@@ -1,10 +1,5 @@
 import gsap from "gsap";
 
-/**
- * 讓目標元素在主時間軸的一半時，向下移動 50vh
- * @param tl 大導演建立的 Master Timeline (負責掌控全局滾動)
- * @param target 要移動的目標元素
- */
 export function initTargetDropAnimation(
     tl: gsap.core.Timeline,
     target: HTMLElement
@@ -12,7 +7,10 @@ export function initTargetDropAnimation(
     if (!target) return;
 
     tl.to(target, {
-        y: "500vh",
+        // 🌟 1. 改用動態函數計算純數字，效能最好
+        y: () => window.innerHeight * 5, 
         ease: "none",
+        // 🌟 2. 這是解決 iPad 破洞與卡頓的核心！強迫硬體加速不中斷
+        force3D: true 
     }, 0);
 }

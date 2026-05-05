@@ -34,6 +34,16 @@ const levelClass = {
 </div>
 
 <style is:global>
+  .log-list {
+    contain: layout paint; 
+  }
+
+  .log-entry {
+    @apply flex gap-[0.75em] whitespace-nowrap overflow-hidden;
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+
   .log-entry {
     @apply flex gap-[0.75em] whitespace-nowrap overflow-hidden;
   }
