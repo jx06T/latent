@@ -36,39 +36,48 @@ export type Database = {
     Tables: {
       project_images: {
         Row: {
-          id:          string
-          project_id:  string | null
-          author_id:   string | null
-          storage_key: string
-          image_type:  'cover' | 'content' | null
-          status:      'draft' | 'published'
-          created_at:  string | null
+          alt_text: string | null
+          author_id: string | null
+          available_sizes: string[] | null
+          created_at: string | null
+          id: string
+          project_id: string | null
+          published_ext: string | null
+          source_ext: string | null
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?:          string
-          project_id?:  string | null
-          author_id?:   string | null
-          storage_key:  string
-          image_type?:  'cover' | 'content' | null
-          status?:      'draft' | 'published'
-          created_at?:  string | null
+          alt_text?: string | null
+          author_id?: string | null
+          available_sizes?: string[] | null
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          published_ext?: string | null
+          source_ext?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
-          id?:          string
-          project_id?:  string | null
-          author_id?:   string | null
-          storage_key?: string
-          image_type?:  'cover' | 'content' | null
-          status?:      'draft' | 'published'
-          created_at?:  string | null
+          alt_text?: string | null
+          author_id?: string | null
+          available_sizes?: string[] | null
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          published_ext?: string | null
+          source_ext?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'project_images_project_id_fkey'
-            columns: ['project_id']
+            foreignKeyName: "project_images_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: 'projects'
-            referencedColumns: ['id']
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -88,7 +97,6 @@ export type Database = {
           links: Json | null
           poster_url: string | null
           private_data: Json | null
-          screenshots: string[] | null
           slug: string
           status: string | null
           subtitle: string | null
@@ -111,7 +119,6 @@ export type Database = {
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
-          screenshots?: string[] | null
           slug: string
           status?: string | null
           subtitle?: string | null
@@ -134,7 +141,6 @@ export type Database = {
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
-          screenshots?: string[] | null
           slug?: string
           status?: string | null
           subtitle?: string | null
@@ -152,7 +158,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      status: "draft" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -282,7 +288,9 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      status: ["draft", "published"],
+    },
   },
 } as const
 
