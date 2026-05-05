@@ -227,7 +227,7 @@ export default async (req: Request, _ctx: Context) => {
     await Promise.allSettled(processed.map(p => r2Delete(p.draftKey)))
 
     console.log(`[publish-bg] done project=${project_id}, images=${processed.length}`)
-    return new Response('OK', { status: 200 })
+    return new Response('OK', { status: 202  })
 
   } catch (err) {
     console.error('[publish-bg] error, rolling back:', err)

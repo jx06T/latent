@@ -11,6 +11,7 @@ import Progress from "@/components/ui/Progress.astro";
 import StatusLog from "@/components/ui/StatusLog.astro";
 import LogManager from "@/components/modules/LogManager.astro";
 import ImageUploadEditor from "@/components/editor/ImageUploadEditor";
+import GoogleAuthButton from "@/components/editor/GoogleAuthButton";
 
 // 測試用：從已存在的 projects 中取一筆 pending 專案
 import { createServiceClient } from "@/lib/supabase-server";
@@ -220,6 +221,16 @@ const colorGroups = [
       <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
         08_圖片上傳編輯器
       </h2>
+
+      <!-- Google 認證 -->
+      <div class="flex items-center gap-4">
+        <span class="text-[10px] font-mono uppercase text-ink-muted">AUTH_STATUS</span>
+        <GoogleAuthButton
+          client:only="react"
+          supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL ?? ""}
+          supabaseAnonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ""}
+        />
+      </div>
 
       {testProjectId ? (
         <p class="text-xs font-mono text-green-400">
