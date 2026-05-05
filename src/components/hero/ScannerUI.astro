@@ -17,7 +17,8 @@ import { scanBoxes } from "./hero-data";
             width={box.w}
             height={box.h}
             fill="white"
-            class="mask-rect"
+            class=" will-change-transform"
+            visibility="hidden"
           />
         ))
       }
@@ -27,20 +28,21 @@ import { scanBoxes } from "./hero-data";
   <g id="connection-lines">
     {
       scanBoxes.map((box) => (
-        <line data-scanner-line={box.id} stroke="#d18e12" stroke-width="2" />
+        <line
+          data-scanner-line={box.id}
+          class=" "
+          stroke="#d18e12"
+          stroke-width="2"
+        />
       ))
     }
   </g>
 
- <g id="scanner-label">
+  <g id="scanner-label">
     {
       scanBoxes.map((box) => (
-        <svg
-          x={`${box.x}%`}
-          y={`${box.y}%`}
-          overflow="visible"
-        >
-          <g data-scanner-label={box.id} class="scanner-label">
+        <svg x={`${box.x}%`} y={`${box.y}%`} overflow="visible">
+          <g data-scanner-label={box.id} class="will-change-transform">
             <defs>
               <clipPath id={`label-mask-${box.id}`}>
                 <rect
@@ -51,7 +53,7 @@ import { scanBoxes } from "./hero-data";
                   height="24"
                 />
               </clipPath>
-            </defs> 
+            </defs>
 
             <g clip-path={`url(#label-mask-${box.id})`}>
               <rect
@@ -90,7 +92,8 @@ import { scanBoxes } from "./hero-data";
           width={box.w}
           height={box.h}
           overflow="visible"
-          class="scanner-wrapper"
+          visibility="hidden"
+          class=""
         >
           <rect
             data-scanner-static={box.id}
@@ -102,7 +105,7 @@ import { scanBoxes } from "./hero-data";
           />
           <g
             data-scanner-frame={box.id}
-            class="scanner-frame"
+            class="will-change-transform"
             x="0"
             y="0"
             width="100%"
@@ -111,7 +114,7 @@ import { scanBoxes } from "./hero-data";
           >
             <rect
               data-scanner-box={box.id}
-              class="scanner-box"
+              class="will-change-transform"
               x="0"
               y="0"
               width="100%"
@@ -126,13 +129,3 @@ import { scanBoxes } from "./hero-data";
     }
   </g>
 </svg>
-
-<style>
-  /* 只需要維持 GPU 加速宣告即可，所有的動畫邏輯都交給 JS */
-  .mask-rect,
-  .scanner-frame,
-  .scanner-label,
-  .scanner-box {
-    will-change: transform;
-  }
-</style>

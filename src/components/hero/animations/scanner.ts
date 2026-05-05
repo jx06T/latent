@@ -49,13 +49,14 @@ export function initScannerAnimations(
 
         gsap.set(labelMask, { scaleX: 0, transformOrigin: "0% 0%" });
         gsap.set(line, { opacity: 0 });
+        gsap.set([wrapper, mask], { autoAlpha: 1 });
         renderTransforms();
 
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: wrapper,
                 start: "top 80%",
-                end: "bottom 20%",
+                end: "bottom 25%",
                 toggleActions: "play reverse play reverse",
             },
         });
