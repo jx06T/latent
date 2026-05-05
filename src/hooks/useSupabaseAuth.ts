@@ -21,6 +21,11 @@ export function useSupabaseAuth(): SupabaseAuth {
       setUser(session?.user ?? null)
       setAccessToken(session?.access_token ?? null)
       setLoading(false)
+
+      // OAuth 回傳後清掉 URL hash，避免殘留 # 在下次登入時疊成 ##
+      if (session && typeof window !== 'undefined' && window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -35,7 +40,10 @@ export function useSupabaseAuth(): SupabaseAuth {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: typeof window !== 'undefined' ? window.location.href : undefined,
+        // 只用 origin+pathname，避免殘留的 hash 疊成 ##access_token=
+        redirectTo: typeof window !== 'undefined'
+          ? `${window.location.origin}${window.location.pathname}`
+          : undefined,
       },
     })
   }, [])

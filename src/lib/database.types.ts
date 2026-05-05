@@ -84,7 +84,7 @@ export type Database = {
       projects: {
         Row: {
           author_handle: string
-          author_id: string | null
+          author_id: string
           category_main: number
           category_sub: number[] | null
           content: string | null
@@ -107,7 +107,7 @@ export type Database = {
         }
         Insert: {
           author_handle: string
-          author_id?: string | null
+          author_id: string
           category_main: number
           category_sub?: number[] | null
           content?: string | null
@@ -130,7 +130,7 @@ export type Database = {
         }
         Update: {
           author_handle?: string
-          author_id?: string | null
+          author_id?: string
           category_main?: number
           category_sub?: number[] | null
           content?: string | null

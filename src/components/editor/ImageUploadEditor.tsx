@@ -88,7 +88,12 @@ export default function ImageUploadEditor({
     }
     if (!file.type.startsWith('image/')) return
 
-    const tempId = `temp-${crypto.randomUUID()}`
+
+    const generateId = () => {
+      return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    };
+
+    const tempId = `temp-${crypto.randomUUID ? crypto.randomUUID() : generateId()}`
     const localUrl = URL.createObjectURL(file)
 
     insertAtCursor(`![](${tempId})`)
@@ -260,8 +265,8 @@ export default function ImageUploadEditor({
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-mono text-ink-muted truncate">{id}</p>
                 <p className={`text-xs font-mono ${info.status === 'done' ? 'text-green-400'
-                    : info.status === 'error' ? 'text-red-400'
-                      : 'text-yellow-400 animate-pulse'
+                  : info.status === 'error' ? 'text-red-400'
+                    : 'text-yellow-400 animate-pulse'
                   }`}>
                   {info.status === 'uploading' ? '上傳中...' : info.status === 'done' ? '完成' : `錯誤: ${info.error}`}
                 </p>

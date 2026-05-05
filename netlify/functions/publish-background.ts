@@ -236,4 +236,4 @@ export default async (req: Request, _ctx: Context) => {
   }
 }
 
-export const config: Config = { path: '/api/publish-background' }
+export const config: Config = { path: '/functions/publish-background' }

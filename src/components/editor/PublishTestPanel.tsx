@@ -77,9 +77,25 @@ export default function PublishTestPanel({ projectId }: Props) {
           .order('created_at', { ascending: true }),
         supabase.from('projects').select('status').eq('id', projectId).single(),
       ])
+      console.log(imgRes, projRes)
+
+      if (imgRes.error || projRes.error) {
+        console.error('🚨 [Supabase 查詢錯誤] 圖片查詢:', imgRes.error);
+        console.error('🚨 [Supabase 查詢錯誤] 專案查詢:', projRes.error);
+
+        const errorDetails = [
+          imgRes.error ? `ImgErr: ${imgRes.error.message} (${imgRes.error.code})` : '',
+          projRes.error ? `ProjErr: ${projRes.error.message} (${projRes.error.code})` : ''
+        ].filter(Boolean).join(' | ');
+
+        throw new Error(`資料庫查詢失敗: ${errorDetails}`);
+      }
+
       setImages(imgRes.data?.map(r => ({ ...r })) ?? [])
       setProjectStatus(projRes.data?.status ?? '—')
       log(`已載入 ${imgRes.data?.length ?? 0} 張圖片，專案狀態: ${projRes.data?.status ?? '不明'}`, 'success')
+
+
     } catch (err) {
       log(`載入失敗: ${String(err)}`, 'error')
     }
@@ -238,7 +254,7 @@ export default function PublishTestPanel({ projectId }: Props) {
           <div className="divide-y divide-line">
             {images.map(img => (
               <div key={img.id} className="flex items-center gap-3 px-3 py-2">
-                <div className="w-10 h-10 border border-line flex-shrink-0 overflow-hidden bg-bg-surface">
+                <div className="w-10 h-10 border border-line shrink-0 overflow-hidden bg-bg-surface">
                   {(img.localUrl ?? img.previewUrl) ? (
                     <img src={img.localUrl ?? img.previewUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -255,7 +271,7 @@ export default function PublishTestPanel({ projectId }: Props) {
                   </p>
                 </div>
 
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex gap-2 shrink-0">
                   {img.status === 'draft' && (
                     <button
                       onClick={() => triggerReplace(img.id)}

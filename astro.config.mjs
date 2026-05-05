@@ -20,7 +20,7 @@ const getAdapter = () => {
     console.log('偵測到 Vercel 環境，使用 @astrojs/vercel');
     return vercel();
   }
-  
+
   if (process.env.NETLIFY) {
     console.log('偵測到 Netlify 環境，使用 @astrojs/netlify');
     return netlify();
@@ -54,4 +54,7 @@ export default defineConfig({
     ]
   },
   adapter: getAdapter(),
+  security: {
+    checkOrigin: false, 
+  },
 });

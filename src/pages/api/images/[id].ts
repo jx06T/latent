@@ -2,9 +2,12 @@
  * 單張圖片的替換與刪除。
  *
  * PUT /api/images/:id
- *   - 僅允許 draft 圖；published 一律拒絕（要替換請 DELETE 後重新 POST）
+ *   - draft 圖：直接替換，覆蓋 R2 草稿檔
+ *   - published 圖：刪除所有發布版本，row 降級為 draft，
+ *                   project 自動降級為 draft，需重新發布
+ *   - 副檔名變了會先刪舊 R2 檔
  *   - body: { content_type, file_size }
- *   - 副檔名變了會先刪舊 R2 檔，發新 presigned URL
+ *   - 回應: { image_id, upload_url, preview_url, project_downgraded }
  *
  * DELETE /api/images/:id
  *   - draft 與 published 皆允許
@@ -67,10 +70,6 @@ async function authorize(
         .single()
 
     if (!img) return { error: json({ error: 'Image not found' }, 404) }
-    if (!img.project_id) {
-        console.error('[images] data integrity error: project_id is null', { image_id: img.id })
-        return { error: json({ error: 'Internal data error' }, 500) }
-    }
     if (img.author_id !== userId) return { error: json({ error: 'Forbidden' }, 403) }
 
     const { data: project } = await db
@@ -83,20 +82,20 @@ async function authorize(
         return { error: json({ error: 'Project is currently processing' }, 409) }
     }
 
-    return { userId, image: img as AuthorizedContext['image'] }
+    return { userId, image: img as ProjectImageRow & { author_id: string } }
 }
 
-// ── PUT：替換草稿圖 ─────────────────────────────────────────────────────
+// ── PUT：替換圖片（draft 或 published） ──────────────────────────────────
 const putSchema = z.object({
     content_type: z.enum(['image/jpeg', 'image/png', 'image/webp']),
     file_size: z.number().int().positive().max(MAX_FILE_BYTES),
 })
 
 export const PUT: APIRoute = async ({ request, params }) => {
+    if (!params.id) return json({ error: 'ID is required' }, 400)
+
     const idResult = z.string().uuid().safeParse(params.id)
-    if (!idResult.success) {
-        return json({ error: 'Invalid id' }, 400)
-    }
+    if (!idResult.success) return json({ error: 'Invalid id' }, 400)
     const imageId = idResult.data
 
     let raw: unknown
@@ -104,30 +103,42 @@ export const PUT: APIRoute = async ({ request, params }) => {
     catch { return json({ error: 'Invalid JSON' }, 400) }
 
     const parsed = putSchema.safeParse(raw)
-    if (!parsed.success) return json({ error: 'Invalid request' }, 400)
+    if (!parsed.success) return json({ error: 'Invalid request', details: parsed.error.issues }, 400)
 
     const db = createServiceClient()
     const ctx = await authorize(request, db, imageId)
     if ('error' in ctx) return ctx.error
 
     const { image } = ctx
-
-    // published 圖不允許替換
-    if (image.status === 'published') {
-        return json({
-            error: 'Published images cannot be replaced. Delete it and upload a new one.',
-        }, 409)
-    }
-
+    const wasPublished = image.status === 'published'
     const newExt = CONTENT_TYPE_TO_EXT[parsed.data.content_type]
-    const oldKey = draftKey(image.project_id, image.id, image.source_ext)
-    const newKey = draftKey(image.project_id, image.id, newExt)
 
-    // 副檔名改變 → 舊路徑檔案已不對應，先刪
-    if (newExt !== image.source_ext) {
-        try { await deleteR2Objects([oldKey]) }
-        catch (err) { console.error('[images PUT] old R2 delete failed:', err) }
+    // ── 1. 若是 published：刪所有 published R2 檔 + 降級 project ─────────
+    if (wasPublished) {
+        const oldKeys = allKeysFor(image)
+        try { await deleteR2Objects(oldKeys) }
+        catch (err) { console.error('[images PUT] published cleanup failed:', err) }
+
+        const { error: projDowngradeErr } = await db
+            .from('projects')
+            .update({ status: 'draft' })
+            .eq('id', image.project_id)
+
+        if (projDowngradeErr) {
+            console.error('[images PUT] project downgrade failed:', projDowngradeErr)
+            return json({ error: 'Database error' }, 500)
+        }
     }
+
+    // ── 2. 若是 draft 且副檔名變了：刪舊 draft 檔 ───────────────────────
+    if (!wasPublished && newExt !== image.source_ext) {
+        const oldDraftKey = draftKey(image.project_id, image.id, image.source_ext)
+        try { await deleteR2Objects([oldDraftKey]) }
+        catch (err) { console.error('[images PUT] old draft delete failed:', err) }
+    }
+
+    // ── 3. 產生新 presigned URL ─────────────────────────────────────────
+    const newKey = draftKey(image.project_id, image.id, newExt)
 
     let uploadUrl: string
     let previewUrl: string
@@ -141,13 +152,31 @@ export const PUT: APIRoute = async ({ request, params }) => {
         return json({ error: 'Storage service unavailable' }, 503)
     }
 
+    // ── 4. 更新 DB row ──────────────────────────────────────────────────
+    //   draft → draft：只更新 source_ext / uploaded_at / updated_at
+    //   published → draft：額外重置 status / published_ext / available_sizes
+    const updatePayload: {
+        source_ext: string
+        uploaded_at: null
+        updated_at: string
+        status?: 'draft'
+        published_ext?: null
+        available_sizes?: null
+    } = {
+        source_ext: newExt,
+        uploaded_at: null,
+        updated_at: new Date().toISOString(),
+    }
+
+    if (wasPublished) {
+        updatePayload.status = 'draft'
+        updatePayload.published_ext = null
+        updatePayload.available_sizes = null
+    }
+
     const { error: updErr } = await db
         .from('project_images')
-        .update({
-            source_ext: newExt,
-            uploaded_at: null,
-            updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', imageId)
 
     if (updErr) {
@@ -159,15 +188,16 @@ export const PUT: APIRoute = async ({ request, params }) => {
         image_id: imageId,
         upload_url: uploadUrl,
         preview_url: previewUrl,
+        project_downgraded: wasPublished,
     })
 }
 
 // ── DELETE：刪圖（draft 或 published） ──────────────────────────────────
 export const DELETE: APIRoute = async ({ request, params }) => {
+    if (!params.id) return json({ error: 'ID is required' }, 400)
+
     const idResult = z.string().uuid().safeParse(params.id)
-    if (!idResult.success) {
-        return json({ error: 'Invalid id' }, 400)
-    }
+    if (!idResult.success) return json({ error: 'Invalid id' }, 400)
     const imageId = idResult.data
 
     const db = createServiceClient()
@@ -179,7 +209,7 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     // 列出所有實體路徑（draft 1 個 / published N 個）
     const keys = allKeysFor(image)
 
-    // 先刪 R2（失敗只記 log，不阻擋 DB 刪除；殘留檔案可由 lifecycle 或人工清理）
+    // 先刪 R2（失敗只記 log，不阻擋 DB 刪除；殘留檔案靠 lifecycle 或人工清理）
     if (keys.length > 0) {
         try { await deleteR2Objects(keys) }
         catch (err) { console.error('[images DELETE] R2 delete failed:', err) }
