@@ -5,14 +5,13 @@ import { createClient } from '@supabase/supabase-js'
 interface UploadInfo {
   status: 'uploading' | 'done' | 'error'
   localUrl: string
+  previewUrl?: string  // Presigned GET URL（1 小時有效），上傳後由 API 回傳
   error?: string
 }
 
 interface Props {
   projectId: string
   initialMarkdown?: string
-  /** R2 image-worker 的公開 base URL，用於草稿預覽 */
-  workerUrl: string
   /** Supabase anon key（client-side） */
   supabaseUrl: string
   supabaseAnonKey: string
@@ -53,7 +52,6 @@ function resizeImage(file: File, maxPx = 2000): Promise<Blob> {
 export default function ImageUploadEditor({
   projectId,
   initialMarkdown = '',
-  workerUrl,
   supabaseUrl,
   supabaseAnonKey,
 }: Props) {
@@ -140,7 +138,7 @@ export default function ImageUploadEditor({
         throw new Error(err.error ?? 'Upload URL request failed')
       }
 
-      const { upload_url, image_id } = await res.json()
+      const { upload_url, preview_url, image_id } = await res.json()
 
       // 3. 直傳 R2（Presigned PUT）
       const putRes = await fetch(upload_url, {
@@ -159,7 +157,7 @@ export default function ImageUploadEditor({
 
       setUploads(prev => {
         const { [tempId]: _, ...rest } = prev
-        return { ...rest, [image_id]: { status: 'done', localUrl } }
+        return { ...rest, [image_id]: { status: 'done', localUrl, previewUrl: preview_url } }
       })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
@@ -207,10 +205,10 @@ export default function ImageUploadEditor({
   }
 
   // ── 構建草稿圖片的預覽 URL ────────────────────────────────────────────────
+  // 優先使用本地 object URL（當次 session 上傳），其次是 API 回傳的 Presigned GET URL
   const previewUrl = (id: string): string => {
     const info = uploads[id]
-    if (info?.localUrl) return info.localUrl
-    return `${workerUrl}/drafts/${projectId}/${id}.jpg`
+    return info?.localUrl ?? info?.previewUrl ?? ''
   }
 
   const uploadList = Object.entries(uploads)

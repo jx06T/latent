@@ -238,7 +238,6 @@ const colorGroups = [
         <ImageUploadEditor
           client:only="react"
           projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
-          workerUrl={import.meta.env.PUBLIC_R2_WORKER_URL ?? ""}
           supabaseUrl={import.meta.env.PUBLIC_SUPABASE_URL ?? ""}
           supabaseAnonKey={import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? ""}
           initialMarkdown="# 測試文章\n\n在此拖曳圖片進行測試。\n"

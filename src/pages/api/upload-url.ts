@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { z } from 'zod'
 import { createServiceClient, verifyToken } from '@/lib/supabase-server'
-import { generatePresignedPutUrl, deleteR2Objects } from '@/lib/r2'
+import { generatePresignedPutUrl, generatePresignedGetUrl, deleteR2Objects } from '@/lib/r2'
 
 const MAX_CONTENT_IMAGES = 8
 const MAX_FILE_BYTES     = 5 * 1024 * 1024 // 5 MB
@@ -126,8 +126,12 @@ export const POST: APIRoute = async ({ request }) => {
   const storageKey = `drafts/${project_id}/${imageId}.${ext[content_type]}`
 
   let uploadUrl: string
+  let previewUrl: string
   try {
-    uploadUrl = await generatePresignedPutUrl(storageKey, content_type)
+    ;[uploadUrl, previewUrl] = await Promise.all([
+      generatePresignedPutUrl(storageKey, content_type),
+      generatePresignedGetUrl(storageKey),
+    ])
   } catch (err) {
     console.error('[upload-url] presign failed:', err)
     return new Response(
@@ -152,7 +156,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   return new Response(
-    JSON.stringify({ upload_url: uploadUrl, image_id: imageId, storage_key: storageKey }),
+    JSON.stringify({ upload_url: uploadUrl, preview_url: previewUrl, image_id: imageId, storage_key: storageKey }),
     { status: 200, headers: corsHeaders() },
   )
 }

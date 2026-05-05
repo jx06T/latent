@@ -27,6 +27,15 @@ function bucket(): string {
   return import.meta.env.R2_BUCKET_NAME ?? 'latent-img'
 }
 
+/** 產生 Presigned GET URL（預設 1 小時有效），供編輯器預覽草稿圖片 */
+export async function generatePresignedGetUrl(
+  key: string,
+  expiresIn = 3600,
+): Promise<string> {
+  const command = new GetObjectCommand({ Bucket: bucket(), Key: key })
+  return getSignedUrl(createClient(), command, { expiresIn })
+}
+
 /** 產生 Presigned PUT URL（5 分鐘有效），供前端直傳 R2 */
 export async function generatePresignedPutUrl(
   key: string,

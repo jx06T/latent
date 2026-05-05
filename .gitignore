@@ -30,3 +30,4 @@ dev
 supabase
 
 docs
+deno.lock

@@ -176,7 +176,7 @@ export const handler: Handler = async event => {
     console.error('[publish-background] error:', err)
 
     // 回滾狀態為 draft，讓使用者可以重試
-    await db.from('projects').update({ status: 'draft' }).eq('id', project_id).catch(() => {})
+    await db.from('projects').update({ status: 'draft' }).eq('id', project_id)
 
     return { statusCode: 500, body: 'Internal error' }
   }
