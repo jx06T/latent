@@ -25,15 +25,39 @@ export const POST: APIRoute = async ({ request }) => {
   const { project_id } = parsed.data
   const db = createServiceClient()
 
+  // ── 1. 取得 project 資訊 ──
   const { data: project } = await db
     .from('projects')
-    .select('id, author_id, status')
+    .select('id, author_id, status, slug, year')
     .eq('id', project_id)
     .single()
 
-  if (!project || project.author_id !== userId) return json({ error: 'Not found or forbidden' }, 403)
-  if (project.status === 'processing') return json({ error: 'Already processing' }, 409)
+  if (!project || project.author_id !== userId) {
+    return json({ error: 'Not found or forbidden' }, 403)
+  }
+  if (project.status === 'processing') {
+    return json({ error: 'Already processing' }, 409)
+  }
 
+  // ── 2. Slug 衝突檢查（同年份下，排除自己） ──
+  //   只檢查 published 的；其他人的 draft 不算佔用
+  const { data: conflict } = await db
+    .from('projects')
+    .select('id')
+    .eq('year', project.year)
+    .eq('slug', project.slug)
+    .eq('status', 'published')
+    .neq('id', project_id)
+    .maybeSingle()
+
+  if (conflict) {
+    return json({
+      error: 'Slug conflict',
+      message: `Slug "${project.slug}" is already used by another published project in ${project.year}.`,
+      conflicting_field: 'slug',
+    }, 409)
+  }
+  
   // 原子鎖：只有 status=draft 才能轉 processing
   const { data: locked, error: lockErr } = await db
     .from('projects')

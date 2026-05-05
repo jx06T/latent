@@ -115,6 +115,13 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
     // ── 1. 若是 published：刪所有 published R2 檔 + 降級 project ─────────
     if (wasPublished) {
+        return json({
+            error: 'Cannot replace a published image. Please delete it and upload a new one.',
+            code: 'PUBLISHED_IMAGE_LOCKED'
+        }, 403)
+    }
+
+    if (wasPublished) {
         const oldKeys = allKeysFor(image)
         try { await deleteR2Objects(oldKeys) }
         catch (err) { console.error('[images PUT] published cleanup failed:', err) }
