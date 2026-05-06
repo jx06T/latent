@@ -373,6 +373,7 @@ export default function ProjectEditor({ projectId }: Props) {
             onChange={handleFormChange}
             isSlugLocked={projectStatus === 'published'}
             slugError={slugError}
+            onImageDrop={isProcessing ? undefined : handleUpload}
           />
           <div className="border-t border-line">
             <MarkdownEditor
