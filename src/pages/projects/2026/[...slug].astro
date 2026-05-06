@@ -202,22 +202,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
     <MarkdownContent content={project.content!} class="mt-6" />
   </article>
 
-  <!-- Screenshots -->
-  {
-    project.screenshots.length > 0 && (
-      <section class="mb-12">
-        <CommentLabel text="screenshots" />
-        <div class="space-y-4 mt-4">
-          {project.screenshots.map((src) => (
-            <div class="border border-line overflow-hidden">
-              <img src={src} loading="lazy" alt="" class="w-full" />
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
+ 、
   <!-- Footer bar -->
   <footer
     class="mt-8 pt-3 border-t border-line flex justify-between items-center"
