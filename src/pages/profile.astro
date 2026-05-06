@@ -1,0 +1,18 @@
+---
+export const prerender = false
+
+import BaseHead from "@/components/sections/BaseHead.astro";
+import "@/styles/global.css";
+import ProfileDashboard from "@/components/editor/ProfileDashboard";
+---
+
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <BaseHead title="Profile · Latent" description="Manage your projects" />
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="bg-bg text-ink">
+    <ProfileDashboard client:only="react" />
+  </body>
+</html>

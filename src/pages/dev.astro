@@ -10,9 +10,7 @@ import Input from "@/components/ui/Input.astro";
 import Progress from "@/components/ui/Progress.astro";
 import StatusLog from "@/components/ui/StatusLog.astro";
 import LogManager from "@/components/modules/LogManager.astro";
-import ImageUploadEditor from "@/components/editor/ImageUploadEditor";
 import GoogleAuthButton from "@/components/editor/GoogleAuthButton";
-import PublishTestPanel from "@/components/editor/PublishTestPanel";
 
 // 測試用：從已存在的 projects 中取一筆 pending 專案
 import { createServiceClient } from "@/lib/supabase-server";
@@ -208,79 +206,21 @@ const colorGroups = [
       </script>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         08_圖片上傳編輯器測試
-         測試方式：
-           1. 確認 .env 已設定 R2_* / SUPABASE_SERVICE_ROLE_KEY
-           2. 執行 pnpm dlx supabase migration up（套用 project_images 遷移）
-           3. 以 Google 帳號登入（確保 Supabase session 存在）
-           4. 在下方輸入有效的 project_id（需為你自己建立的 pending/draft 專案）
-           5. 拖曳圖片或點選「插入圖片」，觀察 Auto GC 與配額控制
-           6. 點擊 PUBLISH 觸發背景函式（需 netlify dev 或已部署）
-    ═══════════════════════════════════════════════════════════════ -->
+    <!-- 08+09 圖片編輯器 & 發布流程測試 → 已遷移至 /profile 和 /editor/[id] -->
     <section class="space-y-4">
       <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
-        08_圖片上傳編輯器
+        08_Auth 狀態
       </h2>
-
-      <!-- Google 認證 -->
       <div class="flex items-center gap-4">
         <span class="text-[10px] font-mono uppercase text-ink-muted">AUTH_STATUS</span>
         <GoogleAuthButton client:only="react" />
       </div>
-
-      {testProjectId ? (
-        <p class="text-xs font-mono text-green-400">
-          ✓ 自動偵測到測試 project_id: <code>{testProjectId}</code>
-        </p>
-      ) : (
-        <p class="text-xs font-mono text-yellow-400">
-          ⚠ 未偵測到可用專案，請手動在元件中設定 project_id，或先建立一筆 pending 專案
-        </p>
-      )}
-
-      <div class="border border-line p-4 space-y-2">
-        <p class="text-[10px] font-mono uppercase text-ink-muted">
-          project_id · {testProjectId || "（未設定）"}
-        </p>
-        <ImageUploadEditor
-          client:only="react"
-          projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
-          initialMarkdown="# 測試文章\n\n在此拖曳圖片進行測試。\n"
-        />
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════
-         09_發布流程測試
-         測試順序：
-           1. 確認已用 Google 帳號登入（AUTH_STATUS 顯示 session active）
-           2. 點 RELOAD_DB 載入目前 DB 中的圖片列表
-           3. 上傳一張或多張圖片（+ UPLOAD_IMAGE）
-           4. 測試 REPLACE（僅限 draft 狀態圖）
-           5. 測試 DELETE
-           6. 點 PUBLISH_PROJECT → 觀察日誌，專案狀態應變 processing
-              （需 netlify dev 或已部署才會真正觸發 background function）
-    ═══════════════════════════════════════════════════════════════ -->
-    <section class="space-y-4">
-      <h2 class="text-xl font-mono border-l-4 border-accent-500 pl-3">
-        09_發布流程測試
-      </h2>
-
-      <div class="flex items-center gap-4">
-        <span class="text-[10px] font-mono uppercase text-ink-muted">AUTH_STATUS</span>
-        <GoogleAuthButton client:only="react" />
-      </div>
-
-      <div class="border border-line p-4">
-        <p class="text-[10px] font-mono uppercase text-ink-muted mb-3">
-          project_id · {testProjectId || "（未設定，請先建立 draft 專案）"}
-        </p>
-        <PublishTestPanel
-          client:only="react"
-          projectId={testProjectId || "00000000-0000-0000-0000-000000000000"}
-        />
-      </div>
+      <p class="text-xs font-mono text-ink-muted">
+        編輯器與發布流程請至 <a href="/profile" class="text-accent-500 hover:underline">/profile</a> 操作。
+        {testProjectId && (
+          <span> 快速連結：<a href={`/editor/${testProjectId}`} class="text-accent-500 hover:underline">/editor/{testProjectId}</a></span>
+        )}
+      </p>
     </section>
 
   </main>
