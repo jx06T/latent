@@ -25,7 +25,6 @@ interface Props {
   onUpload: (file: File) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onReplace: (id: string, file: File) => Promise<void>
-  onSeamlessSwap: (id: string, file: File) => Promise<void>
   onInsert: (id: string) => void
   onSetCover: (id: string | null) => void
 }
@@ -37,17 +36,14 @@ export default function ImageSidebar({
   onUpload,
   onDelete,
   onReplace,
-  onSeamlessSwap,
   onInsert,
   onSetCover,
 }: Props) {
   const [replacingId, setReplacingId] = useState<string | null>(null)
-  const [swappingId, setSwappingId] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const replaceInputRef = useRef<HTMLInputElement>(null)
-  const swapInputRef = useRef<HTMLInputElement>(null)
 
   const wrap = async (fn: () => Promise<void>) => {
     setError(null)
@@ -62,13 +58,6 @@ export default function ImageSidebar({
     setReplacingId(null)
   }
 
-  const onSwapFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && swappingId) await wrap(() => onSeamlessSwap(swappingId, file))
-    e.target.value = ''
-    setSwappingId(null)
-  }
-
   const handleUploadFiles = async (files: File[]) => {
     setIsUploading(true)
     for (const f of files) await wrap(() => onUpload(f))
@@ -78,7 +67,6 @@ export default function ImageSidebar({
   return (
     <div className="flex flex-col h-full font-mono text-[11px] overflow-hidden">
       <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
-      <input ref={swapInputRef} type="file" accept="image/*" className="hidden" onChange={onSwapFileChange} />
 
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-line shrink-0">
@@ -153,26 +141,14 @@ export default function ImageSidebar({
                 {coverId === img.id ? 'Uncover' : 'Cover'}
               </Button>
 
-              {img.status === 'draft' && (
-                <Button
-                  variant="outline" className="text-[9px] px-1.5 py-0.5"
-                  disabled={disabled}
-                  onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
-                >
-                  Replace
-                </Button>
-              )}
-
-              {img.status === 'published' && (
-                <Button
-                  variant="outline" className="text-[9px] px-1.5 py-0.5"
-                  disabled={disabled}
-                  title="Upload new image (seamless: new upload → markdown update → delete old)"
-                  onClick={() => { setSwappingId(img.id); swapInputRef.current?.click() }}
-                >
-                  Swap
-                </Button>
-              )}
+              <Button
+                variant="outline" className="text-[9px] px-1.5 py-0.5"
+                disabled={disabled}
+                title="Upload new image (new ID → update markdown refs → delete old)"
+                onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
+              >
+                Replace
+              </Button>
 
               <Button
                 variant="danger" className="text-[9px] px-1.5 py-0.5"

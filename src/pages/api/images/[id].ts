@@ -1,13 +1,9 @@
 /**
- * 單張圖片的替換與刪除。
+ * 單張圖片操作。
  *
  * PUT /api/images/:id
- *   - draft 圖：直接替換，覆蓋 R2 草稿檔
- *   - published 圖：刪除所有發布版本，row 降級為 draft，
- *                   project 自動降級為 draft，需重新發布
- *   - 副檔名變了會先刪舊 R2 檔
- *   - body: { content_type, file_size }
- *   - 回應: { image_id, upload_url, preview_url, project_downgraded }
+ *   - 已停用（405）。圖片 ID 即內容身份，不允許原地覆寫。
+ *   - 替換請用：POST /api/images（取得新 ID）→ 更新 markdown 引用 → DELETE 舊圖
  *
  * DELETE /api/images/:id
  *   - draft 與 published 皆允許
@@ -19,15 +15,8 @@
 import type { APIRoute } from 'astro'
 import { z } from 'zod'
 import { createServiceClient, verifyToken } from '@/lib/supabase-server'
-import { generatePresignedPutUrl, generatePresignedGetUrl, deleteR2Objects } from '@/lib/r2'
-import { draftKey, allKeysFor, type ProjectImageRow } from '@/lib/image-paths'
-
-const MAX_FILE_BYTES = 5 * 1024 * 1024
-const CONTENT_TYPE_TO_EXT: Record<string, string> = {
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp',
-}
+import { deleteR2Objects } from '@/lib/r2'
+import { allKeysFor, type ProjectImageRow } from '@/lib/image-paths'
 
 const cors = {
     'Content-Type': 'application/json',
@@ -85,119 +74,17 @@ async function authorize(
     return { userId, image: img as ProjectImageRow & { author_id: string } }
 }
 
-// ── PUT：替換圖片（draft 或 published） ──────────────────────────────────
-const putSchema = z.object({
-    content_type: z.enum(['image/jpeg', 'image/png', 'image/webp']),
-    file_size: z.number().int().positive().max(MAX_FILE_BYTES),
-})
-
-export const PUT: APIRoute = async ({ request, params }) => {
-    if (!params.id) return json({ error: 'ID is required' }, 400)
-
-    const idResult = z.string().uuid().safeParse(params.id)
-    if (!idResult.success) return json({ error: 'Invalid id' }, 400)
-    const imageId = idResult.data
-
-    let raw: unknown
-    try { raw = await request.json() }
-    catch { return json({ error: 'Invalid JSON' }, 400) }
-
-    const parsed = putSchema.safeParse(raw)
-    if (!parsed.success) return json({ error: 'Invalid request', details: parsed.error.issues }, 400)
-
-    const db = createServiceClient()
-    const ctx = await authorize(request, db, imageId)
-    if ('error' in ctx) return ctx.error
-
-    const { image } = ctx
-    const wasPublished = image.status === 'published'
-    const newExt = CONTENT_TYPE_TO_EXT[parsed.data.content_type]
-
-    // ── 1. 若是 published：刪所有 published R2 檔 + 降級 project ─────────
-    if (wasPublished) {
-        return json({
-            error: 'Cannot replace a published image. Please delete it and upload a new one.',
-            code: 'PUBLISHED_IMAGE_LOCKED'
-        }, 403)
-    }
-
-    if (wasPublished) {
-        const oldKeys = allKeysFor(image)
-        try { await deleteR2Objects(oldKeys) }
-        catch (err) { console.error('[images PUT] published cleanup failed:', err) }
-
-        const { error: projDowngradeErr } = await db
-            .from('projects')
-            .update({ status: 'draft' })
-            .eq('id', image.project_id)
-
-        if (projDowngradeErr) {
-            console.error('[images PUT] project downgrade failed:', projDowngradeErr)
-            return json({ error: 'Database error' }, 500)
-        }
-    }
-
-    // ── 2. 若是 draft 且副檔名變了：刪舊 draft 檔 ───────────────────────
-    if (!wasPublished && newExt !== image.source_ext) {
-        const oldDraftKey = draftKey(image.project_id, image.id, image.source_ext)
-        try { await deleteR2Objects([oldDraftKey]) }
-        catch (err) { console.error('[images PUT] old draft delete failed:', err) }
-    }
-
-    // ── 3. 產生新 presigned URL ─────────────────────────────────────────
-    const newKey = draftKey(image.project_id, image.id, newExt)
-
-    let uploadUrl: string
-    let previewUrl: string
-    try {
-        [uploadUrl, previewUrl] = await Promise.all([
-            generatePresignedPutUrl(newKey, parsed.data.content_type),
-            generatePresignedGetUrl(newKey),
-        ])
-    } catch (err) {
-        console.error('[images PUT] presign failed:', err)
-        return json({ error: 'Storage service unavailable' }, 503)
-    }
-
-    // ── 4. 更新 DB row ──────────────────────────────────────────────────
-    //   draft → draft：只更新 source_ext / uploaded_at / updated_at
-    //   published → draft：額外重置 status / published_ext / available_sizes
-    const updatePayload: {
-        source_ext: string
-        uploaded_at: null
-        updated_at: string
-        status?: 'draft'
-        published_ext?: null
-        available_sizes?: null
-    } = {
-        source_ext: newExt,
-        uploaded_at: null,
-        updated_at: new Date().toISOString(),
-    }
-
-    if (wasPublished) {
-        updatePayload.status = 'draft'
-        updatePayload.published_ext = null
-        updatePayload.available_sizes = null
-    }
-
-    const { error: updErr } = await db
-        .from('project_images')
-        .update(updatePayload)
-        .eq('id', imageId)
-
-    if (updErr) {
-        console.error('[images PUT] db update failed:', updErr)
-        return json({ error: 'Database error' }, 500)
-    }
-
-    return json({
-        image_id: imageId,
-        upload_url: uploadUrl,
-        preview_url: previewUrl,
-        project_downgraded: wasPublished,
-    })
-}
+// ── PUT：已停用 ──────────────────────────────────────────────────────────
+// 圖片 ID 即其內容的身份識別，不允許原地覆寫（draft 或 published 一律拒絕）。
+// 替換流程：POST /api/images（取新 ID） → 更新 markdown 引用 → DELETE /api/images/:id
+export const PUT: APIRoute = () =>
+    json(
+        {
+            error: 'Image replacement is disabled. Upload a new image, update references, then delete the old one.',
+            code: 'IMAGE_REPLACE_DISABLED',
+        },
+        405,
+    )
 
 // ── DELETE：刪圖（draft 或 published） ──────────────────────────────────
 export const DELETE: APIRoute = async ({ request, params }) => {

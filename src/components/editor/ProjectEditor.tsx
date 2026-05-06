@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
-import { uploadToR2, resizeImage } from '@/lib/image-upload'
+import { uploadToR2 } from '@/lib/image-upload'
 import { LinkButton } from '@/components/ui/Button'
 import ActionIsland from '@/components/editor/ActionIsland'
 import ImageSidebar, { type ImageRecord } from '@/components/editor/ImageSidebar'
@@ -219,24 +219,7 @@ export default function ProjectEditor({ projectId }: Props) {
     )
   }, [accessToken])
 
-  // ── Image: replace draft (PUT) ──────────────────────────────────────────
-  const handleReplaceImage = useCallback(async (imageId: string, file: File) => {
-    if (!accessToken) throw new Error('Not authenticated')
-    const blob = await resizeImage(file)
-    const res = await fetch(`/api/images/${imageId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify({ content_type: blob.type, file_size: blob.size }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error((data.error as string) ?? `HTTP ${res.status}`)
-    const { upload_url, preview_url } = data as { upload_url: string; preview_url: string }
-    const put = await fetch(upload_url, { method: 'PUT', body: blob, headers: { 'Content-Type': blob.type } })
-    if (!put.ok) throw new Error(`R2 PUT ${put.status}`)
-    setImages(prev => prev.map(img => img.id === imageId ? { ...img, previewUrl: preview_url } : img))
-  }, [accessToken])
-
-  // ── Image: seamless swap (published) ────────────────────────────────────
+  // ── Image: seamless replace (all images) ────────────────────────────────
   const handleSeamlessSwap = useCallback(async (oldId: string, file: File) => {
     if (!accessToken) throw new Error('Not authenticated')
     // 1. Upload new
@@ -377,8 +360,7 @@ export default function ProjectEditor({ projectId }: Props) {
             disabled={isProcessing}
             onUpload={handleUpload}
             onDelete={handleDeleteImage}
-            onReplace={handleReplaceImage}
-            onSeamlessSwap={handleSeamlessSwap}
+            onReplace={handleSeamlessSwap}
             onInsert={handleInsertImage}
             onSetCover={handleSetCover}
           />
