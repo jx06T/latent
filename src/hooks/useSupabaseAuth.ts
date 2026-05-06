@@ -36,14 +36,17 @@ export function useSupabaseAuth(): SupabaseAuth {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (targetPath?: string) => {
+    const siteUrl = import.meta.env.PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+    const finalPath = targetPath ?? currentPath;
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // 只用 origin+pathname，避免殘留的 hash 疊成 ##access_token=
-        redirectTo: typeof window !== 'undefined'
-          ? `${window.location.origin}${window.location.pathname}`
-          : undefined,
+        redirectTo: `${siteUrl.replace(/\/$/, '')}${finalPath}`,
       },
     })
   }, [])
