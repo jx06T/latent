@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
 import { uploadToR2 } from '@/lib/image-upload'
+import { publishedUrl, type ProjectImageRow } from '@/lib/image-paths'
 import { LinkButton } from '@/components/ui/Button'
 import ActionIsland from '@/components/editor/ActionIsland'
 import ImageSidebar, { type ImageRecord } from '@/components/editor/ImageSidebar'
@@ -77,16 +78,22 @@ export default function ProjectEditor({ projectId }: Props) {
         setFormState(initial)
         setSavedState(initial)
         setImages(
-          (imgs ?? []).map((img: any): ImageRecord => ({
-            id: img.id,
-            project_id: img.project_id,
-            status: img.status,
-            source_ext: img.source_ext,
-            published_ext: img.published_ext,
-            available_sizes: img.available_sizes,
-            created_at: img.created_at,
-            previewUrl: undefined,
-          })),
+          (imgs ?? []).map((img: any): ImageRecord => {
+            let previewUrl: string | undefined
+            if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
+              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
+            }
+            return {
+              id: img.id,
+              project_id: img.project_id,
+              status: img.status,
+              source_ext: img.source_ext,
+              published_ext: img.published_ext,
+              available_sizes: img.available_sizes,
+              created_at: img.created_at,
+              previewUrl,
+            }
+          }),
         )
         setLoadStatus('ready')
       })
@@ -227,7 +234,10 @@ export default function ProjectEditor({ projectId }: Props) {
     // 2. Update markdown
     setFormState(prev => ({
       ...prev,
-      content: prev.content.replace(new RegExp(oldId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newId),
+      content: prev.content.replace(
+        new RegExp(`image-id-${oldId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'),
+        `image-id-${newId}`,
+      ),
     }))
     // 3. Add new image record
     setImages(prev => [
@@ -250,7 +260,7 @@ export default function ProjectEditor({ projectId }: Props) {
 
   // ── Image: insert into editor ───────────────────────────────────────────
   const handleInsertImage = useCallback((imageId: string) => {
-    markdownRef.current?.insertAtCursor(`![](${imageId})`)
+    markdownRef.current?.insertAtCursor(`![](image-id-${imageId})`)
   }, [])
 
   // ── Image: set cover ────────────────────────────────────────────────────
@@ -277,6 +287,19 @@ export default function ProjectEditor({ projectId }: Props) {
     ])
     return image_id
   }, [accessToken, projectId])
+
+  // ── Image URL map for markdown preview ─────────────────────────────────
+  const imageUrlMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const img of images) {
+      if (img.previewUrl) {
+        map[img.id] = img.previewUrl
+      } else if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
+        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch {}
+      }
+    }
+    return map
+  }, [images])
 
   // ── Render: non-ready states ────────────────────────────────────────────
   if (loadStatus === 'loading' || authLoading) {
@@ -382,6 +405,7 @@ export default function ProjectEditor({ projectId }: Props) {
               onChange={v => handleFormChange('content', v)}
               disabled={isProcessing}
               onImageDrop={isProcessing ? undefined : handleMarkdownImageDrop}
+              imageUrlMap={imageUrlMap}
             />
           </div>
         </div>

@@ -11,6 +11,8 @@ import MarkdownContent from "@/components/ui/MarkdownContent.astro";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
 import type { CategoryId } from "@/lib/schema";
+import { replaceImageIds } from "@/lib/markdown-image";
+import { publishedUrl, type ProjectImageRow } from "@/lib/image-paths";
 
 const { slug } = Astro.params;
 const CURRENT_YEAR = 2026;
@@ -45,6 +47,27 @@ if (!result.success) {
 }
 const project = result.data;
 
+// Fetch project images and resolve UUIDs → CDN URLs
+const { data: rawImages } = await supabase
+  .from("project_images")
+  .select("id, project_id, status, source_ext, published_ext, available_sizes")
+  .eq("project_id", project.id)
+  .eq("status", "published")
+
+const projectImages = (rawImages ?? []) as ProjectImageRow[]
+
+const resolvedContent = project.content
+  ? replaceImageIds(project.content, projectImages)
+  : ""
+
+let coverImageUrl: string | null = null
+if (project.cover_image_id) {
+  const coverImg = projectImages.find(img => img.id === project.cover_image_id)
+  if (coverImg) {
+    try { coverImageUrl = publishedUrl(coverImg, "md") } catch {}
+  }
+}
+
 const categoryLabel =
   CATEGORIES[project.category_main as CategoryId] ?? CATEGORIES[0];
 const subCategoryLabels = project.category_sub
@@ -58,7 +81,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   title={`${project.title} · LATENT ${CURRENT_YEAR}`}
   description={project.description ??
     `${project.title} — ${categoryLabel} 專題`}
-  ogImage={project.cover_image ?? undefined}
+  ogImage={coverImageUrl ?? undefined}
   active="projects"
 >
   <!-- Breadcrumb & Categories -->
@@ -85,10 +108,10 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 
   <!-- Cover image -->
   {
-    project.cover_image && (
+    coverImageUrl && (
       <div class="w-full h-64 sm:h-80 overflow-hidden border border-line mb-10">
         <img
-          src={project.cover_image}
+          src={coverImageUrl}
           alt={project.title}
           class="w-full h-full object-cover opacity-80"
         />
@@ -199,7 +222,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   <article class="mb-12">
     <CommentLabel text="project_details" class=" text-lg" />
     <!-- 完美套用 MarkdownContent 元件 -->
-    <MarkdownContent content={project.content!} class="mt-6" />
+    <MarkdownContent content={resolvedContent} class="mt-6" />
   </article>
 
  、

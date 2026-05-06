@@ -25,3 +25,16 @@ export function exportMarkdownWithUrls(markdown: string, images: ProjectImageRow
         return `![${alt}](${publishedUrl(img, 'md')})`
     })
 }
+
+/**
+ * Client-side editor preview: replace image-id refs with URLs from a pre-built map.
+ * Keys are raw UUIDs (without the image-id- prefix); values are presigned or CDN URLs.
+ * Unresolved refs are left as-is so the editor still shows the raw token.
+ */
+export function resolveImageIdsToUrls(markdown: string, urlMap: Record<string, string>): string {
+    return markdown.replace(IMAGE_ID_PATTERN, (match, alt, id) => {
+        const url = urlMap[id]
+        if (!url) return match
+        return `![${alt}](${url})`
+    })
+}

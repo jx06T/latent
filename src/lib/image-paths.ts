@@ -19,7 +19,8 @@ export interface ProjectImageRow {
 }
 
 const CDN_DOMAIN = (() => {
-    const d = import.meta.env.PUBLIC_R2_DOMAIN ?? process.env.PUBLIC_R2_DOMAIN ?? ''
+    const d = import.meta.env.PUBLIC_R2_DOMAIN ??
+        (typeof process !== 'undefined' ? process.env.PUBLIC_R2_DOMAIN : undefined) ?? 'https://pub-02e86cdfa36b4d1190a09222d4286323.r2.dev'
     return d.replace(/\/+$/, '')
 })()
 

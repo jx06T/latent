@@ -4,10 +4,12 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
   type DragEvent,
 } from 'react'
 import { marked } from 'marked'
 import { Button } from '@/components/ui/Button'
+import { resolveImageIdsToUrls } from '@/lib/markdown-image'
 
 export interface MarkdownEditorHandle {
   insertAtCursor: (text: string) => void
@@ -18,13 +20,14 @@ interface Props {
   onChange: (content: string) => void
   disabled?: boolean
   onImageDrop?: (file: File) => Promise<string>
+  imageUrlMap?: Record<string, string>
 }
 
 type ViewLayout = 'split' | 'tab'
 type TabView = 'edit' | 'preview'
 
 const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
-  function MarkdownEditor({ content, onChange, disabled, onImageDrop }, ref) {
+  function MarkdownEditor({ content, onChange, disabled, onImageDrop, imageUrlMap }, ref) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const [viewLayout, setViewLayout] = useState<ViewLayout>('split')
     const [tabView, setTabView] = useState<TabView>('edit')
@@ -67,7 +70,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       for (const file of files) {
         try {
           const imageId = await onImageDrop(file)
-          insertAtCursor(`![](${imageId})`)
+          insertAtCursor(`![](image-id-${imageId})`)
         } catch { /* ignore individual failures */ }
       }
       setIsDropUploading(false)
@@ -75,7 +78,11 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
     const showEditor = viewLayout === 'split' || tabView === 'edit'
     const showPreview = viewLayout === 'split' || tabView === 'preview'
-    const previewHtml = marked.parse(content) as string
+    const resolvedContent = useMemo(() => {
+      if (!imageUrlMap || Object.keys(imageUrlMap).length === 0) return content
+      return resolveImageIdsToUrls(content, imageUrlMap)
+    }, [content, imageUrlMap])
+    const previewHtml = marked.parse(resolvedContent) as string
 
     return (
       <div className="flex flex-col font-mono">

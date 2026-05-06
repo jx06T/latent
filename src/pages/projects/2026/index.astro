@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
 import { SITE_TITLE } from "@/consts";
 import { z } from "zod";
+import { publishedUrl, type ProjectImageRow } from "@/lib/image-paths";
 
 const { data, error } = await supabase
   .from("projects")
@@ -20,6 +21,20 @@ if (error) {
 }
 
 const projects = z.array(ProjectSchema).parse(data || []);
+
+// Bulk-resolve cover images in a single query
+const coverIds = projects.map(p => p.cover_image_id).filter(Boolean) as string[]
+const coverUrlMap: Record<string, string> = {}
+if (coverIds.length > 0) {
+  const { data: coverImgs } = await supabase
+    .from("project_images")
+    .select("id, project_id, status, source_ext, published_ext, available_sizes")
+    .in("id", coverIds)
+    .eq("status", "published")
+  for (const img of coverImgs ?? []) {
+    try { coverUrlMap[img.id] = publishedUrl(img as unknown as ProjectImageRow, "md") } catch {}
+  }
+}
 
 const YEAR = 2026;
 const allCategories = Object.entries(CATEGORIES) as [string, string][];
@@ -120,7 +135,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
                   subtitle={project.subtitle}
                   author_handle={project.author_handle}
                   category_main={project.category_main}
-                  cover_image={project.cover_image}
+                  cover_image={project.cover_image_id ? (coverUrlMap[project.cover_image_id] ?? null) : null}
                   tech_stack={project.tech_stack}
                   like_count={project.like_count}
                 />
