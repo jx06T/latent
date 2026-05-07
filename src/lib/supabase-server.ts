@@ -5,7 +5,13 @@ import type { Database } from './database.types'
 export function createServiceClient() {
   const url = import.meta.env.PUBLIC_SUPABASE_URL
   const key = import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-
+  console.log('Key length:', key.length)
+  console.log('Debug Env:', {
+    hasUrl: !!import.meta.env.PUBLIC_SUPABASE_URL,
+    keyPrefix: import.meta.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 5), // 只印出前5碼比對
+    url: import.meta.env.PUBLIC_SUPABASE_URL
+  })
+  
   if (!url || !key) {
     throw new Error('Supabase service role credentials not configured (PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)')
   }
