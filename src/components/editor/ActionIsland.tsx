@@ -39,11 +39,11 @@ export default function ActionIsland({
       {/* User info */}
       {userEmail && (
         <div className="hidden sm:flex items-center gap-2 px-3 border border-line bg-bg/80 backdrop-blur-sm">
-          <span className="text-success text-[9px]">●</span>
+          <span className="text-success text-xs">●</span>
           <span className="text-ink-muted text-xs truncate max-w-[120px]">{userEmail}</span>
           <button
             onClick={onSignOut}
-            className="text-[8px] leading-12 text-ink-ddim hover:text-danger transition-colors uppercase"
+            className="text-xs text-ink-dim hover:text-danger transition-colors uppercase"
           >
             signout
           </button>
@@ -51,7 +51,7 @@ export default function ActionIsland({
       )}
 
       {/* Status badge */}
-      <div className="px-3 border border-line bg-bg/80 backdrop-blur-sm">
+      <div className="px-3 leading-5.5 border border-line bg-bg/80 backdrop-blur-sm">
         <span className={cn('text-xs uppercase', STATUS_STYLE[status] ?? 'text-ink-muted')}>
           {isProcessing ? '⚙ processing' : status}
         </span>
@@ -59,7 +59,7 @@ export default function ActionIsland({
 
       {/* Slug conflict error */}
       {slugError && (
-        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-[10px] text-danger max-w-[200px] truncate">
+        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-xs text-danger max-w-[200px] truncate">
           {slugError}
         </div>
       )}
@@ -68,7 +68,7 @@ export default function ActionIsland({
         variant="secondary"
         onClick={onSave}
         disabled={!isDirty || isSaving || isProcessing}
-        className="px-3"
+        className="px-3 text-sm"
       >
         {isSaving ? 'Saving...' : `Save${(isDirty && !isProcessing) ? '*' : ''}`}
       </Button>
@@ -78,7 +78,7 @@ export default function ActionIsland({
         variant="primary"
         onClick={onPublish}
         disabled={!canPublish || isPublished}
-        className="px-3"
+        className="px-3 text-sm"
       >
         {isPublishing ? 'Publishing...' : isPublished ? 'Published' : 'Publish →'}
       </Button>

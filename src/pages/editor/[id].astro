@@ -1,26 +1,17 @@
 ---
 export const prerender = false
 
-import BaseHead from "@/components/sections/BaseHead.astro";
-import "@/styles/global.css";
-import ProjectEditor from "@/components/editor/ProjectEditor";
+import EditorLayout from "@/layouts/EditorLayout.astro"
+import ProjectEditor from "@/components/editor/ProjectEditor"
 
-const { id } = Astro.params;
+const { id } = Astro.params
 
-// Basic UUID format guard — the React component handles full auth + ownership
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 if (!id || !UUID_RE.test(id)) {
-  return Astro.redirect("/404");
+  return Astro.redirect("/404")
 }
 ---
 
-<!doctype html>
-<html lang="zh-TW">
-  <head>
-    <BaseHead title="Editor · Latent" description="Project editor" />
-    <meta name="robots" content="noindex, nofollow" />
-  </head>
-  <body class="bg-bg text-ink overflow-hidden">
-    <ProjectEditor client:only="react" projectId={id} />
-  </body>
-</html>
+<EditorLayout title="Editor · Latent" description="Project editor" bodyClass="bg-bg text-ink overflow-hidden">
+  <ProjectEditor client:only="react" projectId={id} />
+</EditorLayout>

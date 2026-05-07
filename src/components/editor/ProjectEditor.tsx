@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { uploadToR2 } from '@/lib/image-upload'
 import { publishedUrl, type ProjectImageRow } from '@/lib/image-paths'
 import { LinkButton } from '@/components/ui/Button'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
+import EditorTopBar from '@/components/editor/EditorTopBar'
 import ActionIsland from '@/components/editor/ActionIsland'
 import ImageSidebar, { type ImageRecord } from '@/components/editor/ImageSidebar'
 import MetadataForm, { type FormState } from '@/components/editor/MetadataForm'
@@ -29,8 +31,14 @@ interface Props {
   projectId: string
 }
 
+function countImageRefs(content: string, imageId: string): number {
+  const esc = imageId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return (content.match(new RegExp(`image-id-${esc}`, 'g')) ?? []).length
+}
+
 export default function ProjectEditor({ projectId }: Props) {
   const { user, isLoggedIn, accessToken, loading: authLoading, signIn, signOut } = useSupabaseAuth()
+  const { confirm, dialog } = useConfirm()
 
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading')
   const [projectStatus, setProjectStatus] = useState('draft')
@@ -81,7 +89,7 @@ export default function ProjectEditor({ projectId }: Props) {
           (imgs ?? []).map((img: any): ImageRecord => {
             let previewUrl: string | undefined
             if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch { }
+              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
             }
             return {
               id: img.id,
@@ -169,6 +177,13 @@ export default function ProjectEditor({ projectId }: Props) {
   // ── Publish ─────────────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
     if (!accessToken) return
+    const ok = await confirm({
+      title: '確認發布',
+      message: `發布後 slug「${formState.slug}」將無法更改。\n確認要發布嗎？`,
+      confirmText: '發布',
+      variant: 'primary',
+    })
+    if (!ok) return
     setIsPublishing(true)
     setSlugError(null)
     await handleSave()
@@ -187,7 +202,7 @@ export default function ProjectEditor({ projectId }: Props) {
     }
     setProjectStatus('processing')
     setIsPublishing(false)
-  }, [accessToken, projectId, handleSave])
+  }, [accessToken, projectId, handleSave, confirm, formState.slug])
 
   // ── Image: upload ───────────────────────────────────────────────────────
   const handleUpload = useCallback(async (file: File) => {
@@ -211,27 +226,53 @@ export default function ProjectEditor({ projectId }: Props) {
   // ── Image: delete ───────────────────────────────────────────────────────
   const handleDeleteImage = useCallback(async (imageId: string) => {
     if (!accessToken) throw new Error('Not authenticated')
+    const refs = countImageRefs(formState.content, imageId)
+    const ok = await confirm({
+      title: '刪除圖片',
+      message: refs > 0
+        ? `此操作將刪除文章中的 ${refs} 個連結，且無法復原。`
+        : '確認刪除此圖片？此操作無法復原。',
+      confirmText: '刪除',
+      variant: 'danger',
+    })
+    if (!ok) return
     const res = await fetch(`/api/images/${imageId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
     })
     const data = await res.json()
     if (!res.ok) throw new Error((data.error as string) ?? `HTTP ${res.status}`)
+    const esc = imageId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     setImages(prev => prev.filter(img => img.id !== imageId))
-    setFormState(prev =>
-      prev.cover_image_id === imageId ? { ...prev, cover_image_id: null } : prev,
-    )
+    setFormState(prev => ({
+      ...prev,
+      content: prev.content.replace(
+        new RegExp(`!\\[([^\\]]*)\\]\\(image-id-${esc}\\)`, 'g'),
+        '',
+      ),
+      cover_image_id: prev.cover_image_id === imageId ? null : prev.cover_image_id,
+    }))
     setSavedState(prev =>
       prev.cover_image_id === imageId ? { ...prev, cover_image_id: null } : prev,
     )
-  }, [accessToken])
+  }, [accessToken, confirm, formState.content])
 
-  // ── Image: seamless replace (all images) ────────────────────────────────
+  // ── Image: seamless replace ─────────────────────────────────────────────
   const handleSeamlessSwap = useCallback(async (oldId: string, file: File) => {
     if (!accessToken) throw new Error('Not authenticated')
+    const refs = countImageRefs(formState.content, oldId)
+    const ok = await confirm({
+      title: '替換圖片',
+      message: refs > 0
+        ? `此操作將替換文章中的 ${refs} 個連結。\n舊圖片將永久刪除。`
+        : '確認替換此圖片？舊圖片將永久刪除。',
+      confirmText: '替換',
+      variant: 'primary',
+    })
+    if (!ok) return
     // 1. Upload new
     const { image_id: newId, preview_url } = await uploadToR2(file, projectId, accessToken)
-    // 2. Update markdown
+    // 2. Update markdown refs
     setFormState(prev => ({
       ...prev,
       content: prev.content.replace(
@@ -248,7 +289,7 @@ export default function ProjectEditor({ projectId }: Props) {
         previewUrl: preview_url,
       },
     ])
-    // 4. Delete old
+    // 4. Delete old from API
     const res = await fetch(`/api/images/${oldId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -256,7 +297,7 @@ export default function ProjectEditor({ projectId }: Props) {
     if (!res.ok) throw new Error(`Delete old image failed: HTTP ${res.status}`)
     // 5. Remove old from list
     setImages(prev => prev.filter(img => img.id !== oldId))
-  }, [accessToken, projectId])
+  }, [accessToken, projectId, confirm, formState.content])
 
   // ── Image: insert into editor ───────────────────────────────────────────
   const handleInsertImage = useCallback((imageId: string) => {
@@ -295,7 +336,7 @@ export default function ProjectEditor({ projectId }: Props) {
       if (img.previewUrl) {
         map[img.id] = img.previewUrl
       } else if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch { }
+        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch {}
       }
     }
     return map
@@ -326,7 +367,7 @@ export default function ProjectEditor({ projectId }: Props) {
 
   if (loadStatus === 'forbidden') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-bg gap-2 font-mono text-xs">
+      <div className="h-screen flex flex-col items-center justify-center bg-bg gap-2 font-mono text-sm">
         <p className="text-danger uppercase">Access denied</p>
         <p className="text-ink-muted">This project does not belong to your account.</p>
         <LinkButton href="/profile" variant="outline" className="mt-2">← Profile</LinkButton>
@@ -336,7 +377,7 @@ export default function ProjectEditor({ projectId }: Props) {
 
   if (loadStatus === 'error') {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-bg gap-2 font-mono text-xs">
+      <div className="h-screen flex flex-col items-center justify-center bg-bg gap-2 font-mono text-sm">
         <p className="text-danger uppercase">Failed to load project</p>
         <LinkButton href="/profile" variant="outline" className="mt-2">← Profile</LinkButton>
       </div>
@@ -348,30 +389,28 @@ export default function ProjectEditor({ projectId }: Props) {
   // ── Render: editor ──────────────────────────────────────────────────────
   return (
     <div className="h-screen flex flex-col bg-bg text-ink overflow-hidden">
-      {/* ── Floating top bar ── */}
-      <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-line bg-bg z-10">
-        <LinkButton href="/profile" variant="ghost" className="text-sm">
-          ← Profile
-        </LinkButton>
-
-        {isProcessing && (
-          <div className="absolute text-xs left-1/2 -translate-x-1/2 text-[10px] text-info animate-pulse font-mono uppercase tracking-wider">
-            ⚙ Processing… editing locked
-          </div>
-        )}
-
-        <ActionIsland
-          status={projectStatus}
-          isDirty={isDirty}
-          isSaving={isSaving}
-          isPublishing={isPublishing}
-          slugError={slugError}
-          userEmail={user?.email}
-          onSave={handleSave}
-          onPublish={handlePublish}
-          onSignOut={signOut}
-        />
-      </div>
+      <EditorTopBar
+        left={
+          <LinkButton href="/profile" variant="ghost" className="text-sm">← Profile</LinkButton>
+        }
+        center={isProcessing
+          ? <span className="text-xs text-info animate-pulse font-mono uppercase tracking-wider">⚙ Processing… editing locked</span>
+          : null
+        }
+        right={
+          <ActionIsland
+            status={projectStatus}
+            isDirty={isDirty}
+            isSaving={isSaving}
+            isPublishing={isPublishing}
+            slugError={slugError}
+            userEmail={user?.email}
+            onSave={handleSave}
+            onPublish={handlePublish}
+            onSignOut={signOut}
+          />
+        }
+      />
 
       {/* ── Main: sidebar + content ── */}
       <div className="flex flex-1 overflow-hidden">
@@ -396,7 +435,6 @@ export default function ProjectEditor({ projectId }: Props) {
             onChange={handleFormChange}
             isSlugLocked={projectStatus === 'published'}
             slugError={slugError}
-            onImageDrop={isProcessing ? undefined : handleUpload}
           />
           <div className="border-t border-line">
             <MarkdownEditor
@@ -410,6 +448,8 @@ export default function ProjectEditor({ projectId }: Props) {
           </div>
         </div>
       </div>
+
+      {dialog}
     </div>
   )
 }

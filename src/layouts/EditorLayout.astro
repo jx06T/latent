@@ -1,0 +1,22 @@
+---
+import BaseHead from "@/components/sections/BaseHead.astro"
+import "@/styles/global.css"
+
+interface Props {
+  title: string
+  description?: string
+  bodyClass?: string
+}
+
+const { title, description = title, bodyClass = 'bg-bg text-ink' } = Astro.props
+---
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <BaseHead title={title} description={description} />
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+  </body>
+</html>

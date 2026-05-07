@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
 import { Button, LinkButton } from '@/components/ui/Button'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
+import EditorTopBar from '@/components/editor/EditorTopBar'
 import NewProjectModal from '@/components/editor/NewProjectModal'
 
 interface ProjectSummary {
@@ -31,16 +33,17 @@ export default function ProfileDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  // ── Access token from session ─────────────────────────────────────────
   const [accessToken, setAccessToken] = useState<string | null>(null)
+
+  const { confirm, dialog } = useConfirm()
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAccessToken(session?.access_token ?? null)
     })
   }, [isLoggedIn])
 
-  // ── Load projects ─────────────────────────────────────────────────────
+  // ── Load projects ──────────────────────────────────────────────────────
   const loadProjects = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
@@ -58,27 +61,30 @@ export default function ProfileDashboard() {
     else if (!authLoading) setIsLoading(false)
   }, [authLoading, isLoggedIn, loadProjects])
 
-  // ── Delete project ────────────────────────────────────────────────────
-  const handleDelete = useCallback(async (id: string) => {
+  // ── Delete project ─────────────────────────────────────────────────────
+  const handleDelete = useCallback(async (id: string, title: string) => {
     if (!accessToken) return
-    if (!confirm('Delete this project and all its images? This cannot be undone.')) return
+    const ok = await confirm({
+      title: '刪除專案',
+      message: `確認刪除「${title || '(untitled)'}」？\n此操作將一併刪除所有圖片，且無法復原。`,
+      confirmText: '刪除',
+      variant: 'danger',
+    })
+    if (!ok) return
     setDeletingId(id)
     const res = await fetch(`/api/projects/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
     })
-    if (res.ok) {
-      setProjects(prev => prev.filter(p => p.id !== id))
-    }
+    if (res.ok) setProjects(prev => prev.filter(p => p.id !== id))
     setDeletingId(null)
-  }, [accessToken])
+  }, [accessToken, confirm])
 
-  // ── New project created ───────────────────────────────────────────────
   const handleProjectCreated = (projectId: string) => {
     window.location.href = `/editor/${projectId}`
   }
 
-  // ── Loading state ─────────────────────────────────────────────────────
+  // ── Loading state ──────────────────────────────────────────────────────
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg font-mono text-ink-muted text-xs">
@@ -87,15 +93,15 @@ export default function ProfileDashboard() {
     )
   }
 
-  // ── Not logged in ─────────────────────────────────────────────────────
+  // ── Not logged in ──────────────────────────────────────────────────────
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-bg gap-4 font-mono">
         <div className="border border-line p-8 text-center space-y-4 max-w-sm w-full">
           <p className="text-xs uppercase tracking-widest text-ink-muted">Latent · Profile</p>
-          <p className="text-ink text-sm">Sign in to manage your projects</p>
+          <p className="text-sm text-ink">Sign in to manage your projects</p>
           <button
-            onClick={()=>signIn()}
+            onClick={() => signIn()}
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-line hover:border-accent-500 hover:text-accent-500 transition-colors font-mono text-xs uppercase"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -115,28 +121,27 @@ export default function ProfileDashboard() {
     ? `${(user.user_metadata.full_name as string).toLowerCase().replace(/\s+/g, '_')}`
     : `${user?.email?.split('@')[0] ?? 'user'}`
 
-  // ── Dashboard ─────────────────────────────────────────────────────────
+  // ── Dashboard ──────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-bg font-mono">
-      {/* Top bar */}
-      <header className="border-b border-line px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <LinkButton href="/" variant="ghost" className="text-sm">← Home</LinkButton>
-          <span className="w-px h-4 bg-line" />
-          <span className="text-xs text-ink-muted">{userHandle}</span>
-          <span className="text-xs text-ink-dim truncate max-w-[200px] hidden sm:block">
-            {user?.email}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 *:h-7">
-          <Button variant="primary" onClick={() => setShowNewModal(true)}>
-            + New Project
-          </Button>
-          <Button variant="ghost" onClick={signOut}>Sign Out</Button>
-        </div>
-      </header>
+      <EditorTopBar
+        left={
+          <>
+            <LinkButton href="/" variant="ghost" className="text-base">← Home</LinkButton>
+            <span className="w-px h-4 bg-line hidden sm:block" />
+            <span className="text-sm text-ink-muted hidden sm:block">{userHandle}</span>
+          </>
+        }
+        right={
+          <>
+            <Button variant="primary" onClick={() => setShowNewModal(true)} className="text-sm px-3">
+              + New Project
+            </Button>
+            <Button variant="ghost" onClick={signOut} className="text-sm px-3">Sign Out</Button>
+          </>
+        }
+      />
 
-      {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-end justify-between mb-6">
           <h1 className="text-lg uppercase tracking-widest text-ink">Projects</h1>
@@ -180,12 +185,8 @@ export default function ProfileDashboard() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <LinkButton
-                    href={`/editor/${p.id}`}
-                    variant="outline"
-                    className="text-xs px-2 py-0.5"
-                  >
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <LinkButton href={`/editor/${p.id}`} variant="outline" className="text-xs px-2 py-0.5">
                     Edit
                   </LinkButton>
                   {p.status === 'published' && (
@@ -202,7 +203,7 @@ export default function ProfileDashboard() {
                     variant="danger"
                     className="text-xs px-2 py-0.5"
                     disabled={deletingId === p.id || p.status === 'processing'}
-                    onClick={() => handleDelete(p.id)}
+                    onClick={() => handleDelete(p.id, p.title)}
                   >
                     {deletingId === p.id ? '…' : 'Del'}
                   </Button>
@@ -213,7 +214,6 @@ export default function ProfileDashboard() {
         )}
       </main>
 
-      {/* New project modal */}
       {showNewModal && (
         <NewProjectModal
           userId={user!.id}
@@ -222,6 +222,8 @@ export default function ProfileDashboard() {
           onClose={() => setShowNewModal(false)}
         />
       )}
+
+      {dialog}
     </div>
   )
 }

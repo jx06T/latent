@@ -1,4 +1,4 @@
-import { useState, useRef, type ChangeEvent } from 'react'
+import { useState, useRef, type ChangeEvent, type DragEvent } from 'react'
 import { Button } from '@/components/ui/Button'
 
 export interface ImageRecord {
@@ -41,6 +41,7 @@ export default function ImageSidebar({
 }: Props) {
   const [replacingId, setReplacingId] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -64,9 +65,40 @@ export default function ImageSidebar({
     setIsUploading(false)
   }
 
+  // ── Sidebar drag-drop ─────────────────────────────────────────────────
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (disabled || isUploading) return
+    e.preventDefault()
+    setIsDraggingOver(true)
+  }
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return
+    setIsDraggingOver(false)
+  }
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDraggingOver(false)
+    if (disabled || isUploading) return
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
+    if (!files.length) return
+    await handleUploadFiles(files)
+  }
+
   return (
-    <div className="flex flex-col h-full font-mono text-base overflow-hidden">
+    <div
+      className="relative flex flex-col h-full font-mono text-xs overflow-hidden"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
+
+      {/* Drop overlay */}
+      {isDraggingOver && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-accent-500 bg-bg/85 pointer-events-none">
+          <span className="text-xs text-accent-500 uppercase tracking-widest">Drop to upload</span>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-line shrink-0">
@@ -85,17 +117,17 @@ export default function ImageSidebar({
 
       {/* Error strip */}
       {error && (
-        <div className="px-3 py-1 text-[10px] text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
+        <div className="px-3 py-1.5 text-xs text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
           {error}
-          <button onClick={() => setError(null)} className="ml-2 text-ink-disabled hover:text-ink">×</button>
+          <button onClick={() => setError(null)} className="ml-2 text-ink-ddim hover:text-ink">×</button>
         </div>
       )}
 
       {/* Image list */}
       <div className="flex-1 overflow-y-auto divide-y divide-line">
         {images.length === 0 && (
-          <p className="px-3 py-6 text-center text-[10px] text-ink-disabled uppercase">
-            No images · upload one
+          <p className="px-3 py-8 text-center text-xs text-ink-ddim uppercase">
+            {isUploading ? 'Uploading…' : 'Drop images here or click Upload'}
           </p>
         )}
 
@@ -106,35 +138,35 @@ export default function ImageSidebar({
               {img.previewUrl ? (
                 <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[8px] text-ink-disabled uppercase">
+                <div className="w-full h-full flex items-center justify-center text-xs text-ink-ddim uppercase">
                   {img.status === 'published' ? 'CDN' : 'No preview'}
                 </div>
               )}
             </div>
 
-            {/* ID */}
+            {/* ID + status */}
             <div>
               <p className="text-xs text-ink-muted truncate" title={img.id}>{img.id}</p>
               <div className="flex items-center gap-2 text-xs">
                 <span className={STATUS_COLOR[img.status] ?? 'text-ink-muted'}>{img.status}</span>
-                {coverId === img.id && <span className="text-accent-500"><span className=' text-[9px] inline-block mr-0.5'>◆</span>cover</span>}
+                {coverId === img.id && <span className="text-accent-500">◆ cover</span>}
               </div>
             </div>
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-1">
               <Button
-                variant="outline" className="text-xs px-1.5 py-0.5"
+                variant="outline" className="text-xs px-2 py-0.5"
                 onClick={() => onInsert(img.id)}
                 disabled={disabled}
-                title="Insert image reference into markdown"
+                title="Insert into markdown"
               >
                 Insert
               </Button>
 
               <Button
                 variant={coverId === img.id ? 'secondary' : 'ghost'}
-                className="text-xs px-1.5 py-0.5"
+                className="text-xs px-2 py-0.5"
                 onClick={() => onSetCover(coverId === img.id ? null : img.id)}
                 disabled={disabled}
               >
@@ -142,16 +174,16 @@ export default function ImageSidebar({
               </Button>
 
               <Button
-                variant="outline" className="text-xs px-1.5 py-0.5"
+                variant="outline" className="text-xs px-2 py-0.5"
                 disabled={disabled}
-                title="Upload new image (new ID → update markdown refs → delete old)"
+                title="Upload replacement (new ID → update markdown → delete old)"
                 onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
               >
                 Replace
               </Button>
 
               <Button
-                variant="danger" className="text-xs px-1.5 py-0.5"
+                variant="danger" className="text-xs px-2 py-0.5"
                 disabled={disabled}
                 onClick={() => wrap(() => onDelete(img.id))}
               >
