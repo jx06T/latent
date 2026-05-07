@@ -10,6 +10,7 @@ import {
 import { marked } from 'marked'
 import { Button } from '@/components/ui/Button'
 import { resolveImageIdsToUrls } from '@/lib/markdown-image'
+import TextareaAutosize from 'react-textarea-autosize'
 
 export interface MarkdownEditorHandle {
   insertAtCursor: (text: string) => void
@@ -85,7 +86,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const previewHtml = marked.parse(resolvedContent) as string
 
     return (
-      <div className="flex flex-col font-mono">
+      <div className="flex flex-col font-mono ">
         {/* ── Toolbar ── */}
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line bg-bg-surface">
           <Button
@@ -128,21 +129,21 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
         {/* ── Edit / Preview panes ── */}
         <div
-          className={`flex min-h-100  ${isDragging ? 'ring-1 ring-accent-500' : ''}`}
+          className={`flex min-h-100   ${isDragging ? 'ring-1 ring-accent-500' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           {/* Editor pane */}
           {showEditor && (
-            <div className={`relative flex flex-col ${viewLayout === 'split' ? 'w-1/2 border-r border-line' : 'w-full'}`}>
-              <textarea
+            <div className={`relative flex flex-col  ${viewLayout === 'split' ? 'w-1/2 border-r border-line' : 'w-full'}`}>
+              <TextareaAutosize
                 ref={textareaRef}
                 value={content}
                 onChange={e => onChange(e.target.value)}
                 disabled={disabled}
                 spellCheck={false}
-                className="flex-1 w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 min-h-[400px]"
+                className="w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 overflow-hidden"
                 placeholder={onImageDrop ? 'Markdown content… drag images here or use sidebar' : 'Markdown content…'}
               />
               {isDragging && (
