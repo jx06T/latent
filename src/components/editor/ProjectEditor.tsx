@@ -63,7 +63,7 @@ export default function ProjectEditor({ projectId }: Props) {
     setLoadStatus('loading')
     supabase
       .from('projects')
-      .select('*, project_images(*)')
+      .select('*, project_images!project_images_project_id_fkey(*)')
       .eq('id', projectId)
       .single()
       .then(({ data, error }) => {
@@ -458,7 +458,7 @@ export default function ProjectEditor({ projectId }: Props) {
         left={
           <LinkButton href="/profile" variant="ghost" className="text-sm">← Profile</LinkButton>
         }
-        center={isProcessing
+        center={false
           ? <span className="text-xs text-info animate-pulse font-mono uppercase tracking-wider">⚙ Processing… editing locked</span>
           : null
         }

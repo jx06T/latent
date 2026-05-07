@@ -151,7 +151,15 @@ export type Database = {
           updated_at?: string | null
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "project_images"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
