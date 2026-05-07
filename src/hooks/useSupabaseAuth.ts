@@ -42,7 +42,7 @@ export function useSupabaseAuth(): SupabaseAuth {
 
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
     const finalPath = targetPath ?? currentPath;
-
+    alert(`${siteUrl.replace(/\/$/, '')}${finalPath}`)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
