@@ -20,8 +20,6 @@ const { data: voteData } = await supabase
   .select("like_count")
   .eq("status", "published");
 
-const totalVotes =
-  voteData?.reduce((sum, p) => sum + (p.like_count ?? 0), 0) ?? 0;
 ---
 
 <Layout
