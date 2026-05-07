@@ -120,7 +120,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
       <div>
         <label className={label}>Description</label>
         <textarea
-          className={`${field} resize-y min-h-[80px]`}
+          className={`${field} resize-y min-h-[80px] placeholder:text-ink-disabled `}
           rows={4}
           value={data.description}
           onChange={e => onChange('description', e.target.value)}

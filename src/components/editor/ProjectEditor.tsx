@@ -48,6 +48,7 @@ export default function ProjectEditor({ projectId }: Props) {
   const [isSaving, setIsSaving] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [slugError, setSlugError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const markdownRef = useRef<MarkdownEditorHandle>(null)
 
@@ -202,6 +203,8 @@ export default function ProjectEditor({ projectId }: Props) {
           body: JSON.stringify({ project_id: projectId }),
         })
         if (res.ok) setProjectStatus('processing')
+      }else{
+        setSaveError(error!.message)
       }
     }
     setIsSaving(false)
@@ -437,6 +440,7 @@ export default function ProjectEditor({ projectId }: Props) {
             isSaving={isSaving}
             isPublishing={isPublishing}
             slugError={slugError}
+            saveError={saveError}
             userEmail={user?.email}
             onSave={handleSave}
             onPublish={handlePublish}

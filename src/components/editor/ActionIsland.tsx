@@ -13,6 +13,7 @@ interface Props {
   isSaving: boolean
   isPublishing: boolean
   slugError: string | null
+  saveError: string | null
   userEmail: string | undefined
   onSave: () => void
   onPublish: () => void
@@ -25,6 +26,7 @@ export default function ActionIsland({
   isSaving,
   isPublishing,
   slugError,
+  saveError,
   userEmail,
   onSave,
   onPublish,
@@ -57,9 +59,15 @@ export default function ActionIsland({
         </span>
       </div>
 
+      {/* Save error */}
+      {saveError && (
+        <div className="px-2 py-1 border border-warning/40 bg-warning/10 text-xs text-warning max-w-[200px] truncate" title={saveError}>
+          {saveError}
+        </div>
+      )}
       {/* Slug conflict error */}
       {slugError && (
-        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-xs text-danger max-w-[200px] truncate">
+        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-xs text-danger max-w-[200px] truncate" title={slugError}>
           {slugError}
         </div>
       )}
