@@ -35,24 +35,24 @@ export default function ActionIsland({
   const canPublish = !isProcessing && !isPublishing && !isSaving
 
   return (
-    <div className="flex items-center gap-2 font-mono">
+    <div className="flex items-center gap-2 font-mono *:h-7">
       {/* User info */}
       {userEmail && (
-        <div className="hidden sm:flex items-center gap-2 px-2 py-1 border border-line bg-bg/80 backdrop-blur-sm">
+        <div className="hidden sm:flex items-center gap-2 px-3 border border-line bg-bg/80 backdrop-blur-sm">
           <span className="text-success text-[9px]">●</span>
-          <span className="text-ink-muted text-[10px] truncate max-w-[120px]">{userEmail}</span>
+          <span className="text-ink-muted text-xs truncate max-w-[120px]">{userEmail}</span>
           <button
             onClick={onSignOut}
-            className="text-[9px] text-ink-disabled hover:text-danger transition-colors uppercase"
+            className="text-[8px] leading-12 text-ink-ddim hover:text-danger transition-colors uppercase"
           >
-            out
+            signout
           </button>
         </div>
       )}
 
       {/* Status badge */}
-      <div className="px-2 py-1 border border-line bg-bg/80 backdrop-blur-sm">
-        <span className={cn('text-[10px] uppercase', STATUS_STYLE[status] ?? 'text-ink-muted')}>
+      <div className="px-3 border border-line bg-bg/80 backdrop-blur-sm">
+        <span className={cn('text-xs uppercase', STATUS_STYLE[status] ?? 'text-ink-muted')}>
           {isProcessing ? '⚙ processing' : status}
         </span>
       </div>
@@ -63,12 +63,6 @@ export default function ActionIsland({
           {slugError}
         </div>
       )}
-
-      {/* Unsaved indicator */}
-      {isDirty && !isProcessing && (
-        <span className="text-[9px] text-warning/80 uppercase hidden sm:block">unsaved</span>
-      )}
-
       {/* Save */}
       <Button
         variant="secondary"
@@ -76,7 +70,7 @@ export default function ActionIsland({
         disabled={!isDirty || isSaving || isProcessing}
         className="px-3"
       >
-        {isSaving ? 'Saving...' : 'Save'}
+        {isSaving ? 'Saving...' : `Save${(isDirty && !isProcessing) ? '*' : ''}`}
       </Button>
 
       {/* Publish */}

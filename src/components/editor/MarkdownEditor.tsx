@@ -88,17 +88,16 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       <div className="flex flex-col font-mono">
         {/* ── Toolbar ── */}
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line bg-bg-surface">
-          <span className="text-[10px] uppercase text-ink-disabled mr-2">View</span>
           <Button
             variant={viewLayout === 'split' ? 'secondary' : 'ghost'}
-            className="text-[9px] px-2 py-0.5"
+            className="text-xs px-2 py-0.5"
             onClick={() => setViewLayout('split')}
           >
             Split
           </Button>
           <Button
             variant={viewLayout === 'tab' ? 'secondary' : 'ghost'}
-            className="text-[9px] px-2 py-0.5"
+            className="text-xs px-2 py-0.5"
             onClick={() => setViewLayout('tab')}
           >
             Tab
@@ -129,7 +128,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
         {/* ── Edit / Preview panes ── */}
         <div
-          className={`flex min-h-[400px] ${isDragging ? 'ring-1 ring-accent-500' : ''}`}
+          className={`flex min-h-100  ${isDragging ? 'ring-1 ring-accent-500' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -157,7 +156,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {/* Preview pane */}
           {showPreview && (
             <div
-              className={`prose prose-sm max-w-none overflow-y-auto p-4 ${viewLayout === 'split' ? 'w-1/2' : 'w-full'} bg-bg`}
+              className={`prose prose-sm max-w-none p-4 ${viewLayout === 'split' ? 'w-1/2' : 'w-full'} bg-bg`}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           )}

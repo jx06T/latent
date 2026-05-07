@@ -65,15 +65,15 @@ export default function ImageSidebar({
   }
 
   return (
-    <div className="flex flex-col h-full font-mono text-[11px] overflow-hidden">
+    <div className="flex flex-col h-full font-mono text-base overflow-hidden">
       <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
 
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-line shrink-0">
-        <span className="text-[10px] uppercase text-ink-muted tracking-wider">
+        <span className="text-sm uppercase text-ink-muted tracking-wider">
           Images · {images.length}
         </span>
-        <label className={`cursor-pointer text-[10px] text-ink-muted hover:text-accent-500 transition-colors uppercase ${disabled || isUploading ? 'opacity-40 pointer-events-none' : ''}`}>
+        <label className={`cursor-pointer text-sm text-ink-muted hover:text-accent-500 transition-colors uppercase ${disabled || isUploading ? 'opacity-40 pointer-events-none' : ''}`}>
           {isUploading ? 'Uploading…' : '+ Upload'}
           <input
             type="file" accept="image/*" multiple className="hidden"
@@ -114,17 +114,17 @@ export default function ImageSidebar({
 
             {/* ID */}
             <div>
-              <p className="text-[9px] text-ink-muted truncate" title={img.id}>{img.id}</p>
-              <div className="flex items-center gap-2 text-[9px]">
+              <p className="text-xs text-ink-muted truncate" title={img.id}>{img.id}</p>
+              <div className="flex items-center gap-2 text-xs">
                 <span className={STATUS_COLOR[img.status] ?? 'text-ink-muted'}>{img.status}</span>
-                {coverId === img.id && <span className="text-accent-500">◆ cover</span>}
+                {coverId === img.id && <span className="text-accent-500"><span className=' text-[9px] inline-block mr-0.5'>◆</span>cover</span>}
               </div>
             </div>
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-1">
               <Button
-                variant="outline" className="text-[9px] px-1.5 py-0.5"
+                variant="outline" className="text-xs px-1.5 py-0.5"
                 onClick={() => onInsert(img.id)}
                 disabled={disabled}
                 title="Insert image reference into markdown"
@@ -134,7 +134,7 @@ export default function ImageSidebar({
 
               <Button
                 variant={coverId === img.id ? 'secondary' : 'ghost'}
-                className="text-[9px] px-1.5 py-0.5"
+                className="text-xs px-1.5 py-0.5"
                 onClick={() => onSetCover(coverId === img.id ? null : img.id)}
                 disabled={disabled}
               >
@@ -142,7 +142,7 @@ export default function ImageSidebar({
               </Button>
 
               <Button
-                variant="outline" className="text-[9px] px-1.5 py-0.5"
+                variant="outline" className="text-xs px-1.5 py-0.5"
                 disabled={disabled}
                 title="Upload new image (new ID → update markdown refs → delete old)"
                 onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
@@ -151,7 +151,7 @@ export default function ImageSidebar({
               </Button>
 
               <Button
-                variant="danger" className="text-[9px] px-1.5 py-0.5"
+                variant="danger" className="text-xs px-1.5 py-0.5"
                 disabled={disabled}
                 onClick={() => wrap(() => onDelete(img.id))}
               >

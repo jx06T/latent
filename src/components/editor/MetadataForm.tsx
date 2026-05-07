@@ -30,7 +30,7 @@ const LINK_KEYS = ['demo', 'github', 'report', 'slides']
 const field =
   'w-full bg-bg-surface border border-line text-ink font-mono text-xs px-2.5 py-1.5 outline-none focus:border-line-active placeholder:text-ink-disabled disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 
-const label = 'block text-[10px] uppercase tracking-wider text-ink-disabled mb-1 font-mono select-none'
+const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mono select-none'
 
 export default function MetadataForm({
   data,
@@ -68,49 +68,13 @@ export default function MetadataForm({
     onChange('category_sub', next)
   }
 
-  // ── Drag-and-drop ────────────────────────────────────────────────────────
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    if (!onImageDrop) return
-    e.preventDefault()
-    setIsDragging(true)
-  }
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    // only clear when leaving the outer container entirely
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return
-    setIsDragging(false)
-  }
-  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(false)
-    if (!onImageDrop) return
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
-    if (!files.length) return
-    setIsDropUploading(true)
-    for (const f of files) {
-      try { await onImageDrop(f) } catch { /* sidebar will surface the error */ }
-    }
-    setIsDropUploading(false)
-  }
-
   const slugValid = !data.slug || isValidSlug(data.slug)
 
   return (
     <div
       className="relative font-mono"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
     >
-      {/* ── Drop overlay ── */}
-      {isDragging && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-accent-500 bg-bg/85 pointer-events-none">
-          <span className="text-accent-500 text-xs uppercase tracking-widest">
-            Drop image to upload
-          </span>
-        </div>
-      )}
-
-      <div className="px-5 py-4 space-y-5">
+      <div className="px-5 py-4 space-y-5 mb-4">
 
         {/* ── A: 標題 ─────────────────────────────────────────────────── */}
         <div className="space-y-2">
@@ -133,7 +97,7 @@ export default function MetadataForm({
           {/* Slug */}
           <div>
             <label className={label}>
-              Slug{isSlugLocked && <span className="ml-1.5 text-danger/60">🔒</span>}
+              Slug{isSlugLocked && <span className="ml-1.5 text-danger/70 text-2xs ">[published]</span>}
             </label>
             <input
               className={`${field} ${(!slugValid || slugError) ? 'border-danger focus:border-danger' : ''}`}
@@ -144,10 +108,10 @@ export default function MetadataForm({
               spellCheck={false}
             />
             {slugError
-              ? <p className="text-[9px] text-danger mt-0.5">{slugError}</p>
+              ? <p className="text-[10px] text-danger mt-0.5">{slugError}</p>
               : !slugValid && data.slug
-                ? <p className="text-[9px] text-warning mt-0.5">3–60 chars · a–z 0–9 hyphens</p>
-                : <p className="text-[9px] text-ink-disabled mt-0.5">/projects/2026/{data.slug || '…'}</p>
+                ? <p className="text-[10px] text-warning mt-0.5">3–60 chars · a–z 0–9 hyphens</p>
+                : <p className="text-[10px] text-ink-dim mt-0.5">/projects/2026/{data.slug || '…'}</p>
             }
           </div>
 
@@ -180,11 +144,11 @@ export default function MetadataForm({
 
         {/* ── D: 標籤 (折疊) ──────────────────────────────────────────── */}
         <details open>
-          <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-ink-disabled hover:text-ink-muted transition-colors select-none flex items-center gap-1.5">
+          <summary className="cursor-pointer text-sm uppercase tracking-wider text-ink-dim hover:text-ink-muted transition-colors select-none ">
             <span>Tags &amp; Classification</span>
           </summary>
 
-          <div className="mt-3 space-y-3">
+          <div className="mt-1 space-y-3">
             {/* Sub-categories */}
             <div>
               <label className={label}>Sub-categories</label>
@@ -199,11 +163,10 @@ export default function MetadataForm({
                         key={id}
                         type="button"
                         onClick={() => toggleSubCat(nid)}
-                        className={`text-[9px] px-1.5 py-0.5 border transition-colors ${
-                          active
-                            ? 'border-accent-500 text-accent-500 bg-accent-500/10'
-                            : 'border-line text-ink-disabled hover:border-line-active hover:text-ink-muted'
-                        }`}
+                        className={`text-[9px] px-1.5 py-0.5 border transition-colors ${active
+                          ? 'border-accent-500 text-accent-500 bg-accent-500/10'
+                          : 'border-line text-ink-disabled hover:border-line-active hover:text-ink-muted'
+                          }`}
                       >
                         {lbl}
                       </button>
@@ -215,7 +178,7 @@ export default function MetadataForm({
             {/* Keywords + Tech Stack */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={label}>Keywords</label>
+                <label className={label}>Keywords [Comma-separated]</label>
                 <input
                   className={field}
                   value={data.keywords.join(', ')}
@@ -233,16 +196,15 @@ export default function MetadataForm({
                 />
               </div>
             </div>
-            <p className="text-[9px] text-ink-disabled -mt-1">Comma-separated</p>
           </div>
         </details>
 
         {/* ── E: 連結 (折疊) ──────────────────────────────────────────── */}
         <details>
-          <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-ink-disabled hover:text-ink-muted transition-colors select-none">
+          <summary className="cursor-pointer text-sm uppercase tracking-wider text-ink-dim hover:text-ink-muted transition-colors select-none">
             Links
           </summary>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-1 grid grid-cols-2 gap-2">
             {LINK_KEYS.map(key => (
               <div key={key}>
                 <label className={label}>{key}</label>
@@ -257,18 +219,6 @@ export default function MetadataForm({
             ))}
           </div>
         </details>
-
-        {/* ── 拖放上傳提示 ── */}
-        {onImageDrop && (
-          <p className="text-[9px] text-ink-disabled text-right">
-            {isDropUploading ? (
-              <span className="text-info animate-pulse">Uploading image…</span>
-            ) : (
-              'Drag image anywhere here to upload'
-            )}
-          </p>
-        )}
-
       </div>
     </div>
   )

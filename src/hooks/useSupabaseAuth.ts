@@ -37,15 +37,14 @@ export function useSupabaseAuth(): SupabaseAuth {
   }, [])
 
   const signIn = useCallback(async (targetPath?: string) => {
-    const siteUrl = import.meta.env.PUBLIC_SITE_URL ||
-      (typeof window !== 'undefined' ? window.location.origin : '');
-
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-    const finalPath = targetPath ?? currentPath;
+    const origin = import.meta.env.PUBLIC_SITE_URL ||
+      (typeof window !== 'undefined' ? window.location.origin : '')
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/'
+    const next = encodeURIComponent(targetPath ?? currentPath)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${siteUrl.replace(/\/$/, '')}${finalPath}`,
+        redirectTo: `${origin.replace(/\/$/, '')}/auth/callback?next=${next}`,
       },
     })
   }, [])

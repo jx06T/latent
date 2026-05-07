@@ -1,0 +1,40 @@
+---
+export const prerender = false
+---
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <title>登入中…</title>
+    <style>
+      body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0a0a0a; font-family: monospace; color: #888; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <span>Signing in…</span>
+    <script>
+      import { supabase } from '@/lib/supabase'
+
+      const params = new URLSearchParams(window.location.search)
+      const raw = params.get('next') || '/'
+      // Guard against open redirect: must be a same-origin path
+      const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
+
+      // Supabase auto-parses the hash tokens on load; wait for SIGNED_IN
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN') {
+          subscription.unsubscribe()
+          window.location.replace(next)
+        }
+      })
+
+      // Fallback: already signed in (e.g. token in URL was already consumed)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          subscription.unsubscribe()
+          window.location.replace(next)
+        }
+      })
+    </script>
+  </body>
+</html>

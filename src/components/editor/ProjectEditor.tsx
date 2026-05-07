@@ -350,12 +350,12 @@ export default function ProjectEditor({ projectId }: Props) {
     <div className="h-screen flex flex-col bg-bg text-ink overflow-hidden">
       {/* ── Floating top bar ── */}
       <div className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-line bg-bg z-10">
-        <LinkButton href="/profile" variant="ghost" className="text-[10px]">
+        <LinkButton href="/profile" variant="ghost" className="text-sm">
           ← Profile
         </LinkButton>
 
         {isProcessing && (
-          <div className="absolute left-1/2 -translate-x-1/2 text-[10px] text-info animate-pulse font-mono uppercase tracking-wider">
+          <div className="absolute text-xs left-1/2 -translate-x-1/2 text-[10px] text-info animate-pulse font-mono uppercase tracking-wider">
             ⚙ Processing… editing locked
           </div>
         )}

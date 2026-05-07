@@ -112,8 +112,8 @@ export default function ProfileDashboard() {
   }
 
   const userHandle = user?.user_metadata?.full_name
-    ? `@${(user.user_metadata.full_name as string).toLowerCase().replace(/\s+/g, '_')}`
-    : `@${user?.email?.split('@')[0] ?? 'user'}`
+    ? `${(user.user_metadata.full_name as string).toLowerCase().replace(/\s+/g, '_')}`
+    : `${user?.email?.split('@')[0] ?? 'user'}`
 
   // ── Dashboard ─────────────────────────────────────────────────────────
   return (
