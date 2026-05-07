@@ -3,6 +3,7 @@ import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
 import { uploadToR2 } from '@/lib/image-upload'
 import { publishedUrl, type ProjectImageRow } from '@/lib/image-paths'
+import { isValidSlug } from '@/lib/slug'
 import { LinkButton } from '@/components/ui/Button'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import EditorTopBar from '@/components/editor/EditorTopBar'
@@ -90,7 +91,7 @@ export default function ProjectEditor({ projectId }: Props) {
           (imgs ?? []).map((img: any): ImageRecord => {
             let previewUrl: string | undefined
             if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
+              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch { }
             }
             return {
               id: img.id,
@@ -110,7 +111,6 @@ export default function ProjectEditor({ projectId }: Props) {
 
   // ── Realtime: watch status while processing ─────────────────────────────
   useEffect(() => {
-    if (projectStatus !== 'processing') return
     const channel = supabase
       .channel(`editor-status-${projectId}`)
       .on(
@@ -130,7 +130,7 @@ export default function ProjectEditor({ projectId }: Props) {
                 setImages(data.map((img: any): ImageRecord => {
                   let previewUrl: string | undefined
                   if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-                    try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
+                    try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch { }
                   }
                   return {
                     id: img.id, project_id: img.project_id, status: img.status,
@@ -145,7 +145,7 @@ export default function ProjectEditor({ projectId }: Props) {
       )
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [projectStatus, projectId])
+  }, [projectId])
 
   // ── Beforeunload guard ──────────────────────────────────────────────────
   useEffect(() => {
@@ -176,6 +176,13 @@ export default function ProjectEditor({ projectId }: Props) {
   // ── Save ────────────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (!accessToken) return
+
+    setSaveError(null)
+    if (!isValidSlug(formState.slug)) {
+      setSaveError('Slug 格式不正確 (需為 3-60 字元的小寫英數字與連字號)')
+      return
+    }
+
     setIsSaving(true)
     const { error } = await supabase
       .from('projects')
@@ -203,7 +210,7 @@ export default function ProjectEditor({ projectId }: Props) {
           body: JSON.stringify({ project_id: projectId }),
         })
         if (res.ok) setProjectStatus('processing')
-      }else{
+      } else {
         setSaveError(error!.message)
       }
     }
@@ -372,7 +379,7 @@ export default function ProjectEditor({ projectId }: Props) {
       if (img.previewUrl) {
         map[img.id] = img.previewUrl
       } else if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch {}
+        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch { }
       }
     }
     return map
@@ -471,6 +478,7 @@ export default function ProjectEditor({ projectId }: Props) {
             data={formState}
             onChange={handleFormChange}
             isSlugLocked={projectStatus === 'published'}
+            disabled={isProcessing}
             slugError={slugError}
           />
           <div className="border-t border-line">

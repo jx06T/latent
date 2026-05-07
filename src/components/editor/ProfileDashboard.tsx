@@ -13,6 +13,8 @@ interface ProjectSummary {
   status: string
   year: number
   updated_at: string | null
+  created_at: string
+  cover_image_id: string | null
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -49,9 +51,9 @@ export default function ProfileDashboard() {
     setIsLoading(true)
     const { data } = await supabase
       .from('projects')
-      .select('id, title, slug, status, year, updated_at')
+      .select('id, title, slug, status, year, updated_at, created_at, cover_image_id')
       .eq('author_id', user.id)
-      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
     setProjects((data ?? []) as ProjectSummary[])
     setIsLoading(false)
   }, [user])
@@ -165,6 +167,11 @@ export default function ProfileDashboard() {
                 <span className={`text-sm ${STATUS_COLOR[p.status] ?? 'text-ink-muted'} shrink-0`} title={p.status}>
                   {STATUS_DOT[p.status] ?? '?'}
                 </span>
+
+                {/* Cover indicator */}
+                <div className={`hidden sm:flex w-9 h-6 shrink-0 border border-line items-center justify-center text-[9px] ${p.cover_image_id ? 'bg-accent-500/10 text-accent-500' : 'bg-bg-surface text-ink-disabled'}`} title={p.cover_image_id ? 'Has Cover Image' : 'No Cover Image'}>
+                  {p.cover_image_id ? 'IMG' : '---'}
+                </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">

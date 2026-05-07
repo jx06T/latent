@@ -22,6 +22,7 @@ interface Props {
   onChange: <K extends keyof FormState>(field: K, value: FormState[K]) => void
   isSlugLocked: boolean
   slugError: string | null
+  disabled?: boolean
 }
 
 const LINK_KEYS = ['demo', 'github', 'report', 'slides']
@@ -31,7 +32,7 @@ const field =
 
 const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mono select-none'
 
-export default function MetadataForm({ data, onChange, isSlugLocked, slugError }: Props) {
+export default function MetadataForm({ data, onChange, isSlugLocked, slugError, disabled }: Props) {
   const [slugTouched, setSlugTouched] = useState(false)
 
   // ── Slug auto-suggest ──────────────────────────────────────────────────
@@ -67,16 +68,18 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
       {/* ── A: 標題 ──────────────────────────────────────────────────── */}
       <div className="space-y-2">
         <input
-          className="w-full bg-transparent text-ink text-xl font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors"
+          className="w-full bg-transparent text-ink text-xl font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           value={data.title}
           onChange={e => handleTitleChange(e.target.value)}
           placeholder="Project title"
+          disabled={disabled}
         />
         <input
-          className="w-full bg-transparent text-ink-muted text-sm font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors"
+          className="w-full bg-transparent text-ink-muted text-sm font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           value={data.subtitle}
           onChange={e => onChange('subtitle', e.target.value)}
           placeholder="Subtitle (optional)"
+          disabled={disabled}
         />
       </div>
 
@@ -90,7 +93,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
             className={`${field} ${(!slugValid || slugError) ? 'border-danger focus:border-danger' : ''}`}
             value={data.slug}
             onChange={e => handleSlugChange(e.target.value)}
-            disabled={isSlugLocked}
+            disabled={isSlugLocked || disabled}
             placeholder="my-project-slug"
             spellCheck={false}
           />
@@ -108,6 +111,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
             className={`${field} cursor-pointer`}
             value={data.category_main}
             onChange={e => onChange('category_main', Number(e.target.value))}
+            disabled={disabled}
           >
             {Object.entries(CATEGORIES).map(([id, lbl]) => (
               <option key={id} value={id}>{lbl}</option>
@@ -125,6 +129,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
           value={data.description}
           onChange={e => onChange('description', e.target.value)}
           placeholder="A brief description shown on project cards and the overview section…"
+          disabled={disabled}
         />
       </div>
 
@@ -151,7 +156,8 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
                         active
                           ? 'border-accent-500 text-accent-500 bg-accent-500/10'
                           : 'border-line text-ink-muted hover:border-line-active hover:text-ink'
-                      }`}
+                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={disabled}
                     >
                       {lbl}
                     </button>
@@ -168,6 +174,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
                 value={data.keywords.join(', ')}
                 onChange={e => handleTagInput('keywords', e.target.value)}
                 placeholder="ai, design, interactive"
+                disabled={disabled}
               />
             </div>
             <div>
@@ -177,6 +184,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
                 value={data.tech_stack.join(', ')}
                 onChange={e => handleTagInput('tech_stack', e.target.value)}
                 placeholder="React, Python, Three.js"
+                disabled={disabled}
               />
             </div>
           </div>
@@ -198,6 +206,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError }
                 onChange={e => onChange('links', { ...data.links, [key]: e.target.value })}
                 placeholder={key === 'demo' ? 'https://…' : key === 'github' ? 'github.com/…' : ''}
                 type="url"
+                disabled={disabled}
               />
             </div>
           ))}
