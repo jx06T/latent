@@ -12,7 +12,7 @@ import rehypeExternalLinks from 'rehype-external-links';
 
 // 引入兩種 Adapter
 import netlify from '@astrojs/netlify';
-import vercel from '@astrojs/vercel'; // 🌟 修正這裡：拿掉 /serverless
+import vercel from '@astrojs/vercel'; 
 
 // 動態判斷部署環境
 const getAdapter = () => {
