@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
+import { publishedUrl, draftKey, toCdnUrl, type ProjectImageRow } from '@/lib/image-paths'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import EditorTopBar from '@/components/editor/EditorTopBar'
@@ -15,6 +16,7 @@ interface ProjectSummary {
   updated_at: string | null
   created_at: string
   cover_image_id: string | null
+  cover_image?: ProjectImageRow
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -36,6 +38,7 @@ export default function ProfileDashboard() {
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [coverImageUrls, setCoverImageUrls] = useState<Record<string, string>>({})
 
   const { confirm, dialog } = useConfirm()
 
@@ -52,11 +55,31 @@ export default function ProfileDashboard() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, title, slug, status, year, updated_at, created_at, cover_image_id')
+        .select('id, title, slug, status, year, updated_at, created_at, cover_image_id, project_images!project_images_project_id_fkey(id, project_id,status, source_ext, published_ext, available_sizes)')
         .eq('author_id', user.id)
         .order('created_at', { ascending: false })
       if (error) throw error
-      setProjects((data ?? []) as ProjectSummary[])
+
+      // Enrich projects with cover image data
+      const enrichedProjects = (data ?? []).map((p: any): ProjectSummary => {
+        const coverImg = p.cover_image_id && p.project_images
+          ? p.project_images.find((img: any) => img.id === p.cover_image_id)
+          : undefined
+
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          status: p.status,
+          year: p.year,
+          updated_at: p.updated_at,
+          created_at: p.created_at,
+          cover_image_id: p.cover_image_id,
+          cover_image: coverImg as ProjectImageRow | undefined,
+        }
+      })
+
+      setProjects(enrichedProjects)
     } catch (err) {
       console.error('Failed to load projects:', err)
     } finally {
@@ -68,6 +91,31 @@ export default function ProfileDashboard() {
     if (!authLoading && isLoggedIn) loadProjects()
     else if (!authLoading) setIsLoading(false)
   }, [authLoading, isLoggedIn, loadProjects])
+
+  // ── Generate cover image preview URLs ───────────────────────────────────
+  useEffect(() => {
+    if (!projects.length) return
+
+    const urls: Record<string, string> = {}
+
+    for (const p of projects) {
+      if (!p.cover_image) continue
+
+      try {
+        if (p.cover_image.status === 'published' && p.cover_image.published_ext && p.cover_image.available_sizes?.length) {
+          urls[p.cover_image_id!] = publishedUrl(p.cover_image as ProjectImageRow, 'md')
+        } else if (p.cover_image.status === 'draft' && p.cover_image.source_ext) {
+          // Generate CDN URL directly from draft key
+          const key = draftKey(p.cover_image.project_id, p.cover_image.id, p.cover_image.source_ext)
+          urls[p.cover_image_id!] = toCdnUrl(key)
+        }
+      } catch (err) {
+        console.warn(`Failed to generate cover image URL for ${p.cover_image_id}:`, err)
+      }
+    }
+
+    setCoverImageUrls(urls)
+  }, [projects])
 
   // ── Delete project ─────────────────────────────────────────────────────
   const handleDelete = useCallback(async (id: string, title: string) => {
@@ -113,10 +161,10 @@ export default function ProfileDashboard() {
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-line hover:border-accent-500 hover:text-accent-500 transition-colors font-mono text-xs uppercase"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
             Google Sign In
           </button>
@@ -174,9 +222,13 @@ export default function ProfileDashboard() {
                   {STATUS_DOT[p.status] ?? '?'}
                 </span>
 
-                {/* Cover indicator */}
-                <div className={`hidden sm:flex w-9 h-6 shrink-0 border border-line items-center justify-center text-[9px] ${p.cover_image_id ? 'bg-accent-500/10 text-accent-500' : 'bg-bg-surface text-ink-disabled'}`} title={p.cover_image_id ? 'Has Cover Image' : 'No Cover Image'}>
-                  {p.cover_image_id ? 'IMG' : '---'}
+                {/* Cover image */}
+                <div className={`hidden sm:flex w-12 h-8 shrink-0 border border-line items-center justify-center overflow-hidden bg-bg-surface ${p.cover_image_id && coverImageUrls[p.cover_image_id] ? '' : 'text-ink-disabled text-[9px]'}`} title={p.cover_image_id ? 'Cover Image' : 'No Cover Image'}>
+                  {p.cover_image_id && coverImageUrls[p.cover_image_id] ? (
+                    <img src={coverImageUrls[p.cover_image_id]} alt="Cover" className="w-full h-full object-cover" />
+                  ) : (
+                    '---'
+                  )}
                 </div>
 
                 {/* Info */}

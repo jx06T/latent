@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
 import { uploadToR2 } from '@/lib/image-upload'
-import { publishedUrl, type ProjectImageRow } from '@/lib/image-paths'
+import { publishedUrl, draftKey, toCdnUrl, type ProjectImageRow } from '@/lib/image-paths'
 import { isValidSlug } from '@/lib/slug'
 import { LinkButton } from '@/components/ui/Button'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
@@ -92,6 +92,14 @@ export default function ProjectEditor({ projectId }: Props) {
             let previewUrl: string | undefined
             if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
               try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch { }
+            } else if (img.status === 'draft' && img.source_ext) {
+              // Generate CDN URL directly from draft key
+              try {
+                const key = draftKey(img.project_id, img.id, img.source_ext)
+                previewUrl = toCdnUrl(key)
+              } catch (err) {
+                console.warn(`Failed to generate draft image URL for ${img.id}:`, err)
+              }
             }
             return {
               id: img.id,
@@ -225,6 +233,13 @@ export default function ProjectEditor({ projectId }: Props) {
   // ── Publish ─────────────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
     if (!accessToken) return
+    
+    // 1. Validate slug format first
+    if (!isValidSlug(formState.slug)) {
+      setSlugError('Slug 格式不正確 (需為 3-60 字元的小寫英數字與連字號)')
+      return
+    }
+    
     const ok = await confirm({
       title: '確認發布',
       message: `發布後 slug「${formState.slug}」將無法更改。\n確認要發布嗎？`,
@@ -236,7 +251,18 @@ export default function ProjectEditor({ projectId }: Props) {
     setSlugError(null)
 
     try {
+      // 2. Auto-save before publishing
+      setSaveError(null)
       await handleSave()
+      
+      // Wait a tick for state update (saveError is set by handleSave)
+      await new Promise(r => setTimeout(r, 0))
+      
+      // 3. Check if save succeeded (by verifying isDirty is now false)
+      if (isDirty) {
+        setSlugError('保存失敗，請檢查錯誤訊息後重試')
+        return
+      }
 
       const res = await fetch('/api/publish', {
         method: 'POST',
@@ -262,7 +288,7 @@ export default function ProjectEditor({ projectId }: Props) {
     } finally {
       setIsPublishing(false)
     }
-  }, [accessToken, projectId, handleSave, confirm, formState.slug])
+  }, [accessToken, projectId, handleSave, confirm, formState.slug, isDirty])
 
   // ── Image: upload ───────────────────────────────────────────────────────
   const handleUpload = useCallback(async (file: File) => {
