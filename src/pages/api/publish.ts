@@ -72,6 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
   const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
 
+  console.log(`${siteUrl}/functions/publish-background`,import.meta.env.PUBLIC_SITE_URL,import.meta.env.INTERNAL_TOKEN)
   fetch(`${siteUrl}/functions/publish-background`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
