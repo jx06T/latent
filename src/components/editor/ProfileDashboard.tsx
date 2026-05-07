@@ -121,14 +121,14 @@ export default function ProfileDashboard() {
       {/* Top bar */}
       <header className="border-b border-line px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <LinkButton href="/" variant="ghost" className="text-[10px]">← Home</LinkButton>
+          <LinkButton href="/" variant="ghost" className="text-sm">← Home</LinkButton>
           <span className="w-px h-4 bg-line" />
           <span className="text-xs text-ink-muted">{userHandle}</span>
-          <span className="text-[10px] text-ink-disabled truncate max-w-[200px] hidden sm:block">
+          <span className="text-xs text-ink-dim truncate max-w-[200px] hidden sm:block">
             {user?.email}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 *:h-7">
           <Button variant="primary" onClick={() => setShowNewModal(true)}>
             + New Project
           </Button>
@@ -138,9 +138,9 @@ export default function ProfileDashboard() {
 
       {/* Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-sm uppercase tracking-widest text-ink">Projects</h1>
-          <span className="text-[10px] text-ink-disabled">{projects.length} total</span>
+        <div className="flex items-end justify-between mb-6">
+          <h1 className="text-lg uppercase tracking-widest text-ink">Projects</h1>
+          <span className="text-base text-ink-dim">{projects.length} total</span>
         </div>
 
         {isLoading ? (
@@ -164,12 +164,11 @@ export default function ProfileDashboard() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs text-ink font-medium truncate">{p.title || '(untitled)'}</span>
-                    <span className="text-[9px] text-ink-disabled shrink-0">{p.year}</span>
+                    <span className="text-base text-ink font-medium truncate">{p.title || '(untitled)'}</span>
+                    <span className="text-sm text-ink-dim shrink-0">{p.year}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[9px] text-ink-disabled">
+                  <div className="flex items-center gap-1.5 text-xs text-ink-dim">
                     <span>/{p.slug}</span>
-                    <span>·</span>
                     <span className={STATUS_COLOR[p.status] ?? ''}>{p.status}</span>
                     {p.updated_at && (
                       <>
@@ -185,7 +184,7 @@ export default function ProfileDashboard() {
                   <LinkButton
                     href={`/editor/${p.id}`}
                     variant="outline"
-                    className="text-[9px] px-2 py-0.5"
+                    className="text-xs px-2 py-0.5"
                   >
                     Edit
                   </LinkButton>
@@ -193,7 +192,7 @@ export default function ProfileDashboard() {
                     <LinkButton
                       href={`/projects/${p.year}/${p.slug}`}
                       variant="ghost"
-                      className="text-[9px] px-2 py-0.5"
+                      className="text-xs px-2 py-0.5"
                       target="_blank"
                     >
                       View ↗
@@ -201,7 +200,7 @@ export default function ProfileDashboard() {
                   )}
                   <Button
                     variant="danger"
-                    className="text-[9px] px-2 py-0.5"
+                    className="text-xs px-2 py-0.5"
                     disabled={deletingId === p.id || p.status === 'processing'}
                     onClick={() => handleDelete(p.id)}
                   >
