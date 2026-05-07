@@ -63,7 +63,6 @@ export const POST: APIRoute = async ({ request }) => {
     .eq('id', project_id)
     .single()
 
-  console.log(projErr,project,project_id)
   if (projErr || !project) return json({ error: 'Project not found' }, 404)
   if (project.author_id !== userId) return json({ error: 'Forbidden' }, 403)
   if (project.status === 'processing') {
