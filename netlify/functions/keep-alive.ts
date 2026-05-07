@@ -1,4 +1,4 @@
-import type { Handler } from '@netlify/functions'
+import type { Config,Handler } from '@netlify/functions'
 
 export const handler: Handler = async () => {
   const url  = process.env.PUBLIC_SUPABASE_URL
@@ -20,3 +20,5 @@ export const handler: Handler = async () => {
     return { statusCode: 500, body: 'fetch failed' }
   }
 }
+
+export const config: Config = { path: '/functions/keep-alive' }
