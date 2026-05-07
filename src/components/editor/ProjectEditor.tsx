@@ -81,7 +81,7 @@ export default function ProjectEditor({ projectId }: Props) {
           (imgs ?? []).map((img: any): ImageRecord => {
             let previewUrl: string | undefined
             if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
+              try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch { }
             }
             return {
               id: img.id,
@@ -295,7 +295,7 @@ export default function ProjectEditor({ projectId }: Props) {
       if (img.previewUrl) {
         map[img.id] = img.previewUrl
       } else if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
-        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch {}
+        try { map[img.id] = publishedUrl(img as unknown as ProjectImageRow, 'md') } catch { }
       }
     }
     return map
@@ -315,7 +315,7 @@ export default function ProjectEditor({ projectId }: Props) {
       <div className="h-screen flex flex-col items-center justify-center bg-bg gap-4 font-mono">
         <p className="text-ink-muted text-xs uppercase tracking-wider">Sign in to access the editor</p>
         <button
-          onClick={signIn}
+          onClick={() => signIn()}
           className="border border-line px-4 py-2 text-xs uppercase hover:border-accent-500 hover:text-accent-500 transition-colors"
         >
           Google Sign In

@@ -95,7 +95,7 @@ export default function ProfileDashboard() {
           <p className="text-xs uppercase tracking-widest text-ink-muted">Latent · Profile</p>
           <p className="text-ink text-sm">Sign in to manage your projects</p>
           <button
-            onClick={signIn}
+            onClick={()=>signIn()}
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 border border-line hover:border-accent-500 hover:text-accent-500 transition-colors font-mono text-xs uppercase"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

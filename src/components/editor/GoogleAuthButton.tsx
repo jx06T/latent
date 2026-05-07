@@ -30,7 +30,7 @@ export default function GoogleAuthButton() {
 
   return (
     <button
-      onClick={signIn}
+      onClick={()=>signIn()}
       className="flex items-center gap-2 px-4 py-2 border border-line text-xs font-mono hover:border-accent-500 hover:text-accent-500 transition-colors"
     >
       <svg className="w-4 h-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
