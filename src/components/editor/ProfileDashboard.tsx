@@ -49,13 +49,19 @@ export default function ProfileDashboard() {
   const loadProjects = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
-    const { data } = await supabase
-      .from('projects')
-      .select('id, title, slug, status, year, updated_at, created_at, cover_image_id')
-      .eq('author_id', user.id)
-      .order('created_at', { ascending: false })
-    setProjects((data ?? []) as ProjectSummary[])
-    setIsLoading(false)
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, title, slug, status, year, updated_at, created_at, cover_image_id')
+        .eq('author_id', user.id)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      setProjects((data ?? []) as ProjectSummary[])
+    } catch (err) {
+      console.error('Failed to load projects:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }, [user])
 
   useEffect(() => {

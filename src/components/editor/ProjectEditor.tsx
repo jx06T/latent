@@ -184,37 +184,42 @@ export default function ProjectEditor({ projectId }: Props) {
     }
 
     setIsSaving(true)
-    const { error } = await supabase
-      .from('projects')
-      .update({
-        title: formState.title,
-        subtitle: formState.subtitle || null,
-        slug: formState.slug,
-        description: formState.description || null,
-        content: formState.content || null,
-        category_main: formState.category_main,
-        category_sub: formState.category_sub,
-        keywords: formState.keywords,
-        tech_stack: formState.tech_stack,
-        links: formState.links,
-        cover_image_id: formState.cover_image_id,
-      })
-      .eq('id', projectId)
-    if (!error) {
-      setSavedState({ ...formState })
-      // Auto-trigger image processing when a published project has pending draft images
-      if (projectStatus === 'published' && images.some(img => img.status === 'draft')) {
-        const res = await fetch('/api/images/process-pending', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-          body: JSON.stringify({ project_id: projectId }),
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          title: formState.title,
+          subtitle: formState.subtitle || null,
+          slug: formState.slug,
+          description: formState.description || null,
+          content: formState.content || null,
+          category_main: formState.category_main,
+          category_sub: formState.category_sub,
+          keywords: formState.keywords,
+          tech_stack: formState.tech_stack,
+          links: formState.links,
+          cover_image_id: formState.cover_image_id,
         })
-        if (res.ok) setProjectStatus('processing')
+        .eq('id', projectId)
+      if (!error) {
+        setSavedState({ ...formState })
+        // Auto-trigger image processing when a published project has pending draft images
+        if (projectStatus === 'published' && images.some(img => img.status === 'draft')) {
+          const res = await fetch('/api/images/process-pending', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+            body: JSON.stringify({ project_id: projectId }),
+          })
+          if (res.ok) setProjectStatus('processing')
+        }
       } else {
-        setSaveError(error!.message)
+        setSaveError(error.message)
       }
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setIsSaving(false)
     }
-    setIsSaving(false)
   }, [accessToken, projectId, formState, projectStatus, images])
 
   // ── Publish ─────────────────────────────────────────────────────────────
@@ -229,22 +234,34 @@ export default function ProjectEditor({ projectId }: Props) {
     if (!ok) return
     setIsPublishing(true)
     setSlugError(null)
-    await handleSave()
-    const res = await fetch('/api/publish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify({ project_id: projectId }),
-    })
-    const data = await res.json()
-    if (!res.ok) {
-      if (res.status === 409 && (data as any).conflicting_field === 'slug') {
-        setSlugError((data as any).message ?? 'Slug conflict')
+
+    try {
+      await handleSave()
+
+      const res = await fetch('/api/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ project_id: projectId }),
+      })
+
+      let data: any = {}
+      try { data = await res.json() } catch { /* ignore parse error if response is not JSON */ }
+
+      if (!res.ok) {
+        if (res.status === 409 && data.conflicting_field === 'slug') {
+          setSlugError(data.message ?? 'Slug conflict')
+        } else {
+          setSlugError(data.error ?? data.message ?? `Publish failed (HTTP ${res.status})`)
+        }
+        return
       }
+
+      setProjectStatus('processing')
+    } catch (err) {
+      setSlugError(err instanceof Error ? err.message : 'Network error during publish')
+    } finally {
       setIsPublishing(false)
-      return
     }
-    setProjectStatus('processing')
-    setIsPublishing(false)
   }, [accessToken, projectId, handleSave, confirm, formState.slug])
 
   // ── Image: upload ───────────────────────────────────────────────────────
@@ -349,12 +366,17 @@ export default function ProjectEditor({ projectId }: Props) {
 
   // ── Image: set cover ────────────────────────────────────────────────────
   const handleSetCover = useCallback(async (imageId: string | null) => {
-    await supabase
-      .from('projects')
-      .update({ cover_image_id: imageId })
-      .eq('id', projectId)
-    setFormState(prev => ({ ...prev, cover_image_id: imageId }))
-    setSavedState(prev => ({ ...prev, cover_image_id: imageId }))
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ cover_image_id: imageId })
+        .eq('id', projectId)
+      if (error) throw error
+      setFormState(prev => ({ ...prev, cover_image_id: imageId }))
+      setSavedState(prev => ({ ...prev, cover_image_id: imageId }))
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to update cover image')
+    }
   }, [projectId])
 
   // ── Image drop from MarkdownEditor ──────────────────────────────────────

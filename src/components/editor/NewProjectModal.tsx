@@ -52,26 +52,31 @@ export default function NewProjectModal({ userId, userHandle, onCreated, onClose
     }
 
     setIsCreating(true)
-    const { data, error: dbErr } = await supabase
-      .from('projects')
-      .insert({
-        title: title.trim(),
-        slug,
-        author_id: userId,
-        author_handle: userHandle,
-        category_main: category,
-        year: CURRENT_YEAR,
-      })
-      .select('id')
-      .single()
+    try {
+      const { data, error: dbErr } = await supabase
+        .from('projects')
+        .insert({
+          title: title.trim(),
+          slug,
+          author_id: userId,
+          author_handle: userHandle,
+          category_main: category,
+          year: CURRENT_YEAR,
+        })
+        .select('id')
+        .single()
 
-    if (dbErr || !data) {
-      setError(dbErr?.message ?? 'Failed to create project')
+      if (dbErr || !data) {
+        setError(dbErr?.message ?? 'Failed to create project')
+        setIsCreating(false)
+        return
+      }
+
+      onCreated(data.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create project')
       setIsCreating(false)
-      return
     }
-
-    onCreated(data.id)
   }
 
   // Close on Escape
