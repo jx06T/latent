@@ -118,6 +118,28 @@ export default function ProjectEditor({ projectId }: Props) {
         payload => {
           const next = (payload.new as any).status as string
           setProjectStatus(next)
+          // Reload images after processing completes so thumbnails and CDN URLs update
+          if (next === 'published') {
+            supabase
+              .from('project_images')
+              .select('*')
+              .eq('project_id', projectId)
+              .then(({ data }) => {
+                if (!data) return
+                setImages(data.map((img: any): ImageRecord => {
+                  let previewUrl: string | undefined
+                  if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
+                    try { previewUrl = publishedUrl(img as ProjectImageRow, 'md') } catch {}
+                  }
+                  return {
+                    id: img.id, project_id: img.project_id, status: img.status,
+                    source_ext: img.source_ext, published_ext: img.published_ext,
+                    available_sizes: img.available_sizes, created_at: img.created_at,
+                    previewUrl,
+                  }
+                }))
+              })
+          }
         },
       )
       .subscribe()
@@ -170,9 +192,20 @@ export default function ProjectEditor({ projectId }: Props) {
         cover_image_id: formState.cover_image_id,
       })
       .eq('id', projectId)
-    if (!error) setSavedState({ ...formState })
+    if (!error) {
+      setSavedState({ ...formState })
+      // Auto-trigger image processing when a published project has pending draft images
+      if (projectStatus === 'published' && images.some(img => img.status === 'draft')) {
+        const res = await fetch('/api/images/process-pending', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ project_id: projectId }),
+        })
+        if (res.ok) setProjectStatus('processing')
+      }
+    }
     setIsSaving(false)
-  }, [accessToken, projectId, formState])
+  }, [accessToken, projectId, formState, projectStatus, images])
 
   // ── Publish ─────────────────────────────────────────────────────────────
   const handlePublish = useCallback(async () => {
