@@ -28,7 +28,7 @@ interface Props {
 const LINK_KEYS = ['demo', 'github', 'report', 'slides']
 
 const field =
-  'w-full bg-bg-surface border border-line text-ink font-mono text-xs px-2.5 py-1.5 outline-none focus:border-line-active placeholder:text-ink-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+  'w-full bg-bg-surface border border-line text-ink font-mono text-xs px-2.5 py-1.5 outline-none focus:border-line-active placeholder:text-ink-disabled disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 
 const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mono select-none'
 

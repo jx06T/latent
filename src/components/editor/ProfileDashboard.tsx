@@ -1,35 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { supabase } from '@/lib/supabase'
-import { publishedUrl, draftKey, toCdnUrl, type ProjectImageRow } from '@/lib/image-paths'
+import { publishedUrl, draftKey, toCdnUrl } from '@/lib/image-paths'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import NewProjectModal from '@/components/editor/NewProjectModal'
-
-interface ProjectSummary {
-  id: string
-  title: string
-  slug: string
-  status: string
-  year: number
-  updated_at: string | null
-  created_at: string
-  cover_image_id: string | null
-  cover_image?: ProjectImageRow
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  draft: 'text-warning',
-  processing: 'text-info animate-pulse',
-  published: 'text-success',
-}
-
-const STATUS_DOT: Record<string, string> = {
-  draft: '○',
-  processing: '⚙',
-  published: '●',
-}
+import ProjectListItem, { type ProjectSummary } from '@/components/editor/ProjectListItem'
 
 export default function ProfileDashboard() {
   const { user, isLoggedIn, loading: authLoading, signIn, signOut } = useSupabaseAuth()
@@ -60,7 +37,6 @@ export default function ProfileDashboard() {
         .order('created_at', { ascending: false })
       if (error) throw error
 
-      // Enrich projects with cover image data
       const enrichedProjects = (data ?? []).map((p: any): ProjectSummary => {
         const coverImg = p.cover_image_id && p.project_images
           ? p.project_images.find((img: any) => img.id === p.cover_image_id)
@@ -75,7 +51,7 @@ export default function ProfileDashboard() {
           updated_at: p.updated_at,
           created_at: p.created_at,
           cover_image_id: p.cover_image_id,
-          cover_image: coverImg as ProjectImageRow | undefined,
+          cover_image: coverImg,
         }
       })
 
@@ -103,9 +79,8 @@ export default function ProfileDashboard() {
 
       try {
         if (p.cover_image.status === 'published' && p.cover_image.published_ext && p.cover_image.available_sizes?.length) {
-          urls[p.cover_image_id!] = publishedUrl(p.cover_image as ProjectImageRow, 'md')
+          urls[p.cover_image_id!] = publishedUrl(p.cover_image, 'md')
         } else if (p.cover_image.status === 'draft' && p.cover_image.source_ext) {
-          // Generate CDN URL directly from draft key
           const key = draftKey(p.cover_image.project_id, p.cover_image.id, p.cover_image.source_ext)
           urls[p.cover_image_id!] = toCdnUrl(key)
         }
@@ -216,64 +191,13 @@ export default function ProfileDashboard() {
         ) : (
           <div className="divide-y divide-line border border-line">
             {projects.map(p => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3 hover:bg-bg-surface transition-colors group">
-                {/* Status dot */}
-                <span className={`text-sm ${STATUS_COLOR[p.status] ?? 'text-ink-muted'} shrink-0`} title={p.status}>
-                  {STATUS_DOT[p.status] ?? '?'}
-                </span>
-
-                {/* Cover image */}
-                <div className={`hidden sm:flex w-12 h-8 shrink-0 border border-line items-center justify-center overflow-hidden bg-bg-surface ${p.cover_image_id && coverImageUrls[p.cover_image_id] ? '' : 'text-ink-disabled text-[9px]'}`} title={p.cover_image_id ? 'Cover Image' : 'No Cover Image'}>
-                  {p.cover_image_id && coverImageUrls[p.cover_image_id] ? (
-                    <img src={coverImageUrls[p.cover_image_id]} alt="Cover" className="w-full h-full object-cover" />
-                  ) : (
-                    '---'
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-base text-ink font-medium truncate">{p.title || '(untitled)'}</span>
-                    <span className="text-sm text-ink-dim shrink-0">{p.year}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-ink-dim">
-                    <span>/{p.slug}</span>
-                    <span className={STATUS_COLOR[p.status] ?? ''}>{p.status}</span>
-                    {p.updated_at && (
-                      <>
-                        <span>·</span>
-                        <span>{new Date(p.updated_at).toLocaleDateString()}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2.5 shrink-0">
-                  <LinkButton href={`/editor/${p.id}`} variant="outline" className="text-xs px-2 py-0.5">
-                    Edit
-                  </LinkButton>
-                  {p.status === 'published' && (
-                    <LinkButton
-                      href={`/projects/${p.year}/${p.slug}`}
-                      variant="ghost"
-                      className="text-xs px-2 py-0.5"
-                      target="_blank"
-                    >
-                      View ↗
-                    </LinkButton>
-                  )}
-                  <Button
-                    variant="danger"
-                    className="text-xs px-2 py-0.5"
-                    disabled={deletingId === p.id || p.status === 'processing'}
-                    onClick={() => handleDelete(p.id, p.title)}
-                  >
-                    {deletingId === p.id ? '…' : 'Del'}
-                  </Button>
-                </div>
-              </div>
+              <ProjectListItem
+                key={p.id}
+                project={p}
+                coverUrl={p.cover_image_id ? coverImageUrls[p.cover_image_id] : undefined}
+                isDeleting={deletingId === p.id}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
