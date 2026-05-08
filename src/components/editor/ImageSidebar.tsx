@@ -1,5 +1,6 @@
 import { useState, useRef, type ChangeEvent, type DragEvent } from 'react'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
 
 export interface ImageRecord {
   id: string
@@ -22,6 +23,8 @@ interface Props {
   images: ImageRecord[]
   coverId: string | null
   disabled: boolean
+  /** 'sidebar': vertical list (desktop default). 'panel': horizontal scroll (mobile). */
+  variant?: 'sidebar' | 'panel'
   onUpload: (file: File) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onReplace: (id: string, file: File) => Promise<void>
@@ -33,6 +36,7 @@ export default function ImageSidebar({
   images,
   coverId,
   disabled,
+  variant = 'sidebar',
   onUpload,
   onDelete,
   onReplace,
@@ -40,6 +44,7 @@ export default function ImageSidebar({
   onSetCover,
 }: Props) {
   const [replacingId, setReplacingId] = useState<string | null>(null)
+  const [isReplacingId, setIsReplacingId] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +59,12 @@ export default function ImageSidebar({
 
   const onReplaceFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file && replacingId) await wrap(() => onReplace(replacingId, file))
+    const id = replacingId
+    if (file && id) {
+      setIsReplacingId(id)
+      await wrap(() => onReplace(id, file))
+      setIsReplacingId(null)
+    }
     e.target.value = ''
     setReplacingId(null)
   }
@@ -65,9 +75,9 @@ export default function ImageSidebar({
     setIsUploading(false)
   }
 
-  // ── Sidebar drag-drop ─────────────────────────────────────────────────
+  // ── Drag-drop (sidebar mode only) ─────────────────────────────────────
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    if (disabled || isUploading) return
+    if (disabled || isUploading || variant === 'panel') return
     e.preventDefault()
     setIsDraggingOver(true)
   }
@@ -84,6 +94,95 @@ export default function ImageSidebar({
     await handleUploadFiles(files)
   }
 
+  const uploadLabel = (
+    <label className={cn(
+      'cursor-pointer text-xs text-ink-muted hover:text-accent-500 transition-colors uppercase',
+      (disabled || isUploading) && 'opacity-40 pointer-events-none',
+    )}>
+      {isUploading ? 'Uploading…' : '+ Upload'}
+      <input
+        type="file" accept="image/*" multiple className="hidden"
+        disabled={disabled}
+        onChange={e => { handleUploadFiles(Array.from(e.target.files ?? [])); e.target.value = '' }}
+      />
+    </label>
+  )
+
+  // ── Panel variant (mobile horizontal scroll) ──────────────────────────
+  if (variant === 'panel') {
+    return (
+      <div className="flex flex-col h-full font-mono text-xs">
+        <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-line shrink-0">
+          <span className="text-ink-muted uppercase tracking-wider">Images · {images.length}</span>
+          {uploadLabel}
+        </div>
+
+        {error && (
+          <div className="px-3 py-1 text-xs text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
+            {error}
+            <button onClick={() => setError(null)} className="ml-2 text-ink-ddim hover:text-ink">×</button>
+          </div>
+        )}
+
+        {/* Horizontal scroll row */}
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-2 px-3 py-2 h-full items-start min-w-max">
+            {images.length === 0 ? (
+              <p className="text-ink-ddim uppercase self-center">
+                {isUploading ? 'Uploading…' : 'No images — tap Upload'}
+              </p>
+            ) : images.map(img => (
+              <div key={img.id} className="flex-none w-24 space-y-1">
+                {/* Thumbnail */}
+                <div className="w-full aspect-[4/3] bg-bg-elevated border border-line overflow-hidden relative">
+                  {img.previewUrl ? (
+                    <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[9px] text-ink-ddim uppercase">
+                      {img.status === 'published' ? 'CDN' : '…'}
+                    </div>
+                  )}
+                  {coverId === img.id && (
+                    <span className="absolute top-0.5 left-0.5 text-[9px] text-accent-500">◆</span>
+                  )}
+                  {isReplacingId === img.id && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-bg/75">
+                      <span className="text-[9px] text-info animate-pulse uppercase">Replacing…</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline" className="flex-1 text-[10px] px-1 py-0.5"
+                    onClick={() => onInsert(img.id)}
+                    disabled={disabled}
+                  >
+                    Insert
+                  </Button>
+                  <Button
+                    variant={coverId === img.id ? 'secondary' : 'ghost'}
+                    className="text-[10px] px-1 py-0.5"
+                    onClick={() => onSetCover(coverId === img.id ? null : img.id)}
+                    disabled={disabled}
+                    title={coverId === img.id ? 'Remove cover' : 'Set as cover'}
+                  >
+                    ◆
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Sidebar variant (desktop default) ─────────────────────────────────
   return (
     <div
       className="relative flex flex-col h-full font-mono text-xs overflow-hidden"
@@ -105,14 +204,7 @@ export default function ImageSidebar({
         <span className="text-sm uppercase text-ink-muted tracking-wider">
           Images · {images.length}
         </span>
-        <label className={`cursor-pointer text-sm text-ink-muted hover:text-accent-500 transition-colors uppercase ${disabled || isUploading ? 'opacity-40 pointer-events-none' : ''}`}>
-          {isUploading ? 'Uploading…' : '+ Upload'}
-          <input
-            type="file" accept="image/*" multiple className="hidden"
-            disabled={disabled}
-            onChange={e => { handleUploadFiles(Array.from(e.target.files ?? [])); e.target.value = '' }}
-          />
-        </label>
+        {uploadLabel}
       </div>
 
       {/* Error strip */}
@@ -134,12 +226,18 @@ export default function ImageSidebar({
         {images.map(img => (
           <div key={img.id} className="p-2.5 space-y-2">
             {/* Thumbnail */}
-            <div className="w-full aspect-video bg-bg-elevated border border-line overflow-hidden">
+            <div className="w-full aspect-video bg-bg-elevated border border-line overflow-hidden relative">
               {img.previewUrl ? (
                 <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs text-ink-ddim uppercase">
                   {img.status === 'published' ? 'CDN' : 'No preview'}
+                </div>
+              )}
+              {/* Replace loading overlay */}
+              {isReplacingId === img.id && (
+                <div className="absolute inset-0 flex items-center justify-center bg-bg/75">
+                  <span className="text-xs text-info animate-pulse uppercase">Replacing…</span>
                 </div>
               )}
             </div>
@@ -175,11 +273,11 @@ export default function ImageSidebar({
 
               <Button
                 variant="outline" className="text-xs px-2 py-0.5"
-                disabled={disabled}
+                disabled={disabled || isReplacingId === img.id}
                 title="Upload replacement (new ID → update markdown → delete old)"
                 onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
               >
-                Replace
+                {isReplacingId === img.id ? 'Replacing…' : 'Replace'}
               </Button>
 
               <Button

@@ -11,6 +11,7 @@ import { marked } from 'marked'
 import { Button } from '@/components/ui/Button'
 import { resolveImageIdsToUrls } from '@/lib/markdown-image'
 import TextareaAutosize from 'react-textarea-autosize'
+import { cn } from '@/lib/utils'
 
 export interface MarkdownEditorHandle {
   insertAtCursor: (text: string) => void
@@ -27,6 +28,11 @@ interface Props {
 type ViewLayout = 'split' | 'tab'
 type TabView = 'edit' | 'preview'
 
+interface CursorHint {
+  line: number
+  preview: string
+}
+
 const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
   function MarkdownEditor({ content, onChange, disabled, onImageDrop, imageUrlMap }, ref) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -34,6 +40,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const [tabView, setTabView] = useState<TabView>('edit')
     const [isDragging, setIsDragging] = useState(false)
     const [isDropUploading, setIsDropUploading] = useState(false)
+    const [cursorHint, setCursorHint] = useState<CursorHint | null>(null)
 
     const insertAtCursor = useCallback(
       (text: string) => {
@@ -56,6 +63,26 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
     useImperativeHandle(ref, () => ({ insertAtCursor }), [insertAtCursor])
 
+    // ── Cursor insert hint ────────────────────────────────────────────────
+    const handleTextareaBlur = useCallback(() => {
+      const ta = textareaRef.current
+      if (!ta) return
+      const pos = ta.selectionStart
+      const before = ta.value.slice(0, pos)
+      const lines = before.split('\n')
+      const lineNum = lines.length
+      const currentLine = ta.value.split('\n')[lineNum - 1] ?? ''
+      setCursorHint({
+        line: lineNum,
+        preview: currentLine.trim().slice(0, 24),
+      })
+    }, [])
+
+    const handleTextareaFocus = useCallback(() => {
+      setCursorHint(null)
+    }, [])
+
+    // ── Drag-drop image upload ────────────────────────────────────────────
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault()
       if (onImageDrop) setIsDragging(true)
@@ -86,7 +113,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const previewHtml = marked.parse(resolvedContent) as string
 
     return (
-      <div className="flex flex-col font-mono ">
+      <div className="flex flex-col font-mono">
         {/* ── Toolbar ── */}
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line bg-bg-surface">
           <Button
@@ -125,25 +152,48 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {isDropUploading && (
             <span className="ml-2 text-[9px] text-info animate-pulse">Uploading…</span>
           )}
+
+          {/* Cursor insert hint — shown when textarea loses focus */}
+          {cursorHint && (
+            <span
+              className="ml-auto flex items-center gap-1 text-[9px] text-accent-500 border border-accent-500/40 px-1.5 py-0.5 shrink-0"
+              title={`Insert position: line ${cursorHint.line}${cursorHint.preview ? ` — "${cursorHint.preview}"` : ''}`}
+            >
+              <span>↵</span>
+              <span>L{cursorHint.line}</span>
+              {cursorHint.preview && (
+                <span className="text-ink-dim hidden sm:inline">
+                  {cursorHint.preview.length > 16
+                    ? cursorHint.preview.slice(0, 16) + '…'
+                    : cursorHint.preview || '(empty line)'}
+                </span>
+              )}
+            </span>
+          )}
         </div>
 
         {/* ── Edit / Preview panes ── */}
         <div
-          className={`flex min-h-100   ${isDragging ? 'ring-1 ring-accent-500' : ''}`}
+          className={cn('flex min-h-100', isDragging && 'ring-1 ring-accent-500')}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           {/* Editor pane */}
           {showEditor && (
-            <div className={`relative flex flex-col  ${viewLayout === 'split' ? 'w-1/2 border-r border-line' : 'w-full'}`}>
+            <div className={cn(
+              'relative flex flex-col',
+              viewLayout === 'split' ? 'w-1/2 border-r border-line' : 'w-full',
+            )}>
               <TextareaAutosize
                 ref={textareaRef}
                 value={content}
                 onChange={e => onChange(e.target.value)}
+                onBlur={handleTextareaBlur}
+                onFocus={handleTextareaFocus}
                 disabled={disabled}
                 spellCheck={false}
-                className="w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 overflow-hidden"
+                className="w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 overflow-hidden caret-accent-500"
                 placeholder={onImageDrop ? 'Markdown content… drag images here or use sidebar' : 'Markdown content…'}
               />
               {isDragging && (
@@ -157,7 +207,10 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {/* Preview pane */}
           {showPreview && (
             <div
-              className={`prose prose-sm max-w-none p-4 ${viewLayout === 'split' ? 'w-1/2' : 'w-full'} bg-bg`}
+              className={cn(
+                'prose prose-sm max-w-none p-4 bg-bg',
+                viewLayout === 'split' ? 'w-1/2' : 'w-full',
+              )}
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           )}
