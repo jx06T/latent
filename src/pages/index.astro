@@ -1,24 +1,15 @@
 ---
+export const prerender = true;
+
 import Hero from "@/components/hero/Hero.astro";
 import Layout from "@/layouts/Layout.astro";
 import EventOverview from "@/components/sections/EventOverview.astro";
 import TopProjects from "@/components/sections/TopProjects.astro";
-import TelemetryDashboard from "@/components/sections/TelemetryDashboard.astro";
+import TelemetryDashboard from "@/components/sections/TelemetryDashboard.tsx";
 import Partners from "@/components/sections/Partners.astro";
 import FAQ from "@/components/sections/FAQ.astro";
 import CTA from "@/components/sections/CTA.astro";
 import Wavesection from "@/components/sections/Wavesection.astro";
-import { supabase } from "@/lib/supabase";
-
-const { count: totalProjects } = await supabase
-  .from("projects")
-  .select("*", { count: "exact", head: true })
-  .eq("status", "published");
-
-const { data: voteData } = await supabase
-  .from("projects")
-  .select("like_count")
-  .eq("status", "published");
 
 ---
 
@@ -32,10 +23,7 @@ const { data: voteData } = await supabase
     <Wavesection color="var(--color-bg-surface)" />
     <EventOverview />
     <TopProjects />
-    <TelemetryDashboard
-      totalProjects={totalProjects ?? 0}
-      totalVotes={150}
-    />
+    <TelemetryDashboard client:visible />
     <Partners />
     <FAQ />
     <CTA />
