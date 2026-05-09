@@ -1,6 +1,6 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel.astro";
-import Button from "@/components/ui/Button.astro";
+import { LinkButton } from "@/components/ui/Button";
 ---
 
 <section id="cta" class="py-32 border-t border-line bg-bg relative overflow-hidden">
@@ -21,19 +21,8 @@ import Button from "@/components/ui/Button.astro";
     </h2>
 
     <div class="flex flex-col sm:flex-row gap-5 justify-center items-center">
-      <Button
-        as="a"
-        href="/projects"
-        variant="primary"
-        text="EXPLORE_DATABANKS"
-        scramble
-      />
-      <Button
-        as="a"
-        href="/contact"
-        variant="outline"
-        text="SUBMIT_PROJECT"
-      />
+      <LinkButton href="/projects" variant="primary" size="lg" bracket>EXPLORE_DATABANKS</LinkButton>
+      <LinkButton href="/contact" variant="outline" size="lg" bracket>SUBMIT_PROJECT</LinkButton>
     </div>
   </div>
 </section>

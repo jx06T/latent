@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import ProseLayout from "@/layouts/ProseLayout.astro";
-import Button from "@/components/ui/Button.astro";
+import { LinkButton } from "@/components/ui/Button";
 import Tag from "@/components/ui/Tag.astro";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import Link from "@/components/ui/Link.astro";
@@ -139,36 +139,15 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
     linkEntries.length > 0 && (
       <div class="flex flex-wrap gap-3 mb-10">
         {project.links.demo && (
-          <Button
-            as="a"
-            href={project.links.demo}
-            variant="primary"
-            text="線上展示"
-            target="_blank"
-            rel="noopener noreferrer"
-          />
+          <LinkButton href={project.links.demo} variant="primary" size="lg" bracket target="_blank" rel="noopener noreferrer">線上展示</LinkButton>
         )}
         {project.links.github && (
-          <Button
-            as="a"
-            href={project.links.github}
-            variant="outline"
-            text="原始碼"
-            target="_blank"
-            rel="noopener noreferrer"
-          />
+          <LinkButton href={project.links.github} variant="outline" size="lg" bracket target="_blank" rel="noopener noreferrer">原始碼</LinkButton>
         )}
         {linkEntries
           .filter(([key]) => key !== "demo" && key !== "github")
           .map(([key, url]) => (
-            <Button
-              as="a"
-              href={url!}
-              variant="secondary"
-              text={key}
-              target="_blank"
-              rel="noopener noreferrer"
-            />
+            <LinkButton href={url!} variant="secondary" size="lg" bracket target="_blank" rel="noopener noreferrer">{key}</LinkButton>
           ))}
       </div>
     )

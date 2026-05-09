@@ -120,7 +120,7 @@ export default function CommentsSection({ projectId }: Props) {
                       {formatDate(c.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm text-ink-muted whitespace-pre-wrap break-words leading-relaxed">
+                  <p className="text-sm text-ink-muted whitespace-pre-wrap wrap-break-word leading-relaxed">
                     {c.content}
                   </p>
                 </div>

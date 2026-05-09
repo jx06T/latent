@@ -1,6 +1,6 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel.astro";
-import Button from "@/components/ui/Button.astro";
+import { LinkButton } from "@/components/ui/Button";
 import Tag from "@/components/ui/Tag.astro";
 ---
 
@@ -18,14 +18,7 @@ import Tag from "@/components/ui/Tag.astro";
       講座採事先報名制，座位有限，額滿為止。<br />
       報名後請於活動當天憑報名資訊入場。
     </p>
-    <Button
-      as="a"
-      href="#"
-      variant="primary"
-      text="REGISTER_NOW"
-      target="_blank"
-      rel="noopener noreferrer"
-    />
+    <LinkButton href="#" variant="primary" size="lg" bracket target="_blank" rel="noopener noreferrer">REGISTER_NOW</LinkButton>
     <p class="font-mono text-xs text-ink-disabled mt-2">// Google Form — 即將開放</p>
   </div>
 

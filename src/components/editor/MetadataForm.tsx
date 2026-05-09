@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { CATEGORIES } from '@/lib/schema'
 import { isValidSlug, toSlugSuggestion } from '@/lib/slug'
 import type { CategoryId } from '@/lib/schema'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 
 export interface FormState {
   title: string
@@ -27,15 +29,11 @@ interface Props {
 
 const LINK_KEYS = ['demo', 'github', 'report', 'slides']
 
-const field =
-  'w-full bg-bg-surface border border-line text-ink font-mono text-xs px-2.5 py-1.5 outline-none focus:border-line-active placeholder:text-ink-disabled disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-
 const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mono select-none'
 
 export default function MetadataForm({ data, onChange, isSlugLocked, slugError, disabled }: Props) {
   const [slugTouched, setSlugTouched] = useState(false)
 
-  // ── Slug auto-suggest ──────────────────────────────────────────────────
   const handleTitleChange = (v: string) => {
     onChange('title', v)
     if (!slugTouched && !isSlugLocked) {
@@ -49,7 +47,6 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
     onChange('slug', v.toLowerCase())
   }
 
-  // ── Tag helpers ────────────────────────────────────────────────────────
   const handleTagInput = (f: 'keywords' | 'tech_stack', raw: string) =>
     onChange(f, raw.split(',').map(s => s.trim()).filter(Boolean))
 
@@ -67,17 +64,19 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
 
       {/* ── A: 標題 ──────────────────────────────────────────────────── */}
       <div className="space-y-2">
-        <input
-          className="w-full bg-transparent text-ink text-xl font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <Input
+          variant="underline"
+          className="text-xl text-ink"
           value={data.title}
-          onChange={e => handleTitleChange(e.target.value)}
+          onChange={(e: { target: { value: string } }) => handleTitleChange(e.target.value)}
           placeholder="Project title"
           disabled={disabled}
         />
-        <input
-          className="w-full bg-transparent text-ink-muted text-sm font-mono outline-none placeholder:text-ink-disabled border-b border-transparent focus:border-line pb-0.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <Input
+          variant="underline"
+          className="text-sm text-ink-muted"
           value={data.subtitle}
-          onChange={e => onChange('subtitle', e.target.value)}
+          onChange={(e: { target: { value: string } }) => onChange('subtitle', e.target.value)}
           placeholder="Subtitle (optional)"
           disabled={disabled}
         />
@@ -89,13 +88,14 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
           <label className={label}>
             Slug{isSlugLocked && <span className="ml-1.5 text-danger/70">[published]</span>}
           </label>
-          <input
-            className={`${field} ${(!slugValid || slugError) ? 'border-danger focus:border-danger' : ''}`}
+          <Input
+            size="sm"
             value={data.slug}
-            onChange={e => handleSlugChange(e.target.value)}
+            onChange={(e: { target: { value: string } }) => handleSlugChange(e.target.value)}
             disabled={isSlugLocked || disabled}
             placeholder="my-project-slug"
             spellCheck={false}
+            className={(!slugValid || slugError) ? 'border-danger focus:border-danger' : undefined}
           />
           {slugError
             ? <p className="text-xs text-danger mt-0.5">{slugError}</p>
@@ -107,29 +107,32 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
 
         <div>
           <label className={label}>Category</label>
-          <select
-            className={`${field} cursor-pointer`}
+          <Input
+            as="select"
+            size="sm"
             value={data.category_main}
-            onChange={e => onChange('category_main', Number(e.target.value))}
+            onChange={(e: { target: { value: string } }) => onChange('category_main', Number(e.target.value))}
             disabled={disabled}
           >
             {Object.entries(CATEGORIES).map(([id, lbl]) => (
               <option key={id} value={id}>{lbl}</option>
             ))}
-          </select>
+          </Input>
         </div>
       </div>
 
       {/* ── C: 描述 ──────────────────────────────────────────────────── */}
       <div>
         <label className={label}>Description</label>
-        <textarea
-          className={`${field} resize-y min-h-[80px] placeholder:text-ink-disabled `}
+        <Input
+          as="textarea"
+          size="sm"
           rows={4}
           value={data.description}
-          onChange={e => onChange('description', e.target.value)}
+          onChange={(e: { target: { value: string } }) => onChange('description', e.target.value)}
           placeholder="A brief description shown on project cards and the overview section…"
           disabled={disabled}
+          className="resize-y min-h-20"
         />
       </div>
 
@@ -146,21 +149,18 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
                 .filter(([id]) => Number(id) !== 0)
                 .map(([id, lbl]) => {
                   const nid = Number(id) as CategoryId
-                  const active = data.category_sub.includes(nid)
                   return (
-                    <button
+                    <Button
                       key={id}
                       type="button"
+                      variant="outline"
+                      size="xs"
+                      active={data.category_sub.includes(nid)}
                       onClick={() => toggleSubCat(nid)}
-                      className={`text-xs px-1.5 py-0.5 border transition-colors ${
-                        active
-                          ? 'border-accent-500 text-accent-500 bg-accent-500/10'
-                          : 'border-line text-ink-muted hover:border-line-active hover:text-ink'
-                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       disabled={disabled}
                     >
                       {lbl}
-                    </button>
+                    </Button>
                   )
                 })}
             </div>
@@ -169,20 +169,20 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={label}>Keywords [Comma-separated]</label>
-              <input
-                className={field}
+              <Input
+                size="sm"
                 value={data.keywords.join(', ')}
-                onChange={e => handleTagInput('keywords', e.target.value)}
+                onChange={(e: { target: { value: string } }) => handleTagInput('keywords', e.target.value)}
                 placeholder="ai, design, interactive"
                 disabled={disabled}
               />
             </div>
             <div>
               <label className={label}>Tech Stack</label>
-              <input
-                className={field}
+              <Input
+                size="sm"
                 value={data.tech_stack.join(', ')}
-                onChange={e => handleTagInput('tech_stack', e.target.value)}
+                onChange={(e: { target: { value: string } }) => handleTagInput('tech_stack', e.target.value)}
                 placeholder="React, Python, Three.js"
                 disabled={disabled}
               />
@@ -200,10 +200,10 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
           {LINK_KEYS.map(key => (
             <div key={key}>
               <label className={label}>{key}</label>
-              <input
-                className={field}
+              <Input
+                size="sm"
                 value={data.links[key] ?? ''}
-                onChange={e => onChange('links', { ...data.links, [key]: e.target.value })}
+                onChange={(e: { target: { value: string } }) => onChange('links', { ...data.links, [key]: e.target.value })}
                 placeholder={key === 'demo' ? 'https://…' : key === 'github' ? 'github.com/…' : ''}
                 type="url"
                 disabled={disabled}

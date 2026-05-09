@@ -224,7 +224,7 @@ export default function OnboardingForm() {
             <p className="text-sm text-ink-disabled">設定後無法修改 · 你的公開頁面將是 /@{handle || 'handle'}</p>
           </div>
 
-          <div className="flex-shrink-0 flex flex-col items-center gap-2">
+          <div className="shrink-0 flex flex-col items-center gap-2">
             <img
               src={dicebearUrl(handle || user.id)}
               alt="Avatar preview"

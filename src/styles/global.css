@@ -214,3 +214,28 @@
     border-radius: 2px;
   }
 }
+
+/* ── Button bracket blink ─────────────────────────────────────────────────── */
+.btn-bracket:hover {
+  animation: btn-blink 0.15s steps(2, start) 1;
+}
+@keyframes btn-blink {
+  to { opacity: 0.5; }
+}
+
+/* ── Terminal input cursor + autofill ─────────────────────────────────────── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.animate-cursor {
+  animation: cursor-blink 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  margin-right: -2px;
+}
+.terminal-input input:-webkit-autofill,
+.terminal-input input:-webkit-autofill:hover,
+.terminal-input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-bg-surface) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}

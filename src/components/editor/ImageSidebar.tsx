@@ -137,7 +137,7 @@ export default function ImageSidebar({
             ) : images.map(img => (
               <div key={img.id} className="flex-none w-24 space-y-1">
                 {/* Thumbnail */}
-                <div className="w-full aspect-[4/3] bg-bg-elevated border border-line overflow-hidden relative">
+                <div className="w-full aspect-4/3 bg-bg-elevated border border-line overflow-hidden relative">
                   {img.previewUrl ? (
                     <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
                   ) : (

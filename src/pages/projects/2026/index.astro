@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
-import Input from "@/components/ui/Input.astro";
+import { Input } from "@/components/ui/Input";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
@@ -75,11 +75,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
           <CommentLabel text="query_filter" />
-          <Input
-            id="search-input"
-            placeholder="search title, author, keyword..."
-            class="w-full"
-          />
+          <Input variant="terminal" id="search-input" placeholder="search title, author, keyword..." wrapperClassName="w-full" />
         </div>
       </div>
 

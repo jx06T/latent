@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useProjectEditor } from '@/hooks/useProjectEditor'
-import { LinkButton } from '@/components/ui/Button'
+import { Button, LinkButton } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import ActionIsland from '@/components/editor/ActionIsland'
@@ -129,13 +129,14 @@ export default function ProjectEditor({ projectId }: Props) {
           <>
             <LinkButton href="/profile" variant="ghost" className="text-sm">← Profile</LinkButton>
             {/* Mobile image panel toggle */}
-            <button
-              className="md:hidden w-7 h-7 flex items-center justify-center border border-line text-xs font-mono text-ink-muted hover:border-accent-500 hover:text-accent-500 transition-colors"
+            <Button
+              variant="outline"
+              className="md:hidden w-7 h-7 p-0"
               onClick={() => setMobileSidebarOpen(o => !o)}
               title="Toggle image panel"
             >
               {mobileSidebarOpen ? '✕' : '⊞'}
-            </button>
+            </Button>
           </>
         }
         right={

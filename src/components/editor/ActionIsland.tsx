@@ -42,13 +42,10 @@ export default function ActionIsland({
       {userEmail && (
         <div className="hidden sm:flex items-center gap-2 px-3 border border-line bg-bg/80 backdrop-blur-sm">
           <span className="text-success text-xs">●</span>
-          <span className="text-ink-muted text-xs truncate max-w-[120px]">{userEmail}</span>
-          <button
-            onClick={onSignOut}
-            className="text-xs text-ink-dim hover:text-danger transition-colors uppercase"
-          >
+          <span className="text-ink-muted text-xs truncate max-w-30">{userEmail}</span>
+          <Button variant="ghost" size="sm" onClick={onSignOut} className="hover:text-danger">
             signout
-          </button>
+          </Button>
         </div>
       )}
 
@@ -61,22 +58,22 @@ export default function ActionIsland({
 
       {/* Save error */}
       {saveError && (
-        <div className="px-2 py-1 border border-warning/40 bg-warning/10 text-xs text-warning max-w-[200px] truncate" title={saveError}>
+        <div className="px-2 py-1 border border-warning/40 bg-warning/10 text-xs text-warning max-w-50 truncate" title={saveError}>
           {saveError}
         </div>
       )}
       {/* Slug conflict error */}
       {slugError && (
-        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-xs text-danger max-w-[200px] truncate" title={slugError}>
+        <div className="px-2 py-1 border border-danger/40 bg-danger-ghost text-xs text-danger max-w-50 truncate" title={slugError}>
           {slugError}
         </div>
       )}
       {/* Save */}
       <Button
         variant="secondary"
+        size="md"
         onClick={onSave}
         disabled={!isDirty || isSaving || isProcessing}
-        className="px-3 text-sm"
       >
         {isSaving ? 'Saving...' : `Save${(isDirty && !isProcessing) ? '*' : ''}`}
       </Button>
@@ -84,9 +81,9 @@ export default function ActionIsland({
       {/* Publish */}
       <Button
         variant="primary"
+        size="md"
         onClick={onPublish}
         disabled={!canPublish || isPublished}
-        className="px-3 text-sm"
       >
         {isPublishing ? 'Publishing...' : isPublished ? 'Published' : 'Publish →'}
       </Button>

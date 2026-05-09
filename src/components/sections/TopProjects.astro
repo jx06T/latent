@@ -1,7 +1,7 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
-import Button from "@/components/ui/Button.astro";
+import { LinkButton } from "@/components/ui/Button";
 import ScrambleText from "../ui/ScrambleText.astro";
 
 interface ProjectCardProps {
@@ -91,12 +91,7 @@ const { projects = MOCK_PROJECTS } = Astro.props;
     </div>
 
     <div class="text-center mt-12">
-      <Button
-        as="a"
-        href="/projects/2026"
-        variant="outline"
-        text="VIEW_ALL_PROJECTS"
-      />
+      <LinkButton href="/projects/2026" variant="outline" size="lg" bracket>VIEW_ALL_PROJECTS</LinkButton>
     </div>
   </div>
 </section>

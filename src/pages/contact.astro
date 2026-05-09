@@ -2,8 +2,8 @@
 export const prerender = true;
 
 import ProseLayout from "@/layouts/ProseLayout.astro";
-import Input from "@/components/ui/Input.astro";
-import Button from "@/components/ui/Button.astro";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
 import StatusLog from "@/components/ui/StatusLog.astro";
 ---
@@ -25,51 +25,26 @@ import StatusLog from "@/components/ui/StatusLog.astro";
     <form id="contact-form" class="space-y-5" novalidate>
       <div>
         <CommentLabel text="your_name" />
-        <Input
-          id="field-name"
-          name="name"
-          type="text"
-          placeholder="你的名字或 handle"
-          class="w-full"
-        />
+        <Input variant="terminal" id="field-name" name="name" type="text" placeholder="你的名字或 handle" wrapperClassName="w-full" />
       </div>
 
       <div>
         <CommentLabel text="email_address" />
-        <Input
-          id="field-email"
-          name="email"
-          type="email"
-          placeholder="your@email.com"
-          class="w-full"
-        />
+        <Input variant="terminal" id="field-email" name="email" type="email" placeholder="your@email.com" wrapperClassName="w-full" />
       </div>
 
       <div>
         <CommentLabel text="subject" />
-        <Input
-          id="field-subject"
-          name="subject"
-          type="text"
-          placeholder="一行說明你的來意"
-          class="w-full"
-        />
+        <Input variant="terminal" id="field-subject" name="subject" type="text" placeholder="一行說明你的來意" wrapperClassName="w-full" />
       </div>
 
       <div>
         <CommentLabel text="message" />
-        <Input
-          id="field-message"
-          name="message"
-          type="textarea"
-          rows={5}
-          placeholder="詳細說明..."
-          class="w-full"
-        />
+        <Input variant="terminal" as="textarea" id="field-message" name="message" rows={5} placeholder="詳細說明..." wrapperClassName="w-full" />
       </div>
 
       <div class="pt-2">
-        <Button id="submit-btn" variant="primary" text="TRANSMIT_MESSAGE" type="submit" />
+        <Button id="submit-btn" variant="primary" size="lg" bracket type="submit">TRANSMIT_MESSAGE</Button>
       </div>
     </form>
 

@@ -1,12 +1,12 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Button from "@/components/ui/Button.astro";
+import { Button } from "@/components/ui/Button";
 import Link from "@/components/ui/Link.astro";
 import Tag from "@/components/ui/Tag.astro";
 import ScrambleText from "@/components/ui/ScrambleText.astro";
 import { House } from "lucide-react";
 import CommentLabel from "@/components/ui/CommentLabel.astro";
-import Input from "@/components/ui/Input.astro";
+import { Input } from "@/components/ui/Input";
 import Progress from "@/components/ui/Progress.astro";
 import StatusLog from "@/components/ui/StatusLog.astro";
 import LogManager from "@/components/modules/LogManager.astro";
@@ -128,12 +128,12 @@ const colorGroups = [
         02_組件測試
       </h2>
       <div class="flex flex-wrap gap-4">
-        <!-- 方式 A: 用 Prop 傳遞文字，自動 Scramble -->
-        <Button text="ENTER_SYSTEM" scramble class="text-xl" />
+        <!-- 方式 A: 傳遞文字，帶 bracket 動畫 -->
+        <Button variant="primary" size="lg" bracket className="text-xl">ENTER_SYSTEM</Button>
 
-        <!-- 方式 B: 用 Slot 輸入自定義 HTML (例如加個 Icon) -->
-        <Button variant="outline">
-          <House className=" inline size-4" />
+        <!-- 方式 B: 用 children 輸入自定義 HTML (例如加個 Icon) -->
+        <Button variant="outline" size="lg" bracket>
+          <House className="inline size-4" />
           <span>PROFILE</span>
         </Button>
         <!-- 方式 A: 一般內部連結 -->
@@ -155,25 +155,18 @@ const colorGroups = [
       <!-- 搜尋框範例 -->
       <div class="mb-8">
         <CommentLabel text="query_database" />
-        <Input
-          id="search"
-          placeholder="search projects, authors, keywords..."
-        />
+        <Input variant="terminal" id="search" placeholder="search projects, authors, keywords..." wrapperClassName="w-full" />
       </div>
 
       <!-- 留言板範例 -->
       <div class="mb-4">
         <CommentLabel text="broadcast_message" />
-        <Input
-          type="textarea"
-          placeholder="leave a message · @mention or #tag..."
-          rows={4}
-        />
+        <Input variant="terminal" as="textarea" placeholder="leave a message · @mention or #tag..." rows={4} wrapperClassName="w-full" />
       </div>
 
       <!-- 送出按鈕 -->
       <div class="flex justify-end">
-        <Button variant="primary" text="EXECUTE_SEND" class="text-sm" />
+        <Button variant="primary" size="md" bracket>EXECUTE_SEND</Button>
       </div>
     </section>
 
@@ -191,7 +184,7 @@ const colorGroups = [
         <StatusLog type="error" message="no match found · query timeout" />
       </div>
       <LogManager/>
-      <Button id="like-btn" text="LIKE_PROJECT" class=" mt-2"/>
+      <Button id="like-btn" size="md" bracket className="mt-2">LIKE_PROJECT</Button>
 
       <script>
         const testBtn = document.getElementById("like-btn");
