@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro'
-import { createServerClient, parseCookieHeader } from '@supabase/ssr'
-import { createAnonClient } from '@/lib/supabase-server'
+import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 
-export const GET: APIRoute = async ({ url, request, cookies, redirect }) => {
+export const GET: APIRoute = async ({ url, request }) => {
   const code = url.searchParams.get('code')
   const rawNext = url.searchParams.get('next') || '/'
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
@@ -11,26 +10,26 @@ export const GET: APIRoute = async ({ url, request, cookies, redirect }) => {
 
   if (!code) {
     console.warn('[callback] No code → redirect /')
-    return redirect('/')
+    return new Response(null, { status: 302, headers: { Location: '/' } })
   }
 
-  // createServerClient (no Database generic) is only used for the PKCE exchange.
-  // It reads the code_verifier from request cookies (set by createBrowserClient
-  // when signInWithOAuth was called) and sets the session cookies in the response.
+  // Write Set-Cookie headers to a plain Headers object.
+  // Using Astro's cookies.set() causes ResponseSentError because Supabase's
+  // internal _emitInitialSession fires setAll asynchronously after redirect() is called.
+  const responseHeaders = new Headers()
+
   const authClient = createServerClient(
     import.meta.env.PUBLIC_SUPABASE_URL,
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        // parseCookieHeader may return value?: string | undefined.
-        // Map to value: string so it satisfies CookieMethodsServer.getAll.
         getAll: () =>
           parseCookieHeader(request.headers.get('Cookie') ?? '')
             .map(c => ({ name: c.name, value: c.value ?? '' })),
 
         setAll: (cookiesToSet) =>
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookies.set(name, value, options as Parameters<typeof cookies.set>[2])
+            responseHeaders.append('Set-Cookie', serializeCookieHeader(name, value, options))
           ),
       },
     }
@@ -47,28 +46,12 @@ export const GET: APIRoute = async ({ url, request, cookies, redirect }) => {
 
   if (authError || !authData.session) {
     console.error('[callback] Exchange failed:', authError?.message)
-    return redirect('/')
+    return new Response(null, { status: 302, headers: { Location: '/' } })
   }
 
-  // Use our typed anon client (from supabase-server.ts) for DB queries —
-  // avoids the createServerClient<Database> generic compatibility issue.
-  const db = createAnonClient()
-  const { data: profile, error: profileError } = await db
-    .from('profiles')
-    .select('is_onboarded')
-    .eq('id', authData.session.user.id)
-    .maybeSingle()
-
-  console.log(
-    '[callback] profile →',
-    profile ? `is_onboarded=${profile.is_onboarded}` : 'not found',
-    profileError ? `error=${profileError.message}` : '',
-  )
-
-  const dest = (!profile || !profile.is_onboarded)
-    ? `/onboarding?next=${encodeURIComponent(next)}`
-    : next
-
-  console.log('[callback] → redirect to:', dest)
-  return redirect(dest)
+  // No forced onboarding — users can like/comment immediately after login.
+  // Onboarding is only triggered when accessing creator features (/profile).
+  console.log('[callback] → redirect to:', next)
+  responseHeaders.set('Location', next)
+  return new Response(null, { status: 302, headers: responseHeaders })
 }

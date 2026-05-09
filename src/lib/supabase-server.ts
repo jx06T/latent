@@ -15,6 +15,17 @@ export function createServiceClient() {
   })
 }
 
+/** User-scoped anon client: passes caller's JWT so RLS auth.uid() resolves correctly */
+export function createUserClient(token: string) {
+  const url = import.meta.env.PUBLIC_SUPABASE_URL
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) throw new Error('Supabase credentials not configured')
+  return createClient<Database>(url, key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
+
 /** Anon 客戶端：遵守 RLS，用於 SSR 頁面查詢公開資料 */
 export function createAnonClient() {
   const url = import.meta.env.PUBLIC_SUPABASE_URL
