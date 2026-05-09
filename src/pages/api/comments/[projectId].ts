@@ -7,28 +7,29 @@ export const GET: APIRoute = async ({ params }) => {
 
   const db = createAnonClient()
 
-  // Two queries: comments + profiles for users who have one
-  const { data: rows, error } = await db
-    .from('comments')
-    .select('id, content, created_at, user_id')
+  type VCommentRow = {
+    id: string; content: string; created_at: string; user_id: string
+    author_handle: string | null; author_nickname: string | null
+  }
+
+  const { data, error } = await (db as any)
+    .from('v_comments')
+    .select('id, content, created_at, user_id, author_handle, author_nickname')
     .eq('project_id', projectId)
     .order('created_at', { ascending: true })
 
-  if (error) return json({ error: error.message }, 500)
-  if (!rows?.length) return json([], 200)
+  if (error) return json({ error: (error as any).message }, 500)
 
-  const userIds = [...new Set(rows.map(r => r.user_id))]
-  const { data: profiles } = await db
-    .from('profiles')
-    .select('id, handle, nickname')
-    .in('id', userIds)
-
-  const profileMap = Object.fromEntries((profiles ?? []).map(p => [p.id, p]))
+  const rows = (data ?? []) as VCommentRow[]
+  if (!rows.length) return json([], 200)
 
   const comments = rows.map(r => ({
-    ...r,
-    author: profileMap[r.user_id]
-      ? { handle: profileMap[r.user_id].handle, nickname: profileMap[r.user_id].nickname }
+    id: r.id,
+    content: r.content,
+    created_at: r.created_at,
+    user_id: r.user_id,
+    author: (r.author_handle && r.author_nickname)
+      ? { handle: r.author_handle, nickname: r.author_nickname }
       : null,
   }))
 

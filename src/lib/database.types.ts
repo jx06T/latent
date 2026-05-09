@@ -197,6 +197,7 @@ export type Database = {
           id: string
           keywords: string[] | null
           like_count: number | null
+          comment_count: number
           links: Json | null
           poster_url: string | null
           private_data: Json | null
@@ -220,6 +221,7 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           like_count?: number | null
+          comment_count?: number
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
@@ -243,6 +245,7 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           like_count?: number | null
+          comment_count?: number
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
@@ -266,7 +269,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_comments: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          content: string
+          created_at: string
+          author_handle: string | null
+          author_nickname: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

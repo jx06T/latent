@@ -27,19 +27,26 @@ if (!cleanSlug || !/^[a-zA-Z0-9-]+$/.test(cleanSlug)) {
   return Astro.redirect("/404");
 }
 
-const { data: projectData, error: dbError } = await supabase
+const { data: rawData, error: dbError } = await supabase
   .from("projects")
-  .select("*")
+  .select(`
+    *,
+    project_images!project_images_project_id_fkey(id, project_id, status, source_ext, published_ext, available_sizes)
+  `)
   .eq("year", CURRENT_YEAR)
   .eq("slug", cleanSlug)
   .single();
 
-if (dbError || !projectData) {
+if (dbError || !rawData) {
   console.error("DB Error:", dbError);
   return Astro.redirect("/404");
 }
 
-const result = ProjectSchema.safeParse(projectData);
+// Extract images before Zod parses (Zod strips unknown keys)
+const projectImages = (((rawData as any).project_images ?? []) as ProjectImageRow[])
+  .filter((img) => img.status === "published");
+
+const result = ProjectSchema.safeParse(rawData);
 if (!result.success) {
   console.error(
     "Zod Validation Failed:",
@@ -48,15 +55,6 @@ if (!result.success) {
   return Astro.redirect("/404");
 }
 const project = result.data;
-
-// Fetch project images and resolve UUIDs → CDN URLs
-const { data: rawImages } = await supabase
-  .from("project_images")
-  .select("id, project_id, status, source_ext, published_ext, available_sizes")
-  .eq("project_id", project.id)
-  .eq("status", "published")
-
-const projectImages = (rawImages ?? []) as ProjectImageRow[]
 
 const resolvedContent = project.content
   ? replaceImageIds(project.content, projectImages)
