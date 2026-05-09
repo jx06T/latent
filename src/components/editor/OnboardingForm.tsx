@@ -43,7 +43,7 @@ function dicebearUrl(seed: string) {
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function OnboardingForm() {
-  const { user, loading: authLoading } = useSupabaseAuth()
+  const { user, isOnboarded, loading: authLoading } = useSupabaseAuth()
 
   const [handle, setHandle] = useState('')
   const [nickname, setNickname] = useState('')
@@ -55,6 +55,13 @@ export default function OnboardingForm() {
   const [handleStatus, setHandleStatus] = useState<HandleStatus>('idle')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // Redirect already-onboarded users away from this page
+  useEffect(() => {
+    if (!authLoading && isOnboarded) {
+      window.location.replace('/profile')
+    }
+  }, [authLoading, isOnboarded])
 
   // Restore draft from localStorage
   useEffect(() => {
@@ -113,25 +120,27 @@ export default function OnboardingForm() {
     affiliation !== '' &&
     !isSubmitting
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!canSubmit || !user) return
     setIsSubmitting(true)
     setSubmitError(null)
 
     const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
+      id: user.id,                      // 必須要傳，且必須等於 auth.uid()
       handle: handle.trim(),
       nickname: nickname.trim(),
       bio: '',
       affiliation: affiliation || null,
       age_group: ageGroup || null,
       referral_source: referralSource || null,
-      is_onboarded: true,
-      email: user.email ?? null,
+      is_onboarded: true,               // 設定為 true，完成新手引導
+      email: user.email ?? null,        // 帶上信箱
+      updated_at: new Date().toISOString() // 觸發更新時間
     })
 
     if (error) {
+      console.error("Upsert Error:", error);
       setSubmitError(error.message.includes('profiles_handle_key')
         ? '此代稱已被使用，請換一個。'
         : `發生錯誤：${error.message}`)
@@ -170,12 +179,12 @@ export default function OnboardingForm() {
   const handleStatusEl = (() => {
     const base = 'text-sm mt-1 font-mono'
     switch (handleStatus) {
-      case 'idle':     return null
-      case 'too_short':     return <p className={cn(base, 'text-ink-disabled')}>至少需要 3 個字元</p>
+      case 'idle': return null
+      case 'too_short': return <p className={cn(base, 'text-ink-disabled')}>至少需要 3 個字元</p>
       case 'invalid_format': return <p className={cn(base, 'text-ink-disabled')}>僅限小寫英數字母及連字號 (-)，不可在兩端</p>
       case 'checking': return <p className={cn(base, 'text-ink-dim animate-pulse')}>確認中…</p>
       case 'available': return <p className={cn(base, 'text-success')}>✓ 可以使用</p>
-      case 'taken':    return <p className={cn(base, 'text-danger')}>✗ 此代稱已被使用</p>
+      case 'taken': return <p className={cn(base, 'text-danger')}>✗ 此代稱已被使用</p>
     }
   })()
 

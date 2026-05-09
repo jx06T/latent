@@ -9,21 +9,14 @@ import NewProjectModal from '@/components/editor/NewProjectModal'
 import ProjectListItem, { type ProjectSummary } from '@/components/editor/ProjectListItem'
 
 export default function ProfileDashboard() {
-  const { user, profile, isLoggedIn, isOnboarded, loading: authLoading, signIn, signOut } = useSupabaseAuth()
+  const { user, profile, isLoggedIn, isOnboarded, accessToken, loading: authLoading, signIn, signOut } = useSupabaseAuth()
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
   const [coverImageUrls, setCoverImageUrls] = useState<Record<string, string>>({})
 
   const { confirm, dialog } = useConfirm()
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAccessToken(session?.access_token ?? null)
-    })
-  }, [isLoggedIn])
 
   // Auto-open new project modal when redirected from onboarding with ?new=1
   useEffect(() => {
@@ -36,12 +29,13 @@ export default function ProfileDashboard() {
     }
   }, [authLoading, isLoggedIn, isOnboarded])
 
-  // Redirect to onboarding if logged in but not yet onboarded
+  // Redirect to onboarding if logged in but not yet onboarded.
+  // authLoading=false guarantees profile fetch is complete (null = no profile row = new user).
   useEffect(() => {
-    if (!authLoading && isLoggedIn && !isOnboarded && profile !== null) {
+    if (!authLoading && isLoggedIn && !isOnboarded) {
       window.location.replace('/onboarding')
     }
-  }, [authLoading, isLoggedIn, isOnboarded, profile])
+  }, [authLoading, isLoggedIn, isOnboarded])
 
   // ── Load projects ──────────────────────────────────────────────────────
   const loadProjects = useCallback(async () => {
