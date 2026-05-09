@@ -4,19 +4,51 @@ import { supabase } from '@/lib/supabase'
 import { publishedUrl, draftKey, toCdnUrl } from '@/lib/image-paths'
 import { Button, LinkButton } from '@/components/ui/Button'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
+import { cn } from '@/lib/utils'
 import EditorTopBar from '@/components/editor/EditorTopBar'
 import NewProjectModal from '@/components/editor/NewProjectModal'
 import ProjectListItem, { type ProjectSummary } from '@/components/editor/ProjectListItem'
 
+const AFFILIATIONS = ['建電', '北資', '其他'] as const
+const AGE_GROUPS = ['15 歲以下', '15–17 歲', '18–20 歲', '21–23 歲', '24 歲以上'] as const
+
+function dicebearUrl(seed: string) {
+  return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(seed || 'default')}`
+}
+
 export default function ProfileDashboard() {
-  const { user, profile, isLoggedIn, isOnboarded, accessToken, loading: authLoading, signIn, signOut } = useSupabaseAuth()
+  const { user, profile, isLoggedIn, isOnboarded, accessToken, loading: authLoading, signIn, signOut, refreshProfile } = useSupabaseAuth()
+
+  // ── Tab ────────────────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<'projects' | 'profile'>('projects')
+
+  // ── Projects ───────────────────────────────────────────────────────────
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [coverImageUrls, setCoverImageUrls] = useState<Record<string, string>>({})
 
+  // ── Profile editing ────────────────────────────────────────────────────
+  const [draftNickname, setDraftNickname] = useState('')
+  const [draftBio, setDraftBio] = useState('')
+  const [draftAffiliation, setDraftAffiliation] = useState('')
+  const [draftAgeGroup, setDraftAgeGroup] = useState('')
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
+  const [profileSaved, setProfileSaved] = useState(false)
+
   const { confirm, dialog } = useConfirm()
+
+  // Sync draft fields when profile loads
+  useEffect(() => {
+    if (profile) {
+      setDraftNickname(profile.nickname)
+      setDraftBio(profile.bio ?? '')
+      setDraftAffiliation(profile.affiliation ?? '')
+      setDraftAgeGroup(profile.age_group ?? '')
+    }
+  }, [profile])
 
   // Auto-open new project modal when redirected from onboarding with ?new=1
   useEffect(() => {
@@ -127,6 +159,33 @@ export default function ProfileDashboard() {
     window.location.href = `/editor/${projectId}`
   }
 
+  // ── Save profile ───────────────────────────────────────────────────────
+  const saveProfile = async () => {
+    if (!user || !draftNickname.trim()) return
+    setProfileSaving(true)
+    setProfileSaveError(null)
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        nickname: draftNickname.trim(),
+        bio: draftBio.trim(),
+        affiliation: draftAffiliation || null,
+        age_group: draftAgeGroup || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', user.id)
+
+    if (error) {
+      setProfileSaveError(error.message)
+    } else {
+      await refreshProfile()
+      setProfileSaved(true)
+      setTimeout(() => setProfileSaved(false), 3000)
+    }
+    setProfileSaving(false)
+  }
+
   // ── Loading state ──────────────────────────────────────────────────────
   if (authLoading) {
     return (
@@ -184,40 +243,178 @@ export default function ProfileDashboard() {
         }
         right={
           <>
-            <Button variant="primary" onClick={() => setShowNewModal(true)} className="text-sm px-3">
-              + New Project
-            </Button>
+            {activeTab === 'projects' && (
+              <Button variant="primary" onClick={() => setShowNewModal(true)} className="text-sm px-3">
+                + New Project
+              </Button>
+            )}
             <Button variant="ghost" onClick={signOut} className="text-sm px-3">Sign Out</Button>
           </>
         }
       />
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-end justify-between mb-6">
-          <h1 className="text-sm uppercase tracking-widest text-ink">Projects</h1>
-          <span className="text-sm text-ink-disabled">{projects.length} total</span>
+        {/* Tabs */}
+        <div className="flex border-b border-line mb-8">
+          {(['projects', 'profile'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                'px-4 py-2 text-xs uppercase tracking-widest transition-colors border-b-2 -mb-px',
+                activeTab === tab
+                  ? 'border-accent-500 text-ink'
+                  : 'border-transparent text-ink-muted hover:text-ink',
+              )}
+            >
+              {tab === 'projects' ? '專案' : '個人資料'}
+            </button>
+          ))}
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-12 text-ink-muted text-sm animate-pulse">Loading…</div>
-        ) : projects.length === 0 ? (
-          <div className="border border-dashed border-line text-center py-12 space-y-3">
-            <p className="text-sm text-ink-muted">尚無專案</p>
-            <Button variant="outline" onClick={() => setShowNewModal(true)}>
-              建立第一個專案
-            </Button>
-          </div>
-        ) : (
-          <div className="divide-y divide-line border border-line">
-            {projects.map(p => (
-              <ProjectListItem
-                key={p.id}
-                project={p}
-                coverUrl={p.cover_image_id ? coverImageUrls[p.cover_image_id] : undefined}
-                isDeleting={deletingId === p.id}
-                onDelete={handleDelete}
+        {/* ── Projects tab ─────────────────────────────────────────────── */}
+        {activeTab === 'projects' && (
+          <>
+            <div className="flex items-end justify-between mb-6">
+              <h1 className="text-sm uppercase tracking-widest text-ink">Projects</h1>
+              <span className="text-sm text-ink-disabled">{projects.length} total</span>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12 text-ink-muted text-sm animate-pulse">Loading…</div>
+            ) : projects.length === 0 ? (
+              <div className="border border-dashed border-line text-center py-12 space-y-3">
+                <p className="text-sm text-ink-muted">尚無專案</p>
+                <Button variant="outline" onClick={() => setShowNewModal(true)}>
+                  建立第一個專案
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-line border border-line">
+                {projects.map(p => (
+                  <ProjectListItem
+                    key={p.id}
+                    project={p}
+                    coverUrl={p.cover_image_id ? coverImageUrls[p.cover_image_id] : undefined}
+                    isDeleting={deletingId === p.id}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Profile tab ──────────────────────────────────────────────── */}
+        {activeTab === 'profile' && profile && (
+          <div className="space-y-6 max-w-xl">
+            {/* Avatar + handle header */}
+            <div className="flex items-center gap-4 pb-4 border-b border-line">
+              <img
+                src={dicebearUrl(profile.handle)}
+                alt="avatar"
+                width={48}
+                height={48}
+                className="w-12 h-12 border border-line bg-bg-elevated shrink-0"
               />
-            ))}
+              <div>
+                <p className="text-sm text-ink">{profile.nickname}</p>
+                <a
+                  href={`/@${profile.handle}`}
+                  className="text-xs text-ink-disabled hover:text-ink transition-colors"
+                >
+                  /@{profile.handle}
+                </a>
+              </div>
+            </div>
+
+            {/* Handle (immutable) */}
+            <div className="space-y-1">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">代稱（不可修改）</label>
+              <div className="flex items-center border border-line bg-bg-elevated px-3 py-2 opacity-60 cursor-not-allowed select-none">
+                <span className="text-ink-disabled text-sm">@</span>
+                <span className="text-sm text-ink ml-0.5">{profile.handle}</span>
+              </div>
+            </div>
+
+            {/* Nickname */}
+            <div className="space-y-1">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">
+                顯示名稱 <span className="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                value={draftNickname}
+                onChange={e => setDraftNickname(e.target.value)}
+                maxLength={50}
+                className="w-full bg-transparent border border-line focus:border-line-active transition-colors px-3 py-2 text-sm text-ink placeholder:text-ink-disabled outline-none"
+              />
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-1">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">自我介紹</label>
+              <textarea
+                value={draftBio}
+                onChange={e => setDraftBio(e.target.value)}
+                maxLength={200}
+                rows={3}
+                placeholder="簡短介紹自己…"
+                className="w-full bg-transparent border border-line focus:border-line-active transition-colors px-3 py-2 text-sm text-ink placeholder:text-ink-disabled outline-none resize-none"
+              />
+              <p className="text-xs text-ink-disabled text-right">{draftBio.length}/200</p>
+            </div>
+
+            {/* Affiliation */}
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">所屬社團</label>
+              <div className="flex gap-3 flex-wrap">
+                {AFFILIATIONS.map(aff => (
+                  <button
+                    key={aff}
+                    type="button"
+                    onClick={() => setDraftAffiliation(draftAffiliation === aff ? '' : aff)}
+                    className={cn(
+                      'px-4 py-2 border text-sm transition-colors',
+                      draftAffiliation === aff
+                        ? 'border-primary-500 text-ink bg-primary-950'
+                        : 'border-line text-ink-muted hover:border-line-active hover:text-ink',
+                    )}
+                  >
+                    {aff}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Age group */}
+            <div className="space-y-1">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">年齡區間</label>
+              <select
+                value={draftAgeGroup}
+                onChange={e => setDraftAgeGroup(e.target.value)}
+                className="w-full bg-bg-elevated border border-line focus:border-line-active transition-colors px-3 py-2 text-sm text-ink outline-none appearance-none"
+              >
+                <option value="">（選填）</option>
+                {AGE_GROUPS.map(ag => <option key={ag} value={ag}>{ag}</option>)}
+              </select>
+            </div>
+
+            {/* Save */}
+            {profileSaveError && (
+              <p className="text-sm text-danger border border-danger/30 px-3 py-2">{profileSaveError}</p>
+            )}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="primary"
+                onClick={saveProfile}
+                disabled={!draftNickname.trim() || profileSaving}
+                className="text-sm px-5"
+              >
+                {profileSaving ? '儲存中…' : '儲存變更'}
+              </Button>
+              {profileSaved && <span className="text-sm text-success">✓ 已儲存</span>}
+            </div>
           </div>
         )}
       </main>

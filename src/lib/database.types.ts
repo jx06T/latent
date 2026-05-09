@@ -34,64 +34,27 @@ export type Database = {
   }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          handle: string
-          nickname: string
-          bio: string
-          affiliation: string | null
-          age_group: string | null
-          referral_source: string | null
-          is_onboarded: boolean
-          email: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id: string
-          handle: string
-          nickname?: string
-          bio?: string
-          affiliation?: string | null
-          age_group?: string | null
-          referral_source?: string | null
-          is_onboarded?: boolean
-          email?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          handle?: string
-          nickname?: string
-          bio?: string
-          affiliation?: string | null
-          age_group?: string | null
-          referral_source?: string | null
-          is_onboarded?: boolean
-          email?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       comments: {
         Row: {
+          content: string
+          created_at: string
           id: string
           project_id: string
           user_id: string
-          content: string
-          created_at: string
         }
         Insert: {
+          content: string
+          created_at?: string
           id?: string
           project_id: string
           user_id: string
-          content: string
-          created_at?: string
         }
         Update: {
           content?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -103,38 +66,50 @@ export type Database = {
           },
         ]
       }
-      project_likes: {
+      profiles: {
         Row: {
-          user_id: string
-          project_id: string
+          affiliation: string | null
+          age_group: string | null
+          avatar_url: string | null
+          bio: string
           created_at: string
+          email: string | null
+          handle: string | null
+          id: string
+          is_onboarded: boolean
+          nickname: string
+          referral_source: string | null
+          updated_at: string
         }
         Insert: {
-          user_id: string
-          project_id: string
+          affiliation?: string | null
+          age_group?: string | null
+          avatar_url?: string | null
+          bio?: string
           created_at?: string
+          email?: string | null
+          handle?: string | null
+          id: string
+          is_onboarded?: boolean
+          nickname?: string
+          referral_source?: string | null
+          updated_at?: string
         }
         Update: {
-          user_id?: string
-          project_id?: string
+          affiliation?: string | null
+          age_group?: string | null
+          avatar_url?: string | null
+          bio?: string
           created_at?: string
+          email?: string | null
+          handle?: string | null
+          id?: string
+          is_onboarded?: boolean
+          nickname?: string
+          referral_source?: string | null
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "project_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_likes_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       project_images: {
         Row: {
@@ -176,6 +151,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_images_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_likes: {
+        Row: {
+          created_at: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_likes_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
