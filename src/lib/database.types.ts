@@ -190,6 +190,7 @@ export type Database = {
           author_id: string
           category_main: number
           category_sub: number[] | null
+          comment_count: number
           content: string | null
           cover_image_id: string | null
           created_at: string
@@ -197,7 +198,6 @@ export type Database = {
           id: string
           keywords: string[] | null
           like_count: number | null
-          comment_count: number
           links: Json | null
           poster_url: string | null
           private_data: Json | null
@@ -214,6 +214,7 @@ export type Database = {
           author_id: string
           category_main: number
           category_sub?: number[] | null
+          comment_count?: number
           content?: string | null
           cover_image_id?: string | null
           created_at?: string
@@ -221,7 +222,6 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           like_count?: number | null
-          comment_count?: number
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
@@ -238,6 +238,7 @@ export type Database = {
           author_id?: string
           category_main?: number
           category_sub?: number[] | null
+          comment_count?: number
           content?: string | null
           cover_image_id?: string | null
           created_at?: string
@@ -245,7 +246,6 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           like_count?: number | null
-          comment_count?: number
           links?: Json | null
           poster_url?: string | null
           private_data?: Json | null
@@ -271,15 +271,24 @@ export type Database = {
     Views: {
       v_comments: {
         Row: {
-          id: string
-          project_id: string
-          user_id: string
-          content: string
-          created_at: string
+          author_avatar_url: string | null
           author_handle: string | null
           author_nickname: string | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          project_id: string | null
+          user_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
