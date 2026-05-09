@@ -130,7 +130,9 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
     </h1>
     {project.subtitle && <p class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</p>}
     <p class="font-mono text-lg text-ink-dim -mt-1">
-      by <span class="text-ink">{project.author_handle}</span>
+      by <a href={`/@${project.author_handle}`} class="text-ink hover:text-accent-400 transition-colors">
+        {project.author_handle}
+      </a>
     </p>
   </header>
 
