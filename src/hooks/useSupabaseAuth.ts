@@ -1,20 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import type { Tables } from '@/lib/database.types'
 
-export interface Profile {
-  id: string
-  handle: string
-  nickname: string
-  bio: string
-  affiliation: string | null
-  age_group: string | null
-  referral_source: string | null
-  is_onboarded: boolean
-  email: string | null
-  created_at: string
-  updated_at: string
-}
+export type Profile = Tables<'profiles'>
 
 export interface SupabaseAuth {
   user: User | null

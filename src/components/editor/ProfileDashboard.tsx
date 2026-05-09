@@ -311,7 +311,7 @@ export default function ProfileDashboard() {
             {/* Avatar + handle header */}
             <div className="flex items-center gap-4 pb-4 border-b border-line">
               <img
-                src={dicebearUrl(profile.handle)}
+                src={dicebearUrl(profile.handle ?? '')}
                 alt="avatar"
                 width={48}
                 height={48}
@@ -320,10 +320,10 @@ export default function ProfileDashboard() {
               <div>
                 <p className="text-sm text-ink">{profile.nickname}</p>
                 <a
-                  href={`/@${profile.handle}`}
+                  href={`/@${profile.handle ?? ''}`}
                   className="text-xs text-ink-disabled hover:text-ink transition-colors"
                 >
-                  /@{profile.handle}
+                  /@{profile.handle ?? ''}
                 </a>
               </div>
             </div>
@@ -333,7 +333,7 @@ export default function ProfileDashboard() {
               <label className="block text-xs uppercase tracking-widest text-ink-muted">代稱（不可修改）</label>
               <div className="flex items-center border border-line bg-bg-elevated px-3 py-2 opacity-60 cursor-not-allowed select-none">
                 <span className="text-ink-disabled text-sm">@</span>
-                <span className="text-sm text-ink ml-0.5">{profile.handle}</span>
+                <span className="text-sm text-ink ml-0.5">{profile.handle ?? ''}</span>
               </div>
             </div>
 
