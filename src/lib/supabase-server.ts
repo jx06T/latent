@@ -15,6 +15,20 @@ export function createServiceClient() {
   })
 }
 
+/** Anon 客戶端：遵守 RLS，用於 SSR 頁面查詢公開資料 */
+export function createAnonClient() {
+  const url = import.meta.env.PUBLIC_SUPABASE_URL
+  const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+
+  if (!url || !key) {
+    throw new Error('Supabase credentials not configured (PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY)')
+  }
+
+  return createClient<Database>(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
+
 /**
  * 驗證 Bearer token 並回傳使用者 ID
  * @throws Error('Unauthorized') when token is invalid

@@ -1,0 +1,142 @@
+---
+export const prerender = false
+
+import Layout from '@/layouts/Layout.astro'
+import { createAnonClient } from '@/lib/supabase-server'
+import { publishedUrl, toCdnUrl, draftKey } from '@/lib/image-paths'
+import { CATEGORIES } from '@/lib/schema'
+
+const { handle } = Astro.params
+
+const db = createAnonClient()
+
+// Fetch public profile
+const { data: profile } = await db
+  .from('profiles')
+  .select('id, handle, nickname, bio, affiliation, created_at')
+  .eq('handle', handle!)
+  .maybeSingle()
+
+if (!profile) {
+  Astro.response.status = 404
+  return Astro.rewrite('/404')
+}
+
+// Fetch published projects with cover image data
+const { data: projects } = await db
+  .from('projects')
+  .select(`
+    id, title, slug, year, description, category_main, cover_image_id,
+    cover_image:project_images!projects_cover_image_id_fkey(id, project_id, status, published_ext, available_sizes, source_ext)
+  `)
+  .eq('author_id', profile.id)
+  .eq('status', 'published')
+  .order('created_at', { ascending: false })
+
+function getCoverUrl(p: any): string | null {
+  const img = p.cover_image
+  if (!img) return null
+  try {
+    if (img.status === 'published' && img.published_ext && img.available_sizes?.length) {
+      return publishedUrl(img, 'md')
+    }
+    if (img.status === 'draft' && img.source_ext) {
+      return toCdnUrl(draftKey(img.project_id, img.id, img.source_ext))
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
+const avatarUrl = `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(profile.handle)}`
+const joinYear = new Date(profile.created_at).getFullYear()
+---
+
+<Layout
+  title={`${profile.nickname} (@${profile.handle}) · Latent`}
+  description={profile.bio || `${profile.nickname} 在 Latent 的個人頁面`}
+>
+  <main class="max-w-4xl mx-auto px-4 py-16 font-mono">
+
+    {/* ── Profile Header ───────────────────────────────────────── */}
+    <section class="flex flex-col sm:flex-row gap-6 sm:gap-8 items-start mb-16">
+      <img
+        src={avatarUrl}
+        alt={`${profile.nickname} 的頭像`}
+        width="80"
+        height="80"
+        class="w-20 h-20 border border-line bg-bg-elevated shrink-0"
+      />
+      <div class="space-y-2 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3">
+          <h1 class="text-xl text-ink">{profile.nickname}</h1>
+          <span class="text-sm text-ink-dim">@{profile.handle}</span>
+        </div>
+
+        {profile.affiliation && (
+          <span class="inline-block border border-primary-700 bg-primary-950 text-ink-dim text-sm px-2 py-0.5">
+            {profile.affiliation}
+          </span>
+        )}
+
+        {profile.bio ? (
+          <p class="text-sm text-ink-muted max-w-xl">{profile.bio}</p>
+        ) : null}
+
+        <p class="text-sm text-ink-disabled">加入於 {joinYear} 年</p>
+      </div>
+    </section>
+
+    {/* ── Projects ─────────────────────────────────────────────── */}
+    <section>
+      <div class="flex items-end justify-between mb-6">
+        <h2 class="text-sm uppercase tracking-widest text-ink-muted">作品</h2>
+        <span class="text-sm text-ink-disabled">{projects?.length ?? 0} 件</span>
+      </div>
+
+      {!projects?.length ? (
+        <div class="border border-dashed border-line text-center py-16">
+          <p class="text-sm text-ink-muted">尚未發布任何作品</p>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-px border border-line bg-line">
+          {projects.map((p: any) => {
+            const coverUrl = getCoverUrl(p)
+            const catLabel = CATEGORIES[p.category_main as keyof typeof CATEGORIES] ?? '未分類'
+            const href = `/projects/${p.year}/${p.slug}`
+            return (
+              <a
+                href={href}
+                class="group bg-bg hover:bg-bg-surface transition-colors flex flex-col"
+              >
+                {coverUrl ? (
+                  <div class="aspect-video overflow-hidden bg-bg-elevated">
+                    <img
+                      src={coverUrl}
+                      alt={p.title}
+                      loading="lazy"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                ) : (
+                  <div class="aspect-video bg-bg-elevated flex items-center justify-center">
+                    <span class="text-sm text-ink-disabled">{catLabel}</span>
+                  </div>
+                )}
+                <div class="p-4 space-y-1 flex-1 flex flex-col">
+                  <span class="text-sm text-ink-dim">{catLabel}</span>
+                  <h3 class="text-sm text-ink group-hover:text-primary-400 transition-colors line-clamp-2">
+                    {p.title}
+                  </h3>
+                  {p.description && (
+                    <p class="text-sm text-ink-muted line-clamp-2 flex-1">{p.description}</p>
+                  )}
+                </div>
+              </a>
+            )
+          })}
+        </div>
+      )}
+    </section>
+
+  </main>
+</Layout>

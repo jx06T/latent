@@ -34,6 +34,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          id: string
+          handle: string
+          nickname: string
+          bio: string
+          affiliation: string | null
+          age_group: string | null
+          referral_source: string | null
+          is_onboarded: boolean
+          email: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          handle: string
+          nickname?: string
+          bio?: string
+          affiliation?: string | null
+          age_group?: string | null
+          referral_source?: string | null
+          is_onboarded?: boolean
+          email?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          handle?: string
+          nickname?: string
+          bio?: string
+          affiliation?: string | null
+          age_group?: string | null
+          referral_source?: string | null
+          is_onboarded?: boolean
+          email?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_likes: {
+        Row: {
+          user_id: string
+          project_id: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          project_id: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          project_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_likes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_images: {
         Row: {
           author_id: string

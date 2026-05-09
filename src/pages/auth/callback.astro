@@ -15,24 +15,45 @@ export const prerender = false
     <script>
       import { supabase } from '@/lib/supabase'
 
+      // Capture next BEFORE Supabase cleans the URL via history.replaceState
       const params = new URLSearchParams(window.location.search)
       const raw = params.get('next') || '/'
-      // Guard against open redirect: must be a same-origin path
       const next = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
 
-      // Supabase auto-parses the hash tokens on load; wait for SIGNED_IN
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-        if (event === 'SIGNED_IN') {
-          subscription.unsubscribe()
+      // Prevent double-redirect when both INITIAL_SESSION and SIGNED_IN fire
+      let redirected = false
+
+      async function resolveAndRedirect(userId: string) {
+        if (redirected) return
+        redirected = true
+
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('is_onboarded')
+            .eq('id', userId)
+            .maybeSingle()
+
+          const dest = (!data || !data.is_onboarded)
+            ? `/onboarding?next=${encodeURIComponent(next)}`
+            : next
+
+          window.location.replace(dest)
+        } catch {
+          // On any error, still redirect so the user isn't stranded
           window.location.replace(next)
         }
-      })
+      }
 
-      // Fallback: already signed in (e.g. token in URL was already consumed)
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          subscription.unsubscribe()
-          window.location.replace(next)
+      // Single source of truth: onAuthStateChange handles both cases:
+      //   INITIAL_SESSION  → user was already signed in (e.g. page refresh)
+      //   SIGNED_IN        → new OAuth login just completed (PKCE exchange done)
+      // We deliberately avoid a parallel getSession() call to eliminate the
+      // race condition where getSession() resolves with a stale/prior session
+      // before the PKCE exchange finishes, triggering a premature redirect.
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+          resolveAndRedirect(session.user.id)
         }
       })
     </script>
