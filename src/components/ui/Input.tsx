@@ -8,8 +8,8 @@ export type InputAs      = 'input' | 'textarea' | 'select'
 // ─── Style constants ──────────────────────────────────────────────────────────
 
 const sizes: Record<InputSize, string> = {
-  sm: 'px-2.5 py-1.5 text-xs',
-  md: 'px-3 py-2 text-sm',
+  sm: 'px-2.5 py-1.5 text-sm',
+  md: 'px-3 py-2 text-base',
 }
 
 const defaultBase =

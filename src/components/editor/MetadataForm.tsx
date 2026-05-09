@@ -154,7 +154,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
                       key={id}
                       type="button"
                       variant="outline"
-                      size="xs"
+                      size="sm"
                       active={data.category_sub.includes(nid)}
                       onClick={() => toggleSubCat(nid)}
                       disabled={disabled}

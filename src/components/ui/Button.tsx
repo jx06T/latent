@@ -7,7 +7,7 @@ export type ButtonSize   = 'xs' | 'sm' | 'md' | 'lg'
 // Sizes — xs: tiny tags, sm: editor default (backward compat), md: form/modal, lg: landing page CTA
 const sizes: Record<ButtonSize, string> = {
   xs: 'px-1.5 py-0.5 text-[10px] tracking-wider',
-  sm: 'px-2.5 py-1   text-[10px] tracking-wider',
+  sm: 'px-2.5 py-1.5   text-xs tracking-wider',
   md: 'px-3.5 py-2   text-sm     tracking-widest',
   lg: 'px-3.5 py-2   text-lg     tracking-widest',
 }
