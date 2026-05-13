@@ -158,7 +158,7 @@ export default function ProjectEditor({ projectId }: Props) {
       {/* ── Mobile floating image panel ── */}
       <div
         className={cn(
-          'md:hidden fixed top-11 left-0 right-0 z-30 h-[13.5rem] bg-bg-elevated border-b border-line shadow-lg',
+          'md:hidden fixed top-11 left-0 right-0 z-30 h-[13.3rem] bg-bg-elevated border-b border-line shadow-lg',
           'transition-transform duration-200',
           mobileSidebarOpen ? 'translate-y-0' : '-translate-y-full',
         )}
