@@ -2,7 +2,10 @@
 import Tag from "@/components/ui/Tag.astro";
 import { CATEGORIES } from "@/lib/schema";
 import type { CategoryId } from "@/lib/schema";
+import Button from "@/components/ui/Button.astro";
+import CommentLabel from "@/components/ui/CommentLabel.astro";
 import { ArrowUpRight } from "lucide-react";
+import Link from "@/components/ui/Link.astro";
 
 interface Props {
   slug: string;
@@ -33,11 +36,11 @@ const categoryLabel = CATEGORIES[category_main as CategoryId] ?? CATEGORIES[0];
 
 <article
   class="group flex flex-col bg-bg-surface border border-line hover:border-line-active
-         transition-colors duration-300 hover:shadow-primary-sm overflow-hidden"
+         transition-colors duration-300 hover:shadow-primary-sm relative"
 >
   <!-- Cover image -->
   <div
-    class="relative h-44 bg-bg-elevated overflow-hidden border-b border-line block"
+    class="w-full aspect-video bg-bg-elevated overflow-hidden border-b border-line block"
     tabindex="-1"
     aria-hidden="true"
   >
@@ -51,42 +54,48 @@ const categoryLabel = CATEGORIES[category_main as CategoryId] ?? CATEGORIES[0];
                group-hover:scale-105 transition-all duration-500"
         />
       ) : (
-        <div class="w-full h-full flex items-center justify-center border-dashed-cyber">
-          <span class="font-mono text-xs text-ink-disabled">
-            // NO_COVER_SIGNAL
-          </span>
+        <div class="w-full h-full p-[10%] group-hover:scale-105 transition-all duration-500">
+          <div class="w-full h-full  border-dashed-cyber  flex items-center justify-center ">
+            <span class="  text-center  font-mono text-xs text-ink-ddim ">
+              // NO_COVER_SIGNAL
+            </span>
+          </div>
         </div>
       )
     }
-    <span
-      class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-accent-500
-             opacity-0 group-hover:opacity-100 transition-opacity"
-      aria-hidden="true"></span>
   </div>
 
   <!-- Card body -->
-  <div class="flex flex-col flex-1 p-4 gap-2">
-    <Tag variant="main">{categoryLabel}</Tag>
-    <h3 class="text-xl font-bold leading-snug mt-1">
-      <a
-        href={`/projects/${year}/${slug}`}
-        class="text-ink hover:text-accent-400 transition-colors duration-200 inline-flex items-center gap-1.5 group/title"
-      >
-        {title}
-        <ArrowUpRight className=" font-bold inline-block -mb-0.5 -ml-1.75" />
+  <div class="p-2 w-full pt-1">
+    <div class="flex flex-col flex-1 p-2">
+      <a href={`/projects/${year}/${slug}`} class="cursor-pointer">
+        <span class="text-ink text-xl hover:text-accent-500">
+          {title}
+          <ArrowUpRight className=" font-bold inline-block -ml-1.75" />
+        </span>
       </a>
-    </h3>
-    <p class="text-ink-dim text-sm leading-relaxed line-clamp-2 flex-1">
-      {subtitle ?? "// NO_SUBTITLE_PROVIDED"}
-    </p>
-    <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
-      {tech_stack.slice(0, 3).map((t) => <Tag variant="sub">{t}</Tag>)}
-      {
-        tech_stack.length > 3 && (
-          <Tag variant="sub">+{tech_stack.length - 3}</Tag>
-        )
-      }
+      <CommentLabel text={subtitle ?? "NO_SUBTITLE"} />
+
+      <div class="flex flex-wrap gap-1.5 mt-2">
+        {
+          tech_stack.slice(0, 3).map((t) => (
+            <Tag variant="sub" class=" text-xs ">
+              {t}
+            </Tag>
+          ))
+        }
+        {
+          tech_stack.length > 3 && (
+            <Tag variant="sub" class=" text-xs ">
+              +{tech_stack.length - 3}
+            </Tag>
+          )
+        }
+      </div>
     </div>
+    <Tag class="text-sm w-full mt-3">
+      <span class="text-[10px] inline-block mr-1">■</span>{categoryLabel}</Tag
+    >
   </div>
 
   <!-- Card footer -->
@@ -94,7 +103,20 @@ const categoryLabel = CATEGORIES[category_main as CategoryId] ?? CATEGORIES[0];
     class="flex justify-between items-center px-4 py-2.5 border-t border-line
            font-mono text-xs text-ink-dim"
   >
-    <span>@{author_handle}</span>
+    <Link
+      href={`/@${author_handle}`}
+      class="text-ink-dim"
+      text={`@${author_handle}`}
+    />
     <span class="text-accent-500">♦ {like_count}</span>
   </footer>
+
+  <span
+    class="absolute -top-0.5 -right-0.5 w-4 h-4 border-t-2 border-r-2 border-accent-500
+           opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+    aria-hidden="true"></span>
+  <span
+    class="absolute -bottom-0.5 -left-0.5 w-4 h-4 border-b-2 border-l-2 border-accent-500
+           opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+    aria-hidden="true"></span>
 </article>

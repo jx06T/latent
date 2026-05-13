@@ -87,7 +87,7 @@ export function Input({
   if (as === 'select') {
     return (
       <select
-        className={cn(defaultBase, sizes[size], 'cursor-pointer', className)}
+        className={cn(defaultBase, sizes[size], 'cursor-pointer leading-tight', className)}
         {...(rest as any)}
       >
         {children}
