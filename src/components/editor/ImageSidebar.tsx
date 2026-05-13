@@ -279,7 +279,7 @@ export default function ImageSidebar({
               </Button>
 
               <Button
-                variant={coverId === img.id ? 'secondary' : 'ghost'}
+                variant={coverId === img.id ? 'primary' : 'outline'}
                 className="text-xs px-2 py-0.5"
                 onClick={() => onSetCover(coverId === img.id ? null : img.id)}
                 disabled={disabled}

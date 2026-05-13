@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CATEGORIES } from '@/lib/schema'
 import { isValidSlug, toSlugSuggestion } from '@/lib/slug'
 import type { CategoryId } from '@/lib/schema'
@@ -33,6 +33,17 @@ const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mon
 
 export default function MetadataForm({ data, onChange, isSlugLocked, slugError, disabled }: Props) {
   const [slugTouched, setSlugTouched] = useState(false)
+  const [tagRaw, setTagRaw] = useState({
+    keywords: data.keywords.join(', '),
+    tech_stack: data.tech_stack.join(', '),
+  })
+
+  useEffect(() => {
+    setTagRaw({
+      keywords: data.keywords.join(', '),
+      tech_stack: data.tech_stack.join(', '),
+    })
+  }, [data.keywords, data.tech_stack])
 
   const handleTitleChange = (v: string) => {
     onChange('title', v)
@@ -47,8 +58,11 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
     onChange('slug', v.toLowerCase())
   }
 
-  const handleTagInput = (f: 'keywords' | 'tech_stack', raw: string) =>
-    onChange(f, raw.split(',').map(s => s.trim()).filter(Boolean))
+  const handleTagChange = (f: 'keywords' | 'tech_stack', raw: string) =>
+    setTagRaw(prev => ({ ...prev, [f]: raw }))
+
+  const handleTagBlur = (f: 'keywords' | 'tech_stack') =>
+    onChange(f, tagRaw[f].split(',').map(s => s.trim()).filter(Boolean))
 
   const toggleSubCat = (id: number) => {
     const next = data.category_sub.includes(id)
@@ -95,7 +109,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
             disabled={isSlugLocked || disabled}
             placeholder="my-project-slug"
             spellCheck={false}
-            className={(!slugValid || slugError) ? 'border-danger focus:border-danger' : undefined}
+            className={(!slugValid || slugError) ? 'border-danger focus:border-danger h-9' : 'h-9'}
           />
           {slugError
             ? <p className="text-xs text-danger mt-0.5">{slugError}</p>
@@ -113,6 +127,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
             value={data.category_main}
             onChange={(e: { target: { value: string } }) => onChange('category_main', Number(e.target.value))}
             disabled={disabled}
+            className=' h-9'
           >
             {Object.entries(CATEGORIES).map(([id, lbl]) => (
               <option key={id} value={id}>{lbl}</option>
@@ -171,8 +186,9 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
               <label className={label}>Keywords [Comma-separated]</label>
               <Input
                 size="sm"
-                value={data.keywords.join(', ')}
-                onChange={(e: { target: { value: string } }) => handleTagInput('keywords', e.target.value)}
+                value={tagRaw.keywords}
+                onChange={(e: { target: { value: string } }) => handleTagChange('keywords', e.target.value)}
+                onBlur={() => handleTagBlur('keywords')}
                 placeholder="ai, design, interactive"
                 disabled={disabled}
               />
@@ -181,8 +197,9 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
               <label className={label}>Tech Stack</label>
               <Input
                 size="sm"
-                value={data.tech_stack.join(', ')}
-                onChange={(e: { target: { value: string } }) => handleTagInput('tech_stack', e.target.value)}
+                value={tagRaw.tech_stack}
+                onChange={(e: { target: { value: string } }) => handleTagChange('tech_stack', e.target.value)}
+                onBlur={() => handleTagBlur('tech_stack')}
                 placeholder="React, Python, Three.js"
                 disabled={disabled}
               />
