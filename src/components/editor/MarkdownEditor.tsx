@@ -28,9 +28,41 @@ interface Props {
 type ViewLayout = 'split' | 'tab'
 type TabView = 'edit' | 'preview'
 
-interface CursorHint {
-  line: number
-  preview: string
+interface CursorPos { top: number; left: number; height: number }
+
+function getCaretCoords(ta: HTMLTextAreaElement): CursorPos {
+  const mirror = document.createElement('div')
+  const cs = window.getComputedStyle(ta)
+  const taRect = ta.getBoundingClientRect()
+
+  for (const p of [
+    'font-family', 'font-size', 'font-weight', 'font-style', 'letter-spacing',
+    'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+    'box-sizing', 'width', 'word-break', 'overflow-wrap', 'white-space',
+  ]) mirror.style.setProperty(p, cs.getPropertyValue(p))
+
+  Object.assign(mirror.style, {
+    position: 'fixed', visibility: 'hidden',
+    top: `${taRect.top}px`, left: `${taRect.left}px`,
+    height: 'auto', overflow: 'hidden',
+  })
+
+  mirror.appendChild(document.createTextNode(ta.value.slice(0, ta.selectionStart)))
+  const caret = document.createElement('span')
+  caret.textContent = '​'
+  mirror.appendChild(caret)
+  document.body.appendChild(mirror)
+
+  const caretRect = caret.getBoundingClientRect()
+  document.body.removeChild(mirror)
+  const parentRect = ta.parentElement!.getBoundingClientRect()
+
+  return {
+    top: caretRect.top - parentRect.top,
+    left: caretRect.left - parentRect.left,
+    height: caretRect.height,
+  }
 }
 
 const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
@@ -40,7 +72,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const [tabView, setTabView] = useState<TabView>('edit')
     const [isDragging, setIsDragging] = useState(false)
     const [isDropUploading, setIsDropUploading] = useState(false)
-    const [cursorHint, setCursorHint] = useState<CursorHint | null>(null)
+    const [cursorPos, setCursorPos] = useState<CursorPos | null>(null)
 
     const insertAtCursor = useCallback(
       (text: string) => {
@@ -64,23 +96,11 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     useImperativeHandle(ref, () => ({ insertAtCursor }), [insertAtCursor])
 
     // ── Cursor insert hint ────────────────────────────────────────────────
-    const handleTextareaBlur = useCallback(() => {
+    const handleTextareaBlur  = useCallback(() => {
       const ta = textareaRef.current
-      if (!ta) return
-      const pos = ta.selectionStart
-      const before = ta.value.slice(0, pos)
-      const lines = before.split('\n')
-      const lineNum = lines.length
-      const currentLine = ta.value.split('\n')[lineNum - 1] ?? ''
-      setCursorHint({
-        line: lineNum,
-        preview: currentLine.trim().slice(0, 24),
-      })
+      if (ta) setCursorPos(getCaretCoords(ta))
     }, [])
-
-    const handleTextareaFocus = useCallback(() => {
-      setCursorHint(null)
-    }, [])
+    const handleTextareaFocus = useCallback(() => setCursorPos(null), [])
 
     // ── Drag-drop image upload ────────────────────────────────────────────
     const handleDragOver = (e: DragEvent) => {
@@ -153,23 +173,6 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
             <span className="ml-2 text-[9px] text-info animate-pulse">Uploading…</span>
           )}
 
-          {/* Cursor insert hint — shown when textarea loses focus */}
-          {cursorHint && (
-            <span
-              className="ml-auto flex items-center gap-1 text-[9px] text-accent-500 border border-accent-500/40 px-1.5 py-0.5 shrink-0"
-              title={`Insert position: line ${cursorHint.line}${cursorHint.preview ? ` — "${cursorHint.preview}"` : ''}`}
-            >
-              <span>↵</span>
-              <span>L{cursorHint.line}</span>
-              {cursorHint.preview && (
-                <span className="text-ink-dim hidden sm:inline">
-                  {cursorHint.preview.length > 16
-                    ? cursorHint.preview.slice(0, 16) + '…'
-                    : cursorHint.preview || '(empty line)'}
-                </span>
-              )}
-            </span>
-          )}
         </div>
 
         {/* ── Edit / Preview panes ── */}
@@ -196,6 +199,12 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
                 className="w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 overflow-hidden caret-accent-500"
                 placeholder={onImageDrop ? 'Markdown content… drag images here or use sidebar' : 'Markdown content…'}
               />
+              {cursorPos && (
+                <div
+                  className="absolute w-px bg-accent-500 animate-cursor pointer-events-none z-10"
+                  style={{ top: cursorPos.top, left: cursorPos.left, height: cursorPos.height }}
+                />
+              )}
               {isDragging && (
                 <div className="absolute inset-0 flex items-center justify-center bg-bg/70 pointer-events-none">
                   <span className="text-accent-500 text-xs">Drop image to upload</span>
