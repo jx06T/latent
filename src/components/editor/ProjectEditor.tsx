@@ -131,7 +131,7 @@ export default function ProjectEditor({ projectId }: Props) {
             {/* Mobile image panel toggle */}
             <Button
               variant="outline"
-              className="md:hidden w-7 h-7 p-0"
+              className="md:hidden w-7 h-7 p-0 mx-1.5"
               onClick={() => setMobileSidebarOpen(o => !o)}
               title="Toggle image panel"
             >
@@ -158,11 +158,10 @@ export default function ProjectEditor({ projectId }: Props) {
       {/* ── Mobile floating image panel ── */}
       <div
         className={cn(
-          'md:hidden fixed left-0 right-0 z-30 h-48 bg-bg border-b border-line shadow-lg',
+          'md:hidden fixed top-11 left-0 right-0 z-30 h-[13.5rem] bg-bg-elevated border-b border-line shadow-lg',
           'transition-transform duration-200',
           mobileSidebarOpen ? 'translate-y-0' : '-translate-y-full',
         )}
-        style={{ top: 44 }} // h-11 = 44px
       >
         <ImageSidebar
           variant="panel"
@@ -178,7 +177,7 @@ export default function ProjectEditor({ projectId }: Props) {
       </div>
 
       {/* ── Main: sidebar + content ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden  pt-11">
 
         {/* Desktop sidebar — hidden on mobile */}
         <div

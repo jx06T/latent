@@ -246,12 +246,12 @@ export default function ProfileDashboard() {
                 + New Project
               </Button>
             )}
-            <Button variant="ghost" onClick={signOut} className="text-sm px-3">Sign Out</Button>
+            <Button variant="ghost" onClick={signOut} className="text-sm px-3 w-22">Sign Out</Button>
           </>
         }
       />
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8  pt-20">
         {/* Tabs */}
         <div className="flex border-b border-line mb-8">
           {(['projects', 'profile'] as const).map(tab => (
@@ -275,7 +275,7 @@ export default function ProfileDashboard() {
           <>
             <div className="flex items-end justify-between mb-6">
               <h1 className="text-sm uppercase tracking-widest text-ink">Projects</h1>
-              <span className="text-sm text-ink-disabled">{projects.length} total</span>
+              <span className="text-sm text-ink-ddim">{projects.length} total</span>
             </div>
 
             {isLoading ? (
@@ -328,7 +328,7 @@ export default function ProfileDashboard() {
 
             {/* Handle (immutable) */}
             <div className="space-y-1">
-              <label className="block text-xs uppercase tracking-widest text-ink-muted">代稱（不可修改）</label>
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">ID（不可修改）</label>
               <div className="flex items-center border border-line bg-bg-elevated px-3 py-2 opacity-60 cursor-not-allowed select-none">
                 <span className="text-ink-disabled text-sm">@</span>
                 <span className="text-sm text-ink ml-0.5">{profile.handle ?? ''}</span>
@@ -357,7 +357,7 @@ export default function ProfileDashboard() {
                 value={draftBio}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDraftBio(e.target.value)}
                 maxLength={200}
-                rows={3}
+                rows={5}
                 placeholder="簡短介紹自己…"
                 className="resize-none"
               />

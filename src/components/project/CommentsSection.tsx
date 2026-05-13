@@ -81,7 +81,7 @@ export default function CommentsSection({ projectId }: Props) {
 
   return (
     <section className="mt-16 font-mono" suppressHydrationWarning>
-      <h2 className="text-xs uppercase tracking-widest text-ink-muted mb-6">// 留言</h2>
+      <h2 className="text-lg uppercase tracking-widest text-ink-dim mb-6">// Comments</h2>
 
       {/* Comment list */}
       {fetchingComments ? (

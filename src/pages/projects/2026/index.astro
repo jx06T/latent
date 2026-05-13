@@ -70,7 +70,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
     <!-- Search & filter hook (data attributes ready for future JS wiring) -->
     <section
       id="search-interface"
-      class="max-w-6xl mx-auto px-4 sm:px-6 py-6 border-b border-line"
+      class="max-w-6xl mx-auto px-4 xs:px-6 sm:px-10 py-6 border-b border-line"
     >
       <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
@@ -105,7 +105,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
     </section>
 
     <!-- Project grid -->
-    <section class="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24">
+    <section class="max-w-6xl mx-auto px-4 xs:px-6 sm:px-10 py-8 pb-24">
       {
         projects.length === 0 ? (
           <div class="flex flex-col items-center justify-center py-24 text-center border-dashed-cyber">

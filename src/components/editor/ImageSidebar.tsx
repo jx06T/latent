@@ -96,7 +96,7 @@ export default function ImageSidebar({
 
   const uploadLabel = (
     <label className={cn(
-      'cursor-pointer text-xs text-ink-muted hover:text-accent-500 transition-colors uppercase',
+      'cursor-pointer text-xs text-ink-muted hover:text-accent-500 transition-colors uppercase border-line border p-1 px-2',
       (disabled || isUploading) && 'opacity-40 pointer-events-none',
     )}>
       {isUploading ? 'Uploading…' : '+ Upload'}
@@ -135,7 +135,7 @@ export default function ImageSidebar({
                 {isUploading ? 'Uploading…' : 'No images — tap Upload'}
               </p>
             ) : images.map(img => (
-              <div key={img.id} className="flex-none w-24 space-y-1">
+              <div key={img.id} className="flex-none w-36 space-y-1">
                 {/* Thumbnail */}
                 <div className="w-full aspect-4/3 bg-bg-elevated border border-line overflow-hidden relative">
                   {img.previewUrl ? (
@@ -156,7 +156,7 @@ export default function ImageSidebar({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-1">
+                <div className="flex gap-1.5 flex-wrap">
                   <Button
                     variant="outline" className="flex-1 text-[10px] px-1 py-0.5"
                     onClick={() => onInsert(img.id)}
@@ -165,13 +165,29 @@ export default function ImageSidebar({
                     Insert
                   </Button>
                   <Button
-                    variant={coverId === img.id ? 'secondary' : 'ghost'}
+                    variant={coverId === img.id ? 'primary' : 'outline'}
                     className="text-[10px] px-1 py-0.5"
                     onClick={() => onSetCover(coverId === img.id ? null : img.id)}
                     disabled={disabled}
                     title={coverId === img.id ? 'Remove cover' : 'Set as cover'}
                   >
-                    ◆
+                    {coverId === img.id ? 'Uncover' : 'Cover'}
+                  </Button>
+                  <Button
+                    variant="outline" className="text-[10px] px-2 py-0.5"
+                    disabled={disabled || isReplacingId === img.id}
+                    title="Upload replacement (new ID → update markdown → delete old)"
+                    onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
+                  >
+                    {isReplacingId === img.id ? 'Replacing…' : 'Replace'}
+                  </Button>
+
+                  <Button
+                    variant="danger" className="text-[10px] px-2 py-0.5"
+                    disabled={disabled}
+                    onClick={() => wrap(() => onDelete(img.id))}
+                  >
+                    Del
                   </Button>
                 </div>
               </div>
@@ -200,9 +216,9 @@ export default function ImageSidebar({
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-line shrink-0">
+      <div className="flex items-center justify-start gap-4 px-3 py-2 border-b border-line shrink-0">
         <span className="text-sm uppercase text-ink-muted tracking-wider">
-          Images · {images.length}
+          {images.length} Image
         </span>
         {uploadLabel}
       </div>

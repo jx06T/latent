@@ -109,7 +109,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   <!-- Cover image -->
   {
     coverImageUrl && (
-      <div class="w-full h-64 sm:h-80 overflow-hidden border border-line mb-10">
+      <div class="w-full aspect-video overflow-hidden border border-line mb-10">
         <img
           src={coverImageUrl}
           alt={project.title}
@@ -154,11 +154,11 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   }
 
   <!-- Project metadata -->
-  <div class="border-dashed-cyber p-5 mb-12 space-y-5">
+  <div class="border-dashed-cyber p-5 mb-10 space-y-5">
     <section>
       <CommentLabel text="project_overview" />
       <p class="text-base text-ink-muted leading-relaxed -mt-1">
-        {project.description}
+        {project.description || `由 ${project.author_handle} 製作的專案 「 ${project.title} 」`}
       </p>
     </section>
 
@@ -194,7 +194,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   </div>
 
   <!-- Like button -->
-  <div class="mb-12">
+  <div class="mb-10 w-full flex justify-center">
     <LikeButton
       client:load
       projectId={project.id}
