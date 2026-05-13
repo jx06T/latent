@@ -47,7 +47,7 @@ export default function TelemetryDashboard() {
     <section id="telemetry" className="relative py-20 overflow-hidden bg-bg-surface border-t border-line">
       <div className="relative z-10 max-w-6xl mx-auto px-[10%]">
         <div className="text-center mb-6 md:mb-12">
-          <p className="text-xs font-mono text-ink-dim tracking-widest">// system_telemetry</p>
+          <p className=" font-mono text-base uppercase text-ink-dim/90 mb-2 tracking-tighter text-lg">// system_telemetry</p>
           <h2 className="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
             [ 2026_LATENT_STATUS ]
           </h2>

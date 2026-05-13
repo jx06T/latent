@@ -11,5 +11,5 @@ export const PARTNERS: Partner[] = [
   { name: "成功電研", role: "協辦" },
   { name: "北一資研", role: "主辦", url: "https://www.ckefgisc.org/" },
   { name: "中山資研", role: "協辦" },
-  { name: "景美電研", role: "協辦" },
+  { name: "景美電資", role: "協辦" },
 ];
