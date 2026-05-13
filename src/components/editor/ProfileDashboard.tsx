@@ -22,6 +22,17 @@ export default function ProfileDashboard() {
 
   // ── Tab ────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<'projects' | 'profile'>('projects')
+  const [pendingTab, setPendingTab] = useState<'projects' | 'profile' | null>(null)
+
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (hash === 'profile') setActiveTab('profile')
+  }, [])
+
+  const switchTab = useCallback((tab: 'projects' | 'profile') => {
+    setActiveTab(tab)
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${tab}`)
+  }, [])
 
   // ── Projects ───────────────────────────────────────────────────────────
   const [projects, setProjects] = useState<ProjectSummary[]>([])
@@ -160,9 +171,33 @@ export default function ProfileDashboard() {
     window.location.href = `/editor/${projectId}`
   }
 
+  const isDirty = profile
+    ? draftNickname !== profile.nickname
+      || draftBio !== (profile.bio ?? '')
+      || draftAffiliation !== (profile.affiliation ?? '')
+      || draftAgeGroup !== (profile.age_group ?? '')
+    : false
+
+  const handleTabClick = (tab: 'projects' | 'profile') => {
+    if (tab === activeTab) return
+    if (activeTab === 'profile' && isDirty) {
+      setPendingTab(tab)
+      return
+    }
+    switchTab(tab)
+  }
+
+  const resetDrafts = () => {
+    if (!profile) return
+    setDraftNickname(profile.nickname)
+    setDraftBio(profile.bio ?? '')
+    setDraftAffiliation(profile.affiliation ?? '')
+    setDraftAgeGroup(profile.age_group ?? '')
+  }
+
   // ── Save profile ───────────────────────────────────────────────────────
-  const saveProfile = async () => {
-    if (!user || !draftNickname.trim()) return
+  const saveProfile = async (): Promise<boolean> => {
+    if (!user || !draftNickname.trim()) return false
     setProfileSaving(true)
     setProfileSaveError(null)
 
@@ -177,14 +212,29 @@ export default function ProfileDashboard() {
       })
       .eq('id', user.id)
 
+    setProfileSaving(false)
     if (error) {
       setProfileSaveError(error.message)
-    } else {
-      await refreshProfile()
-      setProfileSaved(true)
-      setTimeout(() => setProfileSaved(false), 3000)
+      return false
     }
-    setProfileSaving(false)
+    await refreshProfile()
+    setProfileSaved(true)
+    setTimeout(() => setProfileSaved(false), 3000)
+    return true
+  }
+
+  const handleSaveAndSwitch = async () => {
+    const target = pendingTab
+    const ok = await saveProfile()
+    setPendingTab(null)
+    if (ok && target) switchTab(target)
+  }
+
+  const handleDiscardAndSwitch = () => {
+    const target = pendingTab
+    resetDrafts()
+    setPendingTab(null)
+    if (target) switchTab(target)
   }
 
   // ── Loading state ──────────────────────────────────────────────────────
@@ -257,7 +307,7 @@ export default function ProfileDashboard() {
           {(['projects', 'profile'] as const).map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabClick(tab)}
               className={cn(
                 'px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors border-b-2 -mb-px',
                 activeTab === tab
@@ -427,6 +477,32 @@ export default function ProfileDashboard() {
       )}
 
       {dialog}
+
+      {pendingTab && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 font-mono"
+          onClick={() => setPendingTab(null)}
+        >
+          <div
+            className="bg-bg border border-line w-full max-w-sm mx-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-3 border-b border-line">
+              <p className="text-xs uppercase tracking-widest text-ink-muted">未儲存的變更</p>
+            </div>
+            <div className="px-5 py-5">
+              <p className="text-sm text-ink">個人資料有未儲存的變更，是否儲存後再離開？</p>
+            </div>
+            <div className="px-5 py-3 flex justify-end gap-2 border-t border-line">
+              <Button variant="ghost" onClick={() => setPendingTab(null)} className="text-xs px-3">取消</Button>
+              <Button variant="ghost" onClick={handleDiscardAndSwitch} className="text-xs px-3">放棄變更</Button>
+              <Button variant="primary" onClick={handleSaveAndSwitch} disabled={profileSaving} className="text-xs px-3">
+                {profileSaving ? '儲存中…' : '儲存'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
