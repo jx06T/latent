@@ -69,8 +69,9 @@ export default function CommentsSection({ projectId }: Props) {
       setContent('')
       if (!isOnboarded) {
         ;(window as any).notify?.(
-          '建立創作者頁面，讓你的留言顯示你的代稱！',
+          '建立創作者檔案，讓你的留言顯示你的代稱！',
           'success',
+          { href: '/profile', newTab: true },
         )
       }
     } else {

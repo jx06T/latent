@@ -191,7 +191,7 @@ export default function OnboardingForm() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-bg font-mono text-ink flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-bg font-mono text-ink flex flex-col items-center justify-center px-4 py-12 pt-24">
       <form onSubmit={handleSubmit} className="w-full max-w-xl space-y-8">
 
         {/* Header */}

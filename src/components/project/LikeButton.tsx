@@ -54,8 +54,9 @@ export default function LikeButton({ projectId, initialCount }: Props) {
           setCount(c => c + 1)
           if (!isOnboarded) {
             ;(window as any).notify?.(
-              '建立創作者頁面，讓作者知道是誰在支持他們！',
+              '建立創作者檔案，上傳你的作品！',
               'success',
+              { href: '/profile', newTab: true },
             )
           }
         }

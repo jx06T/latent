@@ -19,15 +19,26 @@ import StatusLog from "../ui/StatusLog.astro";
 <script>
   import gsap from "gsap";
 
+  interface NotifyOptions {
+    href?: string;
+    newTab?: boolean;
+    onClick?: () => void;
+  }
+
   declare global {
     interface Window {
-      notify: (message: string, type?: "success" | "warning" | "error") => void;
+      notify: (
+        message: string,
+        type?: "success" | "warning" | "error",
+        options?: NotifyOptions,
+      ) => void;
     }
   }
 
   window.notify = function (
     message: string,
     type: "success" | "warning" | "error" = "success",
+    options?: NotifyOptions,
   ) {
     const container = document.getElementById("log-container");
     const template = document.getElementById(
@@ -44,10 +55,9 @@ import StatusLog from "../ui/StatusLog.astro";
     const logEl = clone.querySelector(".js-log-root") as HTMLElement;
     if (!logEl) return;
 
-    // 設定可以被點擊或 hover
     logEl.classList.add("pointer-events-auto", "mb-1.5");
 
-    // 2. 定義顏色與文字的對應表 (直接使用 Tailwind 變數名稱)
+    // 2. 定義顏色與文字的對應表
     const config = {
       success: { label: "OK", text: "text-success", bg: "bg-success" },
       warning: { label: "WARN", text: "text-warning", bg: "bg-warning" },
@@ -71,7 +81,6 @@ import StatusLog from "../ui/StatusLog.astro";
       timeTarget.textContent = `+${(Math.random() * 0.1).toFixed(3)}s`;
 
     // 5. 更新顏色狀態
-    // 預先定義所有可能的顏色類名，用於清除舊狀態
     const allTextColors = ["text-success", "text-warning", "text-danger"];
     const allBgColors = ["bg-success", "bg-warning", "bg-danger"];
 
@@ -85,15 +94,43 @@ import StatusLog from "../ui/StatusLog.astro";
       bgTarget.classList.add(s.bg);
     }
 
-    // 6. 插入容器並播放動畫
-    container.appendChild(logEl);
+    // 6. 處理互動行為 (href / onClick)
+    const hasAction = !!(options?.href || options?.onClick);
+    let mountEl: HTMLElement = logEl;
+
+    if (hasAction) {
+      logEl.style.cursor = "pointer";
+      if (msgTarget) {
+        (msgTarget as HTMLElement).style.textDecoration = "underline";
+        (msgTarget as HTMLElement).style.textUnderlineOffset = "3px";
+      }
+    }
+
+    if (options?.onClick) {
+      logEl.addEventListener("click", options.onClick);
+    }
+
+    if (options?.href) {
+      const anchor = document.createElement("a");
+      anchor.href = options.href;
+      anchor.className = "pointer-events-auto mb-1.5 block";
+      if (/^https?:\/\//.test(options.href) || options.newTab) {
+        anchor.target = "_blank";
+        anchor.rel = "noopener noreferrer";
+      }
+      logEl.classList.remove("pointer-events-auto", "mb-1.5");
+      anchor.appendChild(logEl);
+      mountEl = anchor;
+    }
+
+    // 7. 插入容器並播放動畫
+    container.appendChild(mountEl);
 
     const isMobile = window.innerWidth < 640;
 
     gsap.fromTo(
-      logEl,
+      mountEl,
       {
-        // 手機從上往下掉，桌機從左往右滑入
         x: isMobile ? 0 : -50,
         y: isMobile ? -20 : 0,
         opacity: 0,
@@ -110,13 +147,12 @@ import StatusLog from "../ui/StatusLog.astro";
     );
 
     setTimeout(() => {
-      gsap.to(logEl, {
-        // 消失時：桌機往左邊縮回去
+      gsap.to(mountEl, {
         x: isMobile ? 0 : -20,
         y: isMobile ? -10 : 0,
         opacity: 0,
         duration: 0.4,
-        onComplete: () => logEl.remove(),
+        onComplete: () => mountEl.remove(),
       });
     }, 4500);
   };
