@@ -1,3 +1,4 @@
+import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'react'
 
@@ -91,6 +92,8 @@ interface LinkBtnProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   size?: ButtonSize
   bracket?: boolean
   active?: boolean
+  showIcon?: boolean
+  isExternal?: boolean
   children: ReactNode
 }
 
@@ -99,12 +102,29 @@ export function LinkButton({
   size = 'sm',
   bracket,
   active,
+  showIcon,
+  isExternal,
   children,
   className,
+  href,
   ...rest
 }: LinkBtnProps) {
+  // 自動判斷是否為外部連結
+  const autoExternal = typeof href === 'string' && href.startsWith('http')
+  const externalProps = isExternal || autoExternal
+    ? { target: '_blank', rel: 'noopener noreferrer' }
+    : {}
+
+  // 如果有傳入 showIcon 則以 showIcon 為主，否則外部連結預設顯示圖示
+  const displayIcon = showIcon ?? (isExternal || autoExternal)
+
   if (variant === 'plain') {
-    return <a className={cn(plainBase, className)} {...rest}>{children}</a>
+    return (
+      <a className={cn(plainBase, displayIcon && 'group', className)} href={href} {...rest} {...externalProps}>
+        {children}
+        {displayIcon && <ArrowUpRight className="ml-0.5 w-4 h-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />}
+      </a>
+    )
   }
   return (
     <a
@@ -113,12 +133,16 @@ export function LinkButton({
         sizes[size],
         variantStyles[variant],
         active && activeStyles[variant],
-        bracket && 'group btn-bracket',
+        (bracket || displayIcon) && 'group',
+        bracket && 'btn-bracket',
         className,
       )}
+      href={href}
       {...rest}
+      {...externalProps}
     >
       {bracket ? <BracketWrap>{children}</BracketWrap> : children}
+      {displayIcon && <ArrowUpRight className=" inline-block -ml-1 w-4" />}
     </a>
   )
 }

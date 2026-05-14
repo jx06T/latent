@@ -74,20 +74,21 @@ export default function ProjectListItem({ project: p, coverUrl, isDeleting, isUn
 
       {/* Actions */}
       <div className="flex items-center gap-2.5 shrink-0">
-        <LinkButton href={`/editor/${p.id}`} variant="outline" className="text-xs px-2 py-0.5">
-          Edit
-        </LinkButton>
         {p.status === 'published' && (
           <LinkButton
             href={`/projects/${p.year}/${p.slug}`}
             variant="ghost"
             className="text-xs px-2 py-0.5"
-            target="_blank"
-            
+            isExternal
+            showIcon
           >
-            View↗
+            View
           </LinkButton>
         )}
+        <LinkButton href={`/editor/${p.id}`} variant="outline" className="text-xs px-2 py-0.5">
+          Edit
+        </LinkButton>
+
         {p.status === 'published' && onUnpublish && (
           <Button
             variant="danger"
