@@ -4,14 +4,7 @@ import type { ImageMetadata } from "astro";
 import FallbackImage from "@/assets/pro_ed.png";
 import { SITE_TITLE } from "@/consts";
 import ubuntuMono from "@/assets/UbuntuMono-R.ttf";
-
-interface ArticleMeta {
-  author?: string;       // handle, e.g. "jx06t"
-  publishedTime?: string; // ISO 8601
-  modifiedTime?: string;
-  section?: string;       // category label
-  tags?: string[];
-}
+import type { ArticleMeta } from "@/lib/og-types";
 
 interface Props {
   title: string;

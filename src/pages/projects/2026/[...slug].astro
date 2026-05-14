@@ -94,9 +94,16 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 
 <ProseLayout
   title={`${project.title} · LATENT ${CURRENT_YEAR}`}
-  description={project.description ??
-    `${project.title} — ${categoryLabel} 專題`}
+  description={project.description ?? `${project.title} — ${categoryLabel} 專題`}
   ogImage={ogImageUrl}
+  type="article"
+  article={{
+    author: project.author_handle,
+    publishedTime: project.created_at,
+    modifiedTime: project.updated_at ?? undefined,
+    section: categoryLabel,
+    tags: [...project.keywords, ...project.tech_stack],
+  }}
   active="projects"
 >
   <!-- Breadcrumb & Categories -->

@@ -1,21 +1,25 @@
 ---
-// src/layouts/ProseLayout.astro
 import BaseLayout from "./Layout.astro";
+import type { ArticleMeta } from "@/lib/og-types";
 
 interface Props {
   title: string;
   description: string;
   ogImage?: string;
+  type?: "website" | "article";
+  article?: ArticleMeta;
   active?: "home" | "about" | "projects" | "profile";
 }
 
-const { title, description, ogImage, active } = Astro.props;
+const { title, description, ogImage, type, article, active } = Astro.props;
 ---
 
 <BaseLayout
   title={title}
   description={description}
   image={ogImage}
+  type={type}
+  article={article}
   activeNav={active}
 >
   <main class="pt-24 pb-32 min-h-screen">
