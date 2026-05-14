@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import Layout from "@/layouts/Layout.astro";
-import ProjectCard from "@/components/modules/ProjectCard.astro";
+import ProjectCard from "@/components/modules/ProjectCard";
 import { createAnonClient } from "@/lib/supabase-server";
 import { publishedUrl, toCdnUrl, draftKey } from "@/lib/image-paths";
 import { getAvatarUrl } from "@/lib/avatar";
