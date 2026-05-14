@@ -5,6 +5,7 @@ import Layout from "@/layouts/Layout.astro";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
 import { createAnonClient } from "@/lib/supabase-server";
 import { publishedUrl, toCdnUrl, draftKey } from "@/lib/image-paths";
+import { getAvatarUrl } from "@/lib/avatar";
 import CommentLabel from "@/components/ui/CommentLabel";
 import { CATEGORIES } from "@/lib/schema";
 
@@ -15,7 +16,7 @@ const db = createAnonClient();
 // Fetch public profile
 const { data: profile } = await db
   .from("profiles")
-  .select("id, handle, nickname, bio, affiliation, created_at")
+  .select("id, handle, nickname, bio, affiliation, avatar_url, created_at")
   .eq("handle", handle!)
   .maybeSingle();
 
@@ -57,7 +58,7 @@ function getCoverUrl(p: any): string | null {
   return null;
 }
 
-const avatarUrl = `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(handle!)}`;
+const avatarUrl = getAvatarUrl(profile.avatar_url ?? handle);
 const joinYear = new Date(profile.created_at).getFullYear();
 ---
 

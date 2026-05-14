@@ -9,12 +9,12 @@ export const GET: APIRoute = async ({ params }) => {
 
   type VCommentRow = {
     id: string; content: string; created_at: string; user_id: string
-    author_handle: string | null; author_nickname: string | null
+    author_handle: string | null; author_nickname: string | null; author_avatar_url: string | null
   }
 
   const { data, error } = await (db as any)
     .from('v_comments')
-    .select('id, content, created_at, user_id, author_handle, author_nickname')
+    .select('id, content, created_at, user_id, author_handle, author_nickname, author_avatar_url')
     .eq('project_id', projectId)
     .order('created_at', { ascending: true })
 
@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ params }) => {
     created_at: r.created_at,
     user_id: r.user_id,
     author: (r.author_handle && r.author_nickname)
-      ? { handle: r.author_handle, nickname: r.author_nickname }
+      ? { handle: r.author_handle, nickname: r.author_nickname, avatar_url: r.author_avatar_url }
       : null,
   }))
 
@@ -69,14 +69,14 @@ export const POST: APIRoute = async ({ params, request }) => {
   const anonDb = createAnonClient()
   const { data: profile } = await anonDb
     .from('profiles')
-    .select('handle, nickname')
+    .select('handle, nickname, avatar_url')
     .eq('id', userId)
     .maybeSingle()
 
   return json(
     {
       ...row,
-      author: profile ? { handle: profile.handle, nickname: profile.nickname } : null,
+      author: profile ? { handle: profile.handle, nickname: profile.nickname, avatar_url: profile.avatar_url } : null,
     },
     201,
   )

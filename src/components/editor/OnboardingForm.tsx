@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+import { getAvatarUrl } from '@/lib/avatar'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ interface DraftState {
   age_group: string
   referral_source: string
   hasProject: boolean | null
+  avatar_seed?: string
 }
 
 const DRAFT_KEY = 'latent:onboarding:draft'
@@ -36,9 +38,6 @@ function getHandleStatus(value: string): HandleStatus | null {
   return null // valid format, needs async availability check
 }
 
-function dicebearUrl(seed: string) {
-  return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(seed || 'default')}`
-}
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
@@ -51,6 +50,9 @@ export default function OnboardingForm() {
   const [ageGroup, setAgeGroup] = useState('')
   const [referralSource, setReferralSource] = useState('')
   const [hasProject, setHasProject] = useState<boolean | null>(null)
+
+  const [avatarSeed, setAvatarSeed] = useState('')
+  const avatarCustomized = useRef(false)
 
   const [handleStatus, setHandleStatus] = useState<HandleStatus>('idle')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,16 +77,29 @@ export default function OnboardingForm() {
       if (draft.age_group) setAgeGroup(draft.age_group)
       if (draft.referral_source) setReferralSource(draft.referral_source)
       if (draft.hasProject !== undefined) setHasProject(draft.hasProject)
+      if (draft.avatar_seed) { setAvatarSeed(draft.avatar_seed); avatarCustomized.current = true }
     } catch {
       // ignore
     }
   }, [])
 
+  // Follow handle as avatar seed until user manually customizes
+  useEffect(() => {
+    if (!avatarCustomized.current) setAvatarSeed(handle || '')
+  }, [handle])
+
+  const randomizeAvatar = useCallback(() => {
+    const suffix = Math.random().toString(36).slice(2, 6)
+    const seed = handle ? `${handle}-${suffix}` : suffix
+    setAvatarSeed(seed)
+    avatarCustomized.current = true
+  }, [handle])
+
   // Persist draft to localStorage on any change
   useEffect(() => {
-    const draft: DraftState = { handle, nickname, affiliation, age_group: ageGroup, referral_source: referralSource, hasProject }
+    const draft: DraftState = { handle, nickname, affiliation, age_group: ageGroup, referral_source: referralSource, hasProject, avatar_seed: avatarSeed }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [handle, nickname, affiliation, ageGroup, referralSource, hasProject])
+  }, [handle, nickname, affiliation, ageGroup, referralSource, hasProject, avatarSeed])
 
   // Handle availability check (debounced)
   const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -127,16 +142,17 @@ export default function OnboardingForm() {
     setSubmitError(null)
 
     const { error } = await supabase.from('profiles').upsert({
-      id: user.id,                      // 必須要傳，且必須等於 auth.uid()
+      id: user.id,
       handle: handle.trim(),
       nickname: nickname.trim(),
       bio: '',
       affiliation: affiliation || null,
       age_group: ageGroup || null,
       referral_source: referralSource || null,
-      is_onboarded: true,               // 設定為 true，完成新手引導
-      email: user.email ?? null,        // 帶上信箱
-      updated_at: new Date().toISOString() // 觸發更新時間
+      avatar_url: avatarSeed || handle.trim() || null,
+      is_onboarded: true,
+      email: user.email ?? null,
+      updated_at: new Date().toISOString(),
     })
 
     if (error) {
@@ -234,14 +250,21 @@ export default function OnboardingForm() {
           </div>
 
           <div className="shrink-0 flex flex-col items-center gap-2">
-            <img
-              src={dicebearUrl(handle || user.id)}
-              alt="Avatar preview"
-              width={64}
-              height={64}
-              className="w-16 h-16 border border-line bg-bg-elevated"
-            />
-            <p className="text-sm text-ink-disabled text-center">頭像預覽</p>
+            <button
+              type="button"
+              onClick={randomizeAvatar}
+              title="點擊更換頭像"
+              className="group w-18 h-18 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
+            >
+              <img
+                src={getAvatarUrl(avatarSeed || user.id)}
+                alt="Avatar preview"
+                width={64}
+                height={64}
+                className="w-full h-full"
+              />
+            </button>
+            <p className="text-[11px] text-ink-ddim text-center">頭像預覽<br/>點擊更換</p>
           </div>
         </div>
 

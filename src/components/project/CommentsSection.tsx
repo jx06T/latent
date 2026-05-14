@@ -6,6 +6,7 @@ import GoogleSignInButton from '@/components/ui/GoogleSignInButton'
 interface CommentAuthor {
   handle: string
   nickname: string
+  avatar_url: string | null
 }
 
 interface Comment {
@@ -20,9 +21,7 @@ interface Props {
   projectId: string
 }
 
-function dicebearUrl(seed: string) {
-  return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(seed)}`
-}
+import { getAvatarUrl } from '@/lib/avatar'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('zh-TW', {
@@ -95,13 +94,13 @@ export default function CommentsSection({ projectId }: Props) {
       ) : (
         <div className="divide-y divide-line border border-line mb-8">
           {comments.map(c => {
-            const seed = c.author?.handle ?? c.user_id
+            const seed = c.author?.avatar_url ?? c.author?.handle ?? c.user_id
             const name = c.author?.nickname ?? '訪客'
             const handle = c.author?.handle ?? null
             return (
               <div key={c.id} className="flex gap-3 p-4">
                 <img
-                  src={dicebearUrl(seed)}
+                  src={getAvatarUrl(seed)}
                   alt={name}
                   width={32}
                   height={32}

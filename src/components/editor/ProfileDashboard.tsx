@@ -14,9 +14,7 @@ import AuthGate from '@/components/ui/AuthGate'
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
 const AGE_GROUPS = ['15 歲以下', '15–17 歲', '18–20 歲', '21–23 歲', '24 歲以上'] as const
 
-function dicebearUrl(seed: string) {
-  return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(seed || 'default')}`
-}
+import { getAvatarUrl } from '@/lib/avatar'
 
 export default function ProfileDashboard() {
   const { user, profile, isLoggedIn, isOnboarded, accessToken, loading: authLoading, signIn, signOut, refreshProfile } = useSupabaseAuth()
@@ -338,7 +336,7 @@ export default function ProfileDashboard() {
             {/* Avatar + handle header */}
             <div className="flex items-center gap-4 pb-4 border-b border-line">
               <img
-                src={dicebearUrl(profile.handle ?? '')}
+                src={getAvatarUrl(profile.avatar_url ?? profile.handle ?? '')}
                 alt="avatar"
                 width={48}
                 height={48}
