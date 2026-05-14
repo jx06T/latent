@@ -10,7 +10,7 @@ import ubuntuMono from "@/assets/UbuntuMono-R.ttf";
 interface Props {
   title: string;
   description: string;
-  image?: string | ImageMetadata;  // string = remote URL, ImageMetadata = local asset
+  image?: string | ImageMetadata; // string = remote URL, ImageMetadata = local asset
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -23,6 +23,12 @@ const ogImageUrl = image
     : new URL(image.src, Astro.url)
   : new URL(FallbackImage.src, Astro.url);
 ---
+
+<script
+  defer
+  src="https://cloud.umami.is/script.js"
+  data-website-id="47be8eb1-f4f8-40be-8e5a-1f263e46fc97"
+  data-domains="exhibit.ckefgisc.org"></script>
 
 <link
   rel="preload"

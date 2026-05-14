@@ -10,27 +10,33 @@ const STATS_CONFIG = [
 export default function TelemetryDashboard() {
   const [totalProjects, setTotalProjects] = useState<number>(0);
   const [totalVotes, setTotalVotes] = useState<number>(0);
-  const totalViews = 0; // TODO: replace with state once view_count column is added
+  const [totalViews, setTotalViews] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchTelemetry() {
       try {
-        const { count } = await supabase
-          .from("projects")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "published");
-
-        const { data: voteData } = await supabase
-          .from("projects")
-          .select("like_count")
-          .eq("status", "published");
+        const [{ count }, { data: voteData }, statsRes] = await Promise.all([
+          supabase
+            .from("projects")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "published"),
+          supabase
+            .from("projects")
+            .select("like_count")
+            .eq("status", "published"),
+          fetch("/api/stats.json"),
+        ]);
 
         const calculatedVotes = voteData?.reduce((acc, curr) => acc + (curr.like_count || 0), 0) || 0;
 
         setTotalProjects(count ?? 0);
         setTotalVotes(calculatedVotes > 0 ? calculatedVotes : 150);
-        // TODO: setTotalViews once view_count column is added to schema
+
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          setTotalViews(stats.total_views ?? 0);
+        }
       } catch (error) {
         console.error("Failed to fetch telemetry data:", error);
       } finally {
