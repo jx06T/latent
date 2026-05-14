@@ -69,7 +69,6 @@ export type Database = {
       profiles: {
         Row: {
           affiliation: string | null
-          age_group: string | null
           avatar_url: string | null
           bio: string
           created_at: string
@@ -78,12 +77,10 @@ export type Database = {
           id: string
           is_onboarded: boolean
           nickname: string
-          referral_source: string | null
           updated_at: string
         }
         Insert: {
           affiliation?: string | null
-          age_group?: string | null
           avatar_url?: string | null
           bio?: string
           created_at?: string
@@ -92,12 +89,10 @@ export type Database = {
           id: string
           is_onboarded?: boolean
           nickname?: string
-          referral_source?: string | null
           updated_at?: string
         }
         Update: {
           affiliation?: string | null
-          age_group?: string | null
           avatar_url?: string | null
           bio?: string
           created_at?: string
@@ -106,7 +101,6 @@ export type Database = {
           id?: string
           is_onboarded?: boolean
           nickname?: string
-          referral_source?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -200,7 +194,6 @@ export type Database = {
           like_count: number | null
           links: Json | null
           poster_url: string | null
-          private_data: Json | null
           slug: string
           status: Database["public"]["Enums"]["status"]
           subtitle: string | null
@@ -224,7 +217,6 @@ export type Database = {
           like_count?: number | null
           links?: Json | null
           poster_url?: string | null
-          private_data?: Json | null
           slug: string
           status?: Database["public"]["Enums"]["status"]
           subtitle?: string | null
@@ -248,7 +240,6 @@ export type Database = {
           like_count?: number | null
           links?: Json | null
           poster_url?: string | null
-          private_data?: Json | null
           slug?: string
           status?: Database["public"]["Enums"]["status"]
           subtitle?: string | null
@@ -266,6 +257,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      surveys: {
+        Row: {
+          age_group: string | null
+          created_at: string
+          id: string
+          referral_source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age_group?: string | null
+          created_at?: string
+          id?: string
+          referral_source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age_group?: string | null
+          created_at?: string
+          id?: string
+          referral_source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
