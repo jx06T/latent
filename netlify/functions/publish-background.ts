@@ -145,9 +145,17 @@ export default async (req: Request, _ctx: Context) => {
     }
 
     if (verified.length === 0) {
+      const { data: proj0 } = await supa
+        .from('projects')
+        .select('first_published_at')
+        .eq('id', project_id)
+        .single()
       const { error: pubErr } = await supa
         .from('projects')
-        .update({ status: 'published' })
+        .update({
+          status: 'published',
+          first_published_at: proj0?.first_published_at ?? new Date().toISOString(),
+        })
         .eq('id', project_id)
       if (pubErr) throw pubErr
       console.log(`[publish-bg] done (no images) project=${project_id}`)
@@ -208,9 +216,17 @@ export default async (req: Request, _ctx: Context) => {
         if (error) throw error
       })
 
+      const { data: proj } = await supa
+        .from('projects')
+        .select('first_published_at')
+        .eq('id', project_id)
+        .single()
       const { error: pubErr } = await supa
         .from('projects')
-        .update({ status: 'published' })
+        .update({
+          status: 'published',
+          first_published_at: proj?.first_published_at ?? new Date().toISOString(),
+        })
         .eq('id', project_id)
       if (pubErr) throw pubErr
     } catch (dbErr) {

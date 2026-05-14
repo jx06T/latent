@@ -41,12 +41,15 @@ export function useProjectEditor(projectId: string) {
   const [images, setImages] = useState<ImageRecord[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [isUnpublishing, setIsUnpublishing] = useState(false)
   const [slugError, setSlugError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [firstPublishedAt, setFirstPublishedAt] = useState<string | null>(null)
 
   const markdownRef = useRef<MarkdownEditorHandle>(null)
 
   const isDirty = JSON.stringify(formState) !== JSON.stringify(savedState)
+  const isSlugLocked = firstPublishedAt !== null
 
   // ── Load project ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -78,6 +81,7 @@ export function useProjectEditor(projectId: string) {
           cover_image_id: project.cover_image_id ?? null,
         }
         setProjectStatus(project.status ?? 'draft')
+        setFirstPublishedAt(project.first_published_at ?? null)
         setFormState(initial)
         setSavedState(initial)
         setImages(
@@ -119,6 +123,8 @@ export function useProjectEditor(projectId: string) {
         payload => {
           const next = (payload.new as any).status as string
           setProjectStatus(next)
+          const nextFpa = (payload.new as any).first_published_at
+          if (nextFpa) setFirstPublishedAt(nextFpa)
           if (next === 'published') {
             supabase
               .from('project_images')
@@ -177,7 +183,7 @@ export function useProjectEditor(projectId: string) {
     if (!accessToken) return false
 
     setSaveError(null)
-    if (!isValidSlug(formState.slug)) {
+    if (!isSlugLocked && !isValidSlug(formState.slug)) {
       setSaveError('Slug 格式不正確 (需為 3-60 字元的小寫英數字與連字號)')
       return false
     }
@@ -189,7 +195,7 @@ export function useProjectEditor(projectId: string) {
         .update({
           title: formState.title,
           subtitle: formState.subtitle || null,
-          slug: formState.slug,
+          ...(!isSlugLocked ? { slug: formState.slug } : {}),
           description: formState.description || null,
           content: formState.content || null,
           category_main: formState.category_main,
@@ -367,7 +373,7 @@ export function useProjectEditor(projectId: string) {
 
   // ── Image: insert into editor ───────────────────────────────────────────
   const handleInsertImage = useCallback((imageId: string) => {
-    markdownRef.current?.insertAtCursor(`![](image-id-${imageId})`)
+    markdownRef.current?.insertAtCursor(`![](image-id-${imageId})`, { newLine: true })
   }, [])
 
   // ── Image: set cover ────────────────────────────────────────────────────

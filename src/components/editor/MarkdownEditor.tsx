@@ -16,7 +16,7 @@ import TextareaAutosize from 'react-textarea-autosize'
 import { cn } from '@/lib/utils'
 
 export interface MarkdownEditorHandle {
-  insertAtCursor: (text: string) => void
+  insertAtCursor: (text: string, opts?: { newLine?: boolean }) => void
 }
 
 interface Props {
@@ -77,13 +77,33 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const [cursorPos, setCursorPos] = useState<CursorPos | null>(null)
 
     const insertAtCursor = useCallback(
-      (text: string) => {
+      (text: string, opts?: { newLine?: boolean }) => {
         const ta = textareaRef.current
         if (!ta) {
           onChange(content + '\n' + text)
           return
         }
         const start = ta.selectionStart
+
+        if (opts?.newLine) {
+          const lineEnd = content.indexOf('\n', start)
+          let insertAt: number
+          let toInsert: string
+          if (lineEnd === -1) {
+            insertAt = content.length
+            toInsert = '\n' + text
+          } else {
+            insertAt = lineEnd + 1
+            toInsert = text + '\n'
+          }
+          onChange(content.slice(0, insertAt) + toInsert + content.slice(insertAt))
+          requestAnimationFrame(() => {
+            ta.selectionStart = ta.selectionEnd = insertAt + toInsert.length
+            ta.focus()
+          })
+          return
+        }
+
         const end = ta.selectionEnd
         const updated = content.slice(0, start) + text + content.slice(end)
         onChange(updated)
@@ -120,7 +140,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       for (const file of files) {
         try {
           const imageId = await onImageDrop(file)
-          insertAtCursor(`![](image-id-${imageId})`)
+          insertAtCursor(`![](image-id-${imageId})`, { newLine: true })
         } catch { /* ignore individual failures */ }
       }
       setIsDropUploading(false)
@@ -132,6 +152,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       if (!imageUrlMap || Object.keys(imageUrlMap).length === 0) return content
       return resolveImageIdsToUrls(content, imageUrlMap)
     }, [content, imageUrlMap])
+
     const previewHtml = markedInstance.parse(resolvedContent) as string
 
     return (

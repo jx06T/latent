@@ -188,7 +188,7 @@ export type Database = {
           description: string | null
           id: string
           keywords: string[] | null
-          like_count: number | null
+          like_count: number
           links: Json | null
           poster_url: string | null
           slug: string
@@ -211,7 +211,7 @@ export type Database = {
           description?: string | null
           id?: string
           keywords?: string[] | null
-          like_count?: number | null
+          like_count?: number
           links?: Json | null
           poster_url?: string | null
           slug: string
@@ -234,7 +234,7 @@ export type Database = {
           description?: string | null
           id?: string
           keywords?: string[] | null
-          like_count?: number | null
+          like_count?: number
           links?: Json | null
           poster_url?: string | null
           slug?: string
