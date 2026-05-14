@@ -5,9 +5,11 @@ import {
   useState,
   useCallback,
   useMemo,
+  useEffect,
   type DragEvent,
 } from 'react'
 import { createMarkedInstance } from '@/lib/markdown-renderer'
+import morphdom from 'morphdom'
 
 const markedInstance = createMarkedInstance()
 import { Button } from '@/components/ui/Button'
@@ -70,6 +72,7 @@ function getCaretCoords(ta: HTMLTextAreaElement): CursorPos {
 const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
   function MarkdownEditor({ content, onChange, disabled, onImageDrop, imageUrlMap }, ref) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const previewRef = useRef<HTMLDivElement>(null)
     const [viewLayout, setViewLayout] = useState<ViewLayout>('split')
     const [tabView, setTabView] = useState<TabView>('edit')
     const [isDragging, setIsDragging] = useState(false)
@@ -155,6 +158,13 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
     const previewHtml = markedInstance.parse(resolvedContent) as string
 
+    useEffect(() => {
+      if (!previewRef.current) return
+      const temp = document.createElement('div')
+      temp.innerHTML = previewHtml
+      morphdom(previewRef.current, temp, { childrenOnly: true })
+    }, [previewHtml])
+
     return (
       <div className="flex flex-col font-mono">
         {/* ── Toolbar ── */}
@@ -239,11 +249,11 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {/* Preview pane */}
           {showPreview && (
             <div
+              ref={previewRef}
               className={cn(
                 'prose prose-sm prose-invert max-w-none p-4 bg-bg',
                 viewLayout === 'split' ? 'w-1/2' : 'w-full',
               )}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           )}
         </div>
