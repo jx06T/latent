@@ -8,14 +8,12 @@ interface NavItem {
 
 interface Props {
   active?: "home" | "about" | "projects" | "profile";
-  views?: number;
   nav?: NavItem[];
   class?: string;
 }
 
 const {
   active = "home",
-  views = 12847,
   nav = [
     { key: "home", label: "home", href: "/" },
     { key: "about", label: "about", href: "/about" },
@@ -37,7 +35,6 @@ const {
     "hover:shadow-[0_6px_28px_rgba(227,124,70,0.1)]  hover:scale-[1.01] transition-transform duration-300",
     className,
   )}
-  data-views={views}
 >
   {/* live signal dot */}
   <span
@@ -70,9 +67,7 @@ const {
     <span class="text-ink-faint text-sm tracking-widest">VIEWS</span>
 
     {/* animated counter — hydrated by inline script below */}
-    <span class="text-accent tabular-nums text-sm mr-2" data-views-counter>
-      {(views - 124).toLocaleString()}
-    </span>
+    <span class="text-accent tabular-nums text-sm mr-2" data-views-counter>0</span>
   </div>
 </header>
 
@@ -89,27 +84,28 @@ const {
 </style>
 
 <script>
-  // Animated views counter — eases from (views - 124) up to views once on mount.
-  // Uses requestAnimationFrame; respects prefers-reduced-motion.
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.querySelectorAll<HTMLElement>(".statusbar").forEach((bar) => {
-    const counter = bar.querySelector<HTMLElement>("[data-views-counter]");
-    const target = Number(bar.dataset.views || "0");
-    if (!counter || !target) return;
-    if (reduce) {
-      counter.textContent = target.toLocaleString();
-      return;
-    }
-    const from = target - 124;
+
+  function animateCounter(counter: HTMLElement, target: number) {
+    if (reduce) { counter.textContent = target.toLocaleString(); return; }
+    const from = Math.max(0, target - 124);
     const dur = 1400;
     const start = performance.now();
     const tick = (t: number) => {
       const k = Math.min(1, (t - start) / dur);
       const eased = 1 - Math.pow(1 - k, 3);
-      const v = Math.round(from + (target - from) * eased);
-      counter.textContent = v.toLocaleString();
+      counter.textContent = Math.round(from + (target - from) * eased).toLocaleString();
       if (k < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
+  }
+
+  document.querySelectorAll<HTMLElement>(".statusbar").forEach((bar) => {
+    const counter = bar.querySelector<HTMLElement>("[data-views-counter]");
+    if (!counter) return;
+    fetch("/api/stats.json")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.total_views) animateCounter(counter, data.total_views); })
+      .catch(() => {});
   });
 </script>
