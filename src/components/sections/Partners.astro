@@ -1,5 +1,5 @@
 ---
-import CommentLabel from "@/components/ui/CommentLabel.astro";
+import CommentLabel from "@/components/ui/CommentLabel";
 import { PARTNERS } from "@/data/partners";
 import ScrambleText from "../ui/ScrambleText.astro";
 import { ArrowUpRight } from "lucide-react";
@@ -12,7 +12,7 @@ const reversedTripled = [...reversed, ...reversed, ...reversed];
 
 <section id="partners" class="py-24 border-t border-line bg-bg overflow-hidden">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 mb-12 text-center md:text-left">
-    <CommentLabel text="organizers_and_partners" class=" text-lg" />
+    <CommentLabel text="organizers_and_partners" className=" text-lg" />
     <h2 class="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-tight">
       <ScrambleText text="[ PARTNERS ]" />
     </h2>

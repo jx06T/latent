@@ -1,5 +1,5 @@
 ---
-import CommentLabel from "@/components/ui/CommentLabel.astro";
+import CommentLabel from "@/components/ui/CommentLabel";
 import PanelInfo from "./event/PanelInfo.astro";
 import PanelTimeline from "./event/PanelTimeline.astro";
 import PanelKeynote from "./event/PanelKeynote.astro";
@@ -22,7 +22,7 @@ const PANELS = 4;
     <div
       class="absolute top-7 md:top-0 left-0 right-0 z-20 px-6 pt-6 pointer-events-none"
     >
-      <CommentLabel text="event_overview" class="text-base md:text-xl" />
+      <CommentLabel text="event_overview" className="text-base md:text-xl" />
     </div>
 
     <!-- 進度圓點 -->

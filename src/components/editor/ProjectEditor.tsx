@@ -7,6 +7,7 @@ import ActionIsland from '@/components/editor/ActionIsland'
 import ImageSidebar from '@/components/editor/ImageSidebar'
 import MetadataForm from '@/components/editor/MetadataForm'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
+import AuthGate from '@/components/ui/AuthGate'
 
 interface Props {
   projectId: string
@@ -78,28 +79,6 @@ export default function ProjectEditor({ projectId }: Props) {
   }, [sidebarWidth])
 
   // ── Render: non-ready states ────────────────────────────────────────────
-  if (loadStatus === 'loading' || authLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-bg font-mono text-ink-muted text-xs">
-        <span className="animate-pulse">Loading editor…</span>
-      </div>
-    )
-  }
-
-  if (loadStatus === 'auth-required') {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center bg-bg gap-4 font-mono">
-        <p className="text-ink-muted text-xs uppercase tracking-wider">Sign in to access the editor</p>
-        <button
-          onClick={() => signIn()}
-          className="border border-line px-4 py-2 text-xs uppercase hover:border-accent-500 hover:text-accent-500 transition-colors"
-        >
-          Google Sign In
-        </button>
-      </div>
-    )
-  }
-
   if (loadStatus === 'forbidden') {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-bg gap-2 font-mono text-sm">
@@ -123,6 +102,13 @@ export default function ProjectEditor({ projectId }: Props) {
 
   // ── Render: editor ──────────────────────────────────────────────────────
   return (
+    <AuthGate
+      loading={loadStatus === 'loading' || authLoading}
+      loggedIn={loadStatus !== 'auth-required'}
+      loadingText="Loading editor…"
+      message="Sign in to access the editor"
+      onSignIn={signIn}
+    >
     <div className="h-screen flex flex-col bg-bg text-ink overflow-hidden">
       <EditorTopBar
         left={
@@ -141,12 +127,7 @@ export default function ProjectEditor({ projectId }: Props) {
         }
         right={
           <ActionIsland
-            status={projectStatus}
-            isDirty={isDirty}
-            isSaving={isSaving}
-            isPublishing={isPublishing}
-            slugError={slugError}
-            saveError={saveError}
+            state={{ status: projectStatus, isDirty, isSaving, isPublishing, error: slugError ?? saveError }}
             userEmail={user?.email}
             onSave={handleSave}
             onPublish={handlePublish}
@@ -254,5 +235,6 @@ export default function ProjectEditor({ projectId }: Props) {
 
       {dialog}
     </div>
+    </AuthGate>
   )
 }

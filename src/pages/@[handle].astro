@@ -5,7 +5,7 @@ import Layout from "@/layouts/Layout.astro";
 import ProjectCard from "@/components/modules/ProjectCard.astro";
 import { createAnonClient } from "@/lib/supabase-server";
 import { publishedUrl, toCdnUrl, draftKey } from "@/lib/image-paths";
-import CommentLabel from "@/components/ui/CommentLabel.astro";
+import CommentLabel from "@/components/ui/CommentLabel";
 import { CATEGORIES } from "@/lib/schema";
 
 const { handle } = Astro.params;

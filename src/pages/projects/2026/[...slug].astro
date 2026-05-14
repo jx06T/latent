@@ -4,7 +4,7 @@ export const prerender = false;
 import ProseLayout from "@/layouts/ProseLayout.astro";
 import { LinkButton } from "@/components/ui/Button";
 import Tag from "@/components/ui/Tag.astro";
-import CommentLabel from "@/components/ui/CommentLabel.astro";
+import CommentLabel from "@/components/ui/CommentLabel";
 import Link from "@/components/ui/Link.astro";
 import MarkdownContent from "@/components/ui/MarkdownContent.astro";
 import LikeButton from "@/components/project/LikeButton";
@@ -204,7 +204,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 
   <!-- Main article content -->
   <article class="mb-12">
-    <CommentLabel text="project_details" class=" text-lg" />
+    <CommentLabel text="project_details" className=" text-lg" />
     <!-- 完美套用 MarkdownContent 元件 -->
     <MarkdownContent content={resolvedContent} class="mt-6" />
   </article>

@@ -1,5 +1,6 @@
 import { useState, useRef, type ChangeEvent, type DragEvent } from 'react'
 import { Button } from '@/components/ui/Button'
+import { STATUS_STYLE } from '@/lib/project-status'
 import { cn } from '@/lib/utils'
 
 export interface ImageRecord {
@@ -11,12 +12,6 @@ export interface ImageRecord {
   available_sizes: string[] | null
   created_at: string | null
   previewUrl?: string
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  draft: 'text-warning',
-  processing: 'text-info animate-pulse',
-  published: 'text-success',
 }
 
 interface Props {
@@ -32,16 +27,56 @@ interface Props {
   onSetCover: (id: string | null) => void
 }
 
+// ── Shared action buttons for both variants ────────────────────────────────
+interface CardActionsProps {
+  id: string
+  coverId: string | null
+  disabled: boolean
+  isReplacing: boolean
+  compact?: boolean
+  onInsert(id: string): void
+  onSetCover(id: string | null): void
+  onStartReplace(id: string): void
+  onDelete(id: string): void
+}
+
+function ImageCardActions({
+  id, coverId, disabled, isReplacing, compact = false,
+  onInsert, onSetCover, onStartReplace, onDelete,
+}: CardActionsProps) {
+  const isCover = coverId === id
+  const sz = compact ? 'text-[10px] px-1 py-0.5' : 'text-xs px-2 py-0.5'
+  return (
+    <div className={cn('flex gap-1.5', compact ? 'flex-wrap' : 'flex-wrap')}>
+      <Button variant="outline" className={cn(sz, compact && 'flex-1')}
+        onClick={() => onInsert(id)} disabled={disabled}>
+        Insert
+      </Button>
+      <Button
+        variant={isCover ? 'primary' : 'outline'} className={sz}
+        onClick={() => onSetCover(isCover ? null : id)} disabled={disabled}
+        title={isCover ? 'Remove cover' : 'Set as cover'}
+      >
+        {isCover ? 'Uncover' : 'Cover'}
+      </Button>
+      <Button variant="outline" className={sz}
+        disabled={disabled || isReplacing}
+        title="Upload replacement (new ID → update markdown → delete old)"
+        onClick={() => onStartReplace(id)}
+      >
+        {isReplacing ? 'Replacing…' : 'Replace'}
+      </Button>
+      <Button variant="danger" className={sz} disabled={disabled}
+        onClick={() => onDelete(id)}>
+        Del
+      </Button>
+    </div>
+  )
+}
+
 export default function ImageSidebar({
-  images,
-  coverId,
-  disabled,
-  variant = 'sidebar',
-  onUpload,
-  onDelete,
-  onReplace,
-  onInsert,
-  onSetCover,
+  images, coverId, disabled, variant = 'sidebar',
+  onUpload, onDelete, onReplace, onInsert, onSetCover,
 }: Props) {
   const [replacingId, setReplacingId] = useState<string | null>(null)
   const [isReplacingId, setIsReplacingId] = useState<string | null>(null)
@@ -75,6 +110,11 @@ export default function ImageSidebar({
     setIsUploading(false)
   }
 
+  const startReplace = (id: string) => {
+    setReplacingId(id)
+    replaceInputRef.current?.click()
+  }
+
   // ── Drag-drop (sidebar mode only) ─────────────────────────────────────
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     if (disabled || isUploading || variant === 'panel') return
@@ -93,6 +133,13 @@ export default function ImageSidebar({
     if (!files.length) return
     await handleUploadFiles(files)
   }
+
+  const errorStrip = error && (
+    <div className="px-3 py-1 text-xs text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
+      {error}
+      <button onClick={() => setError(null)} className="ml-2 text-ink-ddim hover:text-ink">×</button>
+    </div>
+  )
 
   const uploadLabel = (
     <label className={cn(
@@ -113,21 +160,11 @@ export default function ImageSidebar({
     return (
       <div className="flex flex-col h-full font-mono text-xs">
         <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
-
-        {/* Header */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-line shrink-0">
           <span className="text-ink-muted uppercase tracking-wider">Images · {images.length}</span>
           {uploadLabel}
         </div>
-
-        {error && (
-          <div className="px-3 py-1 text-xs text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
-            {error}
-            <button onClick={() => setError(null)} className="ml-2 text-ink-ddim hover:text-ink">×</button>
-          </div>
-        )}
-
-        {/* Horizontal scroll row */}
+        {errorStrip}
         <div className="flex-1 overflow-x-auto overflow-y-hidden">
           <div className="flex gap-2 px-3 py-2 h-full items-start min-w-max">
             {images.length === 0 ? (
@@ -136,60 +173,26 @@ export default function ImageSidebar({
               </p>
             ) : images.map(img => (
               <div key={img.id} className="flex-none w-36 space-y-1">
-                {/* Thumbnail */}
                 <div className="w-full aspect-4/3 bg-bg-elevated border border-line overflow-hidden relative">
-                  {img.previewUrl ? (
-                    <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[9px] text-ink-ddim uppercase">
-                      {img.status === 'published' ? 'CDN' : '…'}
-                    </div>
-                  )}
-                  {coverId === img.id && (
-                    <span className="absolute top-0.5 left-0.5 text-[9px] text-accent-500">◆</span>
-                  )}
+                  {img.previewUrl
+                    ? <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-[9px] text-ink-ddim uppercase">
+                        {img.status === 'published' ? 'CDN' : '…'}
+                      </div>
+                  }
+                  {coverId === img.id && <span className="absolute top-0.5 left-0.5 text-[9px] text-accent-500">◆</span>}
                   {isReplacingId === img.id && (
                     <div className="absolute inset-0 flex items-center justify-center bg-bg/75">
                       <span className="text-[9px] text-info animate-pulse uppercase">Replacing…</span>
                     </div>
                   )}
                 </div>
-
-                {/* Actions */}
-                <div className="flex gap-1.5 flex-wrap">
-                  <Button
-                    variant="outline" className="flex-1 text-[10px] px-1 py-0.5"
-                    onClick={() => onInsert(img.id)}
-                    disabled={disabled}
-                  >
-                    Insert
-                  </Button>
-                  <Button
-                    variant={coverId === img.id ? 'primary' : 'outline'}
-                    className="text-[10px] px-1 py-0.5"
-                    onClick={() => onSetCover(coverId === img.id ? null : img.id)}
-                    disabled={disabled}
-                    title={coverId === img.id ? 'Remove cover' : 'Set as cover'}
-                  >
-                    {coverId === img.id ? 'Uncover' : 'Cover'}
-                  </Button>
-                  <Button
-                    variant="outline" className="text-[10px] px-2 py-0.5"
-                    disabled={disabled || isReplacingId === img.id}
-                    title="Upload replacement (new ID → update markdown → delete old)"
-                    onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
-                  >
-                    {isReplacingId === img.id ? 'Replacing…' : 'Replace'}
-                  </Button>
-
-                  <Button
-                    variant="danger" className="text-[10px] px-2 py-0.5"
-                    disabled={disabled}
-                    onClick={() => wrap(() => onDelete(img.id))}
-                  >
-                    Del
-                  </Button>
-                </div>
+                <ImageCardActions
+                  id={img.id} coverId={coverId} disabled={disabled}
+                  isReplacing={isReplacingId === img.id} compact
+                  onInsert={onInsert} onSetCover={onSetCover}
+                  onStartReplace={startReplace} onDelete={id => wrap(() => onDelete(id))}
+                />
               </div>
             ))}
           </div>
@@ -202,108 +205,56 @@ export default function ImageSidebar({
   return (
     <div
       className="relative flex flex-col h-full font-mono text-xs overflow-hidden"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
     >
       <input ref={replaceInputRef} type="file" accept="image/*" className="hidden" onChange={onReplaceFileChange} />
 
-      {/* Drop overlay */}
       {isDraggingOver && (
         <div className="absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-accent-500 bg-bg/85 pointer-events-none">
           <span className="text-xs text-accent-500 uppercase tracking-widest">Drop to upload</span>
         </div>
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-start gap-4 px-3 py-2 border-b border-line shrink-0">
-        <span className="text-sm uppercase text-ink-muted tracking-wider">
-          {images.length} Image
-        </span>
+        <span className="text-sm uppercase text-ink-muted tracking-wider">{images.length} Image</span>
         {uploadLabel}
       </div>
+      {errorStrip}
 
-      {/* Error strip */}
-      {error && (
-        <div className="px-3 py-1.5 text-xs text-danger bg-danger-ghost border-b border-danger/20 shrink-0">
-          {error}
-          <button onClick={() => setError(null)} className="ml-2 text-ink-ddim hover:text-ink">×</button>
-        </div>
-      )}
-
-      {/* Image list */}
       <div className="flex-1 overflow-y-auto divide-y divide-line">
         {images.length === 0 && (
           <p className="px-3 py-8 text-center text-xs text-ink-ddim uppercase">
             {isUploading ? 'Uploading…' : 'Drop images here or click Upload'}
           </p>
         )}
-
         {images.map(img => (
           <div key={img.id} className="p-2.5 space-y-2">
-            {/* Thumbnail */}
             <div className="w-full aspect-video bg-bg-elevated border border-line overflow-hidden relative">
-              {img.previewUrl ? (
-                <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs text-ink-ddim uppercase">
-                  {img.status === 'published' ? 'CDN' : 'No preview'}
-                </div>
-              )}
-              {/* Replace loading overlay */}
+              {img.previewUrl
+                ? <img src={img.previewUrl} alt="" className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center text-xs text-ink-ddim uppercase">
+                    {img.status === 'published' ? 'CDN' : 'No preview'}
+                  </div>
+              }
               {isReplacingId === img.id && (
                 <div className="absolute inset-0 flex items-center justify-center bg-bg/75">
                   <span className="text-xs text-info animate-pulse uppercase">Replacing…</span>
                 </div>
               )}
             </div>
-
-            {/* ID + status */}
             <div>
               <p className="text-xs text-ink-muted truncate" title={img.id}>{img.id}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className={STATUS_COLOR[img.status] ?? 'text-ink-muted'}>{img.status}</span>
+                <span className={STATUS_STYLE[img.status] ?? 'text-ink-muted'}>{img.status}</span>
                 {coverId === img.id && <span className="text-accent-500">◆ cover</span>}
               </div>
             </div>
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap gap-1">
-              <Button
-                variant="outline" className="text-xs px-2 py-0.5"
-                onClick={() => onInsert(img.id)}
-                disabled={disabled}
-                title="Insert into markdown"
-              >
-                Insert
-              </Button>
-
-              <Button
-                variant={coverId === img.id ? 'primary' : 'outline'}
-                className="text-xs px-2 py-0.5"
-                onClick={() => onSetCover(coverId === img.id ? null : img.id)}
-                disabled={disabled}
-              >
-                {coverId === img.id ? 'Uncover' : 'Cover'}
-              </Button>
-
-              <Button
-                variant="outline" className="text-xs px-2 py-0.5"
-                disabled={disabled || isReplacingId === img.id}
-                title="Upload replacement (new ID → update markdown → delete old)"
-                onClick={() => { setReplacingId(img.id); replaceInputRef.current?.click() }}
-              >
-                {isReplacingId === img.id ? 'Replacing…' : 'Replace'}
-              </Button>
-
-              <Button
-                variant="danger" className="text-xs px-2 py-0.5"
-                disabled={disabled}
-                onClick={() => wrap(() => onDelete(img.id))}
-              >
-                Del
-              </Button>
-            </div>
+            <ImageCardActions
+              id={img.id} coverId={coverId} disabled={disabled}
+              isReplacing={isReplacingId === img.id}
+              onInsert={onInsert} onSetCover={onSetCover}
+              onStartReplace={startReplace} onDelete={id => wrap(() => onDelete(id))}
+            />
           </div>
         ))}
       </div>

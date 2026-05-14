@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { cn } from '@/lib/utils'
+import GoogleSignInButton from '@/components/ui/GoogleSignInButton'
 
 interface CommentAuthor {
   handle: string
@@ -134,14 +135,10 @@ export default function CommentsSection({ projectId }: Props) {
       {loading ? null : !isLoggedIn ? (
         <div className="border border-line p-5 text-center space-y-3">
           <p className="text-sm text-ink-muted">登入後才能留言</p>
-          <button
-            onClick={() =>
-              signIn(typeof window !== 'undefined' ? window.location.pathname : '/')
-            }
-            className="px-4 py-2 border border-line hover:border-accent-500 hover:text-accent-400 transition-colors text-sm text-ink-muted"
-          >
-            Google 登入
-          </button>
+          <GoogleSignInButton
+            label="Google 登入"
+            onClick={() => signIn(typeof window !== 'undefined' ? window.location.pathname : '/')}
+          />
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-2">
