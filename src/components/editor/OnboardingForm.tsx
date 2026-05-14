@@ -43,7 +43,7 @@ function dicebearUrl(seed: string) {
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function OnboardingForm() {
-  const { user, isOnboarded, loading: authLoading } = useSupabaseAuth()
+  const { user, isOnboarded, loading: authLoading, signOut } = useSupabaseAuth()
 
   const [handle, setHandle] = useState('')
   const [nickname, setNickname] = useState('')
@@ -195,10 +195,19 @@ export default function OnboardingForm() {
       <form onSubmit={handleSubmit} className="w-full max-w-xl space-y-8">
 
         {/* Header */}
-        <div className="space-y-1">
-          <p className="text-sm uppercase tracking-widest text-ink-dim">LATENT · 初次設定</p>
-          <h1 className="text-xl text-ink">建立你的身份</h1>
-          <p className="text-sm text-ink-muted">這些資訊將幫助社群認識你。</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <p className="text-sm uppercase tracking-widest text-ink-dim">LATENT · 初次設定</p>
+            <h1 className="text-xl text-ink">建立你的身份</h1>
+            <p className="text-sm text-ink-muted">這些資訊將幫助社群認識你。</p>
+          </div>
+          <button
+            type="button"
+            onClick={signOut}
+            className="shrink-0 text-xs text-ink-disabled hover:text-ink-muted transition-colors border border-transparent hover:border-line px-2 py-1"
+          >
+            登出
+          </button>
         </div>
 
         {/* Handle + Avatar */}
