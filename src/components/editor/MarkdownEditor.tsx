@@ -7,7 +7,9 @@ import {
   useMemo,
   type DragEvent,
 } from 'react'
-import { marked } from 'marked'
+import { createMarkedInstance } from '@/lib/markdown-renderer'
+
+const markedInstance = createMarkedInstance()
 import { Button } from '@/components/ui/Button'
 import { resolveImageIdsToUrls } from '@/lib/markdown-image'
 import TextareaAutosize from 'react-textarea-autosize'
@@ -130,7 +132,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       if (!imageUrlMap || Object.keys(imageUrlMap).length === 0) return content
       return resolveImageIdsToUrls(content, imageUrlMap)
     }, [content, imageUrlMap])
-    const previewHtml = marked.parse(resolvedContent) as string
+    const previewHtml = markedInstance.parse(resolvedContent) as string
 
     return (
       <div className="flex flex-col font-mono">
@@ -201,7 +203,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
               />
               {cursorPos && (
                 <div
-                  className="absolute w-px bg-accent-500 animate-cursor pointer-events-none z-10"
+                  className="absolute w-px bg-accent-500 animate-cursor pointer-events-none z-20"
                   style={{ top: cursorPos.top, left: cursorPos.left, height: cursorPos.height }}
                 />
               )}
@@ -217,7 +219,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {showPreview && (
             <div
               className={cn(
-                'prose prose-sm max-w-none p-4 bg-bg',
+                'prose prose-sm prose-invert max-w-none p-4 bg-bg',
                 viewLayout === 'split' ? 'w-1/2' : 'w-full',
               )}
               dangerouslySetInnerHTML={{ __html: previewHtml }}

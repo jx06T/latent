@@ -1,7 +1,5 @@
 ---
-// src/components/ui/MarkdownContent.astro
-// 【關鍵修正】把 Marked 類別解構出來引入
-import { marked, Marked, type Tokens } from "marked";
+import { createMarkedInstance } from "@/lib/markdown-renderer";
 import sanitizeHtml from "sanitize-html";
 
 interface Props {
@@ -11,55 +9,7 @@ interface Props {
 
 const { content, class: className = "" } = Astro.props;
 
-const renderer = {
-  // 修正後的 link 渲染器
-  link(token: Tokens.Link) {
-    const { href, title, text } = token;
-    const isExternal = href && href.startsWith("http");
-    const target = isExternal
-      ? ' target="_blank" rel="noopener noreferrer"'
-      : "";
-    const titleAttr = title ? ` title="${title}"` : "";
-
-    // 1. 完全複製 Link.astro <a> 的 Class
-    const aClass = `
-      inline-block cursor-pointer items-center 
-      text-primary-400 hover:text-accent-400 
-      transition-colors duration-200 group mx-0.5
-    `
-      .replace(/\s+/g, " ")
-      .trim();
-
-    // 2. 完全複製 Link.astro <span> (底線) 的 Class
-    const spanClass = "inline-block underline underline-offset-3";
-
-    // 3. 完全複製 lucide-react <ArrowUpRight /> 的 SVG 結構
-    // 包含你寫的 className="inline-block -ml-2.5"
-    const iconHtml = isExternal
-      ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right  inline-block " aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>`
-      : "";
-
-    // 4. 組裝成一模一樣的 HTML 結構！
-    return `<a href="${href}" class="${aClass}"${titleAttr}${target}><span class="${spanClass}"><span>${text}</span></span>${iconHtml}</a>`;
-  },
-
-  // (選擇性) 你剛剛提到的圖片優化攔截也可以放在這裡
-  image(token: Tokens.Image) {
-    const { href, title, text } = token;
-    const titleAttr = title ? ` title="${title}"` : "";
-    // 加上 loading="lazy" 優化載入
-    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" />`;
-  },
-};
-
-// 【關鍵修正】實例化獨立的 Marked 物件
-const markedInstance = new Marked();
-
-// 套用自訂 Renderer
-markedInstance.use({ renderer });
-
-// 解析 Markdown (因為 parse 是同步或非同步取決於內容，Astro 裡用 await 比較安全)
-const rawHtml = await markedInstance.parse(content || "");
+const rawHtml = await createMarkedInstance().parse(content || "");
 
 // 執行安全過濾
 const cleanHtml = sanitizeHtml(rawHtml, {

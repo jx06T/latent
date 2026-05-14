@@ -123,6 +123,9 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
                 data-author={project.author_handle.toLowerCase()}
                 data-category={project.category_main}
                 data-keywords={project.keywords.join(" ").toLowerCase()}
+                data-subtitle={(project.subtitle ?? "").toLowerCase()}
+                data-tech={project.tech_stack.join(" ").toLowerCase()}
+                data-description={(project.description ?? "").toLowerCase()}
               >
                 <ProjectCard
                   slug={project.slug}
