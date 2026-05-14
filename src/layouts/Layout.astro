@@ -8,21 +8,25 @@ import SmoothScroll from "@/components/SmoothScroll.astro";
 import LogManager from "@/components/modules/LogManager.astro";
 import { cn } from "@/lib/utils";
 
+import type { ArticleMeta } from "@/components/sections/BaseHead.astro";
+
 interface Props {
   title: string;
   description: string;
   image?: string;
+  type?: "website" | "article";
+  article?: ArticleMeta;
   activeNav?: "home" | "about" | "projects" | "profile";
   bodyClass?: string;
 }
 
-const { title, description, image, activeNav, bodyClass = "" } = Astro.props;
+const { title, description, image, type, article, activeNav, bodyClass = "" } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="zh-TW">
   <head>
-    <BaseHead title={title} description={description} image={image} />
+    <BaseHead title={title} description={description} image={image} type={type} article={article} />
   </head>
   <body class={cn("", bodyClass)}>
     <SmoothScroll />
