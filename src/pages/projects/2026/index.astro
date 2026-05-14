@@ -45,7 +45,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
   description={`探索 ${YEAR} 年度學生專題，涵蓋 AI、系統開發、互動遊戲等領域`}
   activeNav="projects"
 >
-  <main class="pt-24 min-h-screen">
+  <main class="pt-12 min-h-screen">
     <!-- Page header -->
     <section
       class="max-w-6xl mx-auto px-4 sm:px-6 pt-12 pb-8 border-b border-line"
@@ -113,6 +113,9 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
             <p class="font-mono text-ink-dim mt-4">// 目前尚無已發佈的專題</p>
           </div>
         ) : (
+          <div id="no-results" class="hidden py-24 text-center">
+            <p class="font-mono text-ink-dim">// NO_RESULTS_FOUND</p>
+          </div>
           <ul
             id="project-grid"
             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
@@ -148,33 +151,56 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
 </Layout>
 
 <script>
-  // Search & category filter — client-side, no API call.
-  // Reads data-* attributes rendered server-side; toggles `hidden` class on <li>.
-  const searchInput = document.getElementById(
-    "search-input",
-  ) as HTMLInputElement | null;
-  const categoryButtons = document.querySelectorAll<HTMLButtonElement>(
-    "#category-filters [data-category]",
-  );
-  const projectItems =
-    document.querySelectorAll<HTMLLIElement>("#project-grid li");
+  const searchInput = document.getElementById("search-input") as HTMLInputElement | null;
+  const categoryButtons = document.querySelectorAll<HTMLButtonElement>("#category-filters [data-category]");
+  const grid = document.getElementById("project-grid");
+  const noResults = document.getElementById("no-results");
+
+  // Snapshot with original index for stable sort restoration
+  const items = Array.from(document.querySelectorAll<HTMLLIElement>("#project-grid li"))
+    .map((li, i) => ({ li, i }));
 
   let activeCategory = "all";
 
+  function scoreItem(terms: string[], li: HTMLLIElement): number {
+    const fields = [
+      li.dataset.title, li.dataset.author, li.dataset.keywords,
+      li.dataset.subtitle, li.dataset.tech, li.dataset.description,
+    ];
+    return terms.filter((t) => fields.some((f) => (f ?? "").includes(t))).length;
+  }
+
   function applyFilters() {
-    const query = searchInput?.value.toLowerCase().trim() ?? "";
-    projectItems.forEach((li) => {
-      const matchesSearch =
-        !query ||
-        (li.dataset.title ?? "").includes(query) ||
-        (li.dataset.author ?? "").includes(query) ||
-        (li.dataset.keywords ?? "").includes(query);
+    const terms = (searchInput?.value.toLowerCase() ?? "").split(/\s+/).filter(Boolean);
 
-      const matchesCategory =
-        activeCategory === "all" || li.dataset.category === activeCategory;
+    const scored = items.map(({ li, i }) => ({
+      li, i,
+      score: scoreItem(terms, li),
+      cat: activeCategory === "all" || li.dataset.category === activeCategory,
+    }));
 
-      li.classList.toggle("hidden", !(matchesSearch && matchesCategory));
+    // Higher score first; ties preserve original order (score=0 when no query → full original order)
+    scored.sort((a, b) => b.score - a.score || a.i - b.i);
+    scored.forEach(({ li }) => grid?.appendChild(li));
+
+    let visible = 0;
+    scored.forEach(({ li, score, cat }) => {
+      const show = cat && (terms.length === 0 || score > 0);
+      li.classList.toggle("hidden", !show);
+      if (show) visible++;
     });
+
+    noResults?.classList.toggle("hidden", visible > 0);
+    updateUrl();
+  }
+
+  function updateUrl() {
+    const params = new URLSearchParams();
+    const q = searchInput?.value.trim();
+    if (q) params.set("q", q);
+    if (activeCategory !== "all") params.set("cat", activeCategory);
+    const qs = params.toString();
+    history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
   }
 
   searchInput?.addEventListener("input", applyFilters);
@@ -187,4 +213,15 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
       applyFilters();
     });
   });
+
+  // Restore state from URL on page load
+  const urlParams = new URLSearchParams(location.search);
+  const initQ = urlParams.get("q") ?? "";
+  const initCat = urlParams.get("cat") ?? "all";
+  if (searchInput && initQ) searchInput.value = initQ;
+  if (initCat !== "all") {
+    activeCategory = initCat;
+    categoryButtons.forEach((b) => b.classList.toggle("active", b.dataset.category === initCat));
+  }
+  if (initQ || initCat !== "all") applyFilters();
 </script>

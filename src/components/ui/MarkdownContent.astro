@@ -19,7 +19,15 @@ const cleanHtml = sanitizeHtml(rawHtml, {
     "svg",
     "path",
     "span",
+    "div",
   ]),
+  allowedClasses: {
+    div: [
+      "callout", "callout-note", "callout-tip", "callout-warning",
+      "callout-caution", "callout-danger", "callout-important",
+      "callout-title", "callout-icon", "callout-body",
+    ],
+  },
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "style"],

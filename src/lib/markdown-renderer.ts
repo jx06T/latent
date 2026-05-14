@@ -21,8 +21,49 @@ const renderer = {
   },
 }
 
+// Base instance used to render callout bodies — no callout extension to avoid recursion
+const _bodyParser = new Marked()
+_bodyParser.use({ renderer, breaks: true })
+
+const CALLOUT_ICONS: Record<string, string> = {
+  note: 'ℹ', tip: '✦', warning: '⚠', caution: '✗', danger: '✗', important: '★',
+}
+
+const calloutExtension = {
+  name: 'callout',
+  level: 'block' as const,
+
+  start(src: string) {
+    return src.match(/^> \[!/)?.index
+  },
+
+  tokenizer(src: string) {
+    const match = src.match(/^((?:> [^\n]*\n?)+)/)
+    if (!match) return
+    const lines = match[1].split('\n').filter(Boolean)
+    const firstLine = lines[0].replace(/^> /, '').trim()
+    const typeMatch = firstLine.match(/^\[!(NOTE|TIP|WARNING|CAUTION|DANGER|IMPORTANT)\](.*)$/i)
+    if (!typeMatch) return
+    return {
+      type: 'callout',
+      raw: match[0],
+      calloutType: typeMatch[1].toLowerCase(),
+      title: typeMatch[2].trim(),
+      body: lines.slice(1).map((l: string) => l.replace(/^> ?/, '')).join('\n'),
+    }
+  },
+
+  renderer(token: any) {
+    const bodyHtml = _bodyParser.parse(token.body || '') as string
+    const icon = CALLOUT_ICONS[token.calloutType] ?? 'ℹ'
+    const label = token.title || token.calloutType.toUpperCase()
+    return `<div class="callout callout-${token.calloutType}"><div class="callout-title"><span class="callout-icon">${icon}</span><span>${label}</span></div><div class="callout-body">${bodyHtml}</div></div>`
+  },
+}
+
 export function createMarkedInstance(): Marked {
   const instance = new Marked()
-  instance.use({ renderer })
+  instance.use({ extensions: [calloutExtension] })
+  instance.use({ renderer, breaks: true })
   return instance
 }
