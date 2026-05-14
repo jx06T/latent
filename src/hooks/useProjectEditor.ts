@@ -41,7 +41,6 @@ export function useProjectEditor(projectId: string) {
   const [images, setImages] = useState<ImageRecord[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
-  const [isUnpublishing, setIsUnpublishing] = useState(false)
   const [slugError, setSlugError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [firstPublishedAt, setFirstPublishedAt] = useState<string | null>(null)
@@ -233,14 +232,16 @@ export function useProjectEditor(projectId: string) {
   const handlePublish = useCallback(async () => {
     if (!accessToken) return
 
-    if (!isValidSlug(formState.slug)) {
+    if (!isSlugLocked && !isValidSlug(formState.slug)) {
       setSlugError('Slug 格式不正確 (需為 3-60 字元的小寫英數字與連字號)')
       return
     }
 
     const ok = await confirm({
       title: '確認發布',
-      message: `發布後 slug「${formState.slug}」將無法更改。\n確認要發布嗎？`,
+      message: isSlugLocked
+        ? '確認要發布嗎？'
+        : `發布後 slug「${formState.slug}」將永久鎖定，即使取消發布也無法更改。\n確認要發布嗎？`,
       confirmText: '發布',
       variant: 'primary',
     })
@@ -429,6 +430,7 @@ export function useProjectEditor(projectId: string) {
     // Editor state
     loadStatus,
     projectStatus,
+    isSlugLocked,
     formState,
     images,
     isSaving,

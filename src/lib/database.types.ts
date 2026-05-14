@@ -186,6 +186,7 @@ export type Database = {
           cover_image_id: string | null
           created_at: string
           description: string | null
+          first_published_at: string | null
           id: string
           keywords: string[] | null
           like_count: number
@@ -209,6 +210,7 @@ export type Database = {
           cover_image_id?: string | null
           created_at?: string
           description?: string | null
+          first_published_at?: string | null
           id?: string
           keywords?: string[] | null
           like_count?: number
@@ -232,6 +234,7 @@ export type Database = {
           cover_image_id?: string | null
           created_at?: string
           description?: string | null
+          first_published_at?: string | null
           id?: string
           keywords?: string[] | null
           like_count?: number

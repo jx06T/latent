@@ -29,10 +29,12 @@ interface Props {
   project: ProjectSummary
   coverUrl?: string
   isDeleting: boolean
+  isUnpublishing?: boolean
   onDelete: (id: string, title: string) => void
+  onUnpublish?: (id: string, title: string) => void
 }
 
-export default function ProjectListItem({ project: p, coverUrl, isDeleting, onDelete }: Props) {
+export default function ProjectListItem({ project: p, coverUrl, isDeleting, isUnpublishing, onDelete, onUnpublish }: Props) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 hover:bg-bg-surface transition-colors group">
       {/* Status dot */}
@@ -81,9 +83,20 @@ export default function ProjectListItem({ project: p, coverUrl, isDeleting, onDe
             variant="ghost"
             className="text-xs px-2 py-0.5"
             target="_blank"
+            
           >
-            View ↗
+            View↗
           </LinkButton>
+        )}
+        {p.status === 'published' && onUnpublish && (
+          <Button
+            variant="danger"
+            className="text-xs px-2 py-0.5"
+            disabled={isUnpublishing}
+            onClick={() => onUnpublish(p.id, p.title)}
+          >
+            {isUnpublishing ? '…' : 'Unpublish'}
+          </Button>
         )}
         <Button
           variant="danger"

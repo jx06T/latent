@@ -25,6 +25,7 @@ export default function ProjectEditor({ projectId }: Props) {
     signOut,
     loadStatus,
     projectStatus,
+    isSlugLocked,
     formState,
     images,
     isSaving,
@@ -216,7 +217,7 @@ export default function ProjectEditor({ projectId }: Props) {
           <MetadataForm
             data={formState}
             onChange={handleFormChange}
-            isSlugLocked={projectStatus === 'published'}
+            isSlugLocked={isSlugLocked}
             disabled={isProcessing}
             slugError={slugError}
           />

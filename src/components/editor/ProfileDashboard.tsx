@@ -37,6 +37,7 @@ export default function ProfileDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [unpublishingId, setUnpublishingId] = useState<string | null>(null)
   const [coverImageUrls, setCoverImageUrls] = useState<Record<string, string>>({})
 
   // ── Profile editing ────────────────────────────────────────────────────
@@ -86,7 +87,7 @@ export default function ProfileDashboard() {
         .from('projects')
         .select('id, title, slug, status, year, updated_at, created_at, cover_image_id, project_images!project_images_project_id_fkey(id, project_id,status, source_ext, published_ext, available_sizes)')
         .eq('author_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false })
       if (error) throw error
 
       const enrichedProjects = (data ?? []).map((p: any): ProjectSummary => {
@@ -161,6 +162,30 @@ export default function ProfileDashboard() {
     })
     if (res.ok) setProjects(prev => prev.filter(p => p.id !== id))
     setDeletingId(null)
+  }, [accessToken, confirm])
+
+  const handleUnpublish = useCallback(async (id: string, title: string) => {
+    if (!accessToken) return
+    const ok = await confirm({
+      title: '取消發布',
+      message: `確認取消發布「${title || '(untitled)'}」？\n專案將從公開列表移除，圖片不受影響。\n注意：URL slug 仍會保持鎖定。`,
+      confirmText: '取消發布',
+      variant: 'danger',
+    })
+    if (!ok) return
+    setUnpublishingId(id)
+    const res = await fetch('/api/unpublish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ project_id: id }),
+    })
+    if (res.ok) {
+      setProjects(prev => prev.map(p => p.id === id ? { ...p, status: 'draft' } : p))
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.message ?? data.error ?? '取消發布失敗')
+    }
+    setUnpublishingId(null)
   }, [accessToken, confirm])
 
   const handleProjectCreated = (projectId: string) => {
@@ -316,7 +341,9 @@ export default function ProfileDashboard() {
                     project={p}
                     coverUrl={p.cover_image_id ? coverImageUrls[p.cover_image_id] : undefined}
                     isDeleting={deletingId === p.id}
+                    isUnpublishing={unpublishingId === p.id}
                     onDelete={handleDelete}
+                    onUnpublish={handleUnpublish}
                   />
                 ))}
               </div>
