@@ -12,7 +12,6 @@ import ProjectListItem, { type ProjectSummary } from '@/components/editor/Projec
 import AuthGate from '@/components/ui/AuthGate'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
-const AGE_GROUPS = ['15 歲以下', '15–17 歲', '18–20 歲', '21–23 歲', '24 歲以上'] as const
 
 import { getAvatarUrl } from '@/lib/avatar'
 
@@ -44,7 +43,6 @@ export default function ProfileDashboard() {
   const [draftNickname, setDraftNickname] = useState('')
   const [draftBio, setDraftBio] = useState('')
   const [draftAffiliation, setDraftAffiliation] = useState('')
-  const [draftAgeGroup, setDraftAgeGroup] = useState('')
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
   const [profileSaved, setProfileSaved] = useState(false)
@@ -56,8 +54,7 @@ export default function ProfileDashboard() {
     if (profile) {
       setDraftNickname(profile.nickname)
       setDraftBio(profile.bio ?? '')
-      setDraftAffiliation(profile.affiliation ?? '')
-      setDraftAgeGroup(profile.age_group ?? '')
+      setDraftAffiliation(profile.tags?.[0] ?? '')
     }
   }, [profile])
 
@@ -173,8 +170,7 @@ export default function ProfileDashboard() {
   const isDirty = profile
     ? draftNickname !== profile.nickname
       || draftBio !== (profile.bio ?? '')
-      || draftAffiliation !== (profile.affiliation ?? '')
-      || draftAgeGroup !== (profile.age_group ?? '')
+      || draftAffiliation !== (profile.tags?.[0] ?? '')
     : false
 
   const handleTabClick = (tab: 'projects' | 'profile') => {
@@ -190,8 +186,7 @@ export default function ProfileDashboard() {
     if (!profile) return
     setDraftNickname(profile.nickname)
     setDraftBio(profile.bio ?? '')
-    setDraftAffiliation(profile.affiliation ?? '')
-    setDraftAgeGroup(profile.age_group ?? '')
+    setDraftAffiliation(profile.tags?.[0] ?? '')
   }
 
   // ── Save profile ───────────────────────────────────────────────────────
@@ -205,8 +200,7 @@ export default function ProfileDashboard() {
       .update({
         nickname: draftNickname.trim(),
         bio: draftBio.trim(),
-        affiliation: draftAffiliation || null,
-        age_group: draftAgeGroup || null,
+        tags: draftAffiliation ? [draftAffiliation] : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user.id)
@@ -408,21 +402,6 @@ export default function ProfileDashboard() {
                   </Button>
                 ))}
               </div>
-            </div>
-
-            {/* Age group */}
-            <div className="space-y-1">
-              <label className="block text-xs uppercase tracking-widest text-ink-muted">年齡區間</label>
-              <Input
-                as="select"
-                size="md"
-                value={draftAgeGroup}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDraftAgeGroup(e.target.value)}
-                className="appearance-none bg-bg-elevated"
-              >
-                <option value="">（選填）</option>
-                {AGE_GROUPS.map(ag => <option key={ag} value={ag}>{ag}</option>)}
-              </Input>
             </div>
 
             {/* Save */}

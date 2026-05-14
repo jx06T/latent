@@ -4,6 +4,7 @@ import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { getAvatarUrl } from '@/lib/avatar'
+import SurveyModal from '@/components/ui/SurveyModal'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -13,17 +14,12 @@ interface DraftState {
   handle: string
   nickname: string
   affiliation: string
-  age_group: string
-  referral_source: string
-  hasProject: boolean | null
   avatar_seed?: string
 }
 
 const DRAFT_KEY = 'latent:onboarding:draft'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
-const AGE_GROUPS = ['15 歲以下', '15–17 歲', '18–20 歲', '21–23 歲', '24 歲以上'] as const
-const REFERRAL_SOURCES = ['社群媒體', '朋友介紹', '社團公告', '學校課程', '其他'] as const
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -35,9 +31,8 @@ function getHandleStatus(value: string): HandleStatus | null {
   if (!value) return 'idle'
   if (value.length < 3) return 'too_short'
   if (!isValidHandleFormat(value)) return 'invalid_format'
-  return null // valid format, needs async availability check
+  return null
 }
-
 
 // ── Main Component ─────────────────────────────────────────────────────────
 
@@ -47,9 +42,6 @@ export default function OnboardingForm() {
   const [handle, setHandle] = useState('')
   const [nickname, setNickname] = useState('')
   const [affiliation, setAffiliation] = useState('')
-  const [ageGroup, setAgeGroup] = useState('')
-  const [referralSource, setReferralSource] = useState('')
-  const [hasProject, setHasProject] = useState<boolean | null>(null)
 
   const [avatarSeed, setAvatarSeed] = useState('')
   const avatarCustomized = useRef(false)
@@ -57,6 +49,8 @@ export default function OnboardingForm() {
   const [handleStatus, setHandleStatus] = useState<HandleStatus>('idle')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showSurvey, setShowSurvey] = useState(false)
+  const pendingDestRef = useRef<string>('/profile')
 
   // Redirect already-onboarded users away from this page
   useEffect(() => {
@@ -74,9 +68,6 @@ export default function OnboardingForm() {
       if (draft.handle) setHandle(draft.handle)
       if (draft.nickname) setNickname(draft.nickname)
       if (draft.affiliation) setAffiliation(draft.affiliation)
-      if (draft.age_group) setAgeGroup(draft.age_group)
-      if (draft.referral_source) setReferralSource(draft.referral_source)
-      if (draft.hasProject !== undefined) setHasProject(draft.hasProject)
       if (draft.avatar_seed) { setAvatarSeed(draft.avatar_seed); avatarCustomized.current = true }
     } catch {
       // ignore
@@ -90,16 +81,15 @@ export default function OnboardingForm() {
 
   const randomizeAvatar = useCallback(() => {
     const suffix = Math.random().toString(36).slice(2, 6)
-    const seed = handle ? `${handle}-${suffix}` : suffix
-    setAvatarSeed(seed)
+    setAvatarSeed(handle ? `${handle}-${suffix}` : suffix)
     avatarCustomized.current = true
   }, [handle])
 
-  // Persist draft to localStorage on any change
+  // Persist draft to localStorage
   useEffect(() => {
-    const draft: DraftState = { handle, nickname, affiliation, age_group: ageGroup, referral_source: referralSource, hasProject, avatar_seed: avatarSeed }
+    const draft: DraftState = { handle, nickname, affiliation, avatar_seed: avatarSeed }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [handle, nickname, affiliation, ageGroup, referralSource, hasProject, avatarSeed])
+  }, [handle, nickname, affiliation, avatarSeed])
 
   // Handle availability check (debounced)
   const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -116,13 +106,8 @@ export default function OnboardingForm() {
 
   useEffect(() => {
     if (checkTimerRef.current) clearTimeout(checkTimerRef.current)
-
     const syncStatus = getHandleStatus(handle)
-    if (syncStatus !== null) {
-      setHandleStatus(syncStatus)
-      return
-    }
-
+    if (syncStatus !== null) { setHandleStatus(syncStatus); return }
     checkTimerRef.current = setTimeout(() => checkHandleAvailability(handle), 450)
     return () => { if (checkTimerRef.current) clearTimeout(checkTimerRef.current) }
   }, [handle, checkHandleAvailability])
@@ -146,17 +131,14 @@ export default function OnboardingForm() {
       handle: handle.trim(),
       nickname: nickname.trim(),
       bio: '',
-      affiliation: affiliation || null,
-      age_group: ageGroup || null,
-      referral_source: referralSource || null,
+      tags: affiliation ? [affiliation] : null,
       avatar_url: avatarSeed || handle.trim() || null,
       is_onboarded: true,
-      email: user.email ?? null,
       updated_at: new Date().toISOString(),
     })
 
     if (error) {
-      console.error("Upsert Error:", error);
+      console.error('Upsert Error:', error)
       setSubmitError(error.message.includes('profiles_handle_key')
         ? '此代稱已被使用，請換一個。'
         : `發生錯誤：${error.message}`)
@@ -167,9 +149,12 @@ export default function OnboardingForm() {
     localStorage.removeItem(DRAFT_KEY)
 
     const params = new URLSearchParams(window.location.search)
-    const next = params.get('next') || '/profile'
-    const dest = hasProject ? '/profile?new=1' : next
-    window.location.replace(dest)
+    pendingDestRef.current = params.get('next') || '/profile'
+    setShowSurvey(true)
+  }
+
+  const handleSurveyDone = () => {
+    window.location.replace(pendingDestRef.current)
   }
 
   // ── Loading / auth guard ──────────────────────────────────────────────────
@@ -254,7 +239,7 @@ export default function OnboardingForm() {
               type="button"
               onClick={randomizeAvatar}
               title="點擊更換頭像"
-              className="group w-18 h-18 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
+              className="relative group w-16 h-16 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
             >
               <img
                 src={getAvatarUrl(avatarSeed || user.id)}
@@ -263,8 +248,11 @@ export default function OnboardingForm() {
                 height={64}
                 className="w-full h-full"
               />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-[10px] text-white font-mono leading-tight text-center">點擊<br/>更換</span>
+              </div>
             </button>
-            <p className="text-[11px] text-ink-ddim text-center">頭像預覽<br/>點擊更換</p>
+            <p className="text-[11px] text-ink-disabled text-center">頭像預覽</p>
           </div>
         </div>
 
@@ -307,57 +295,6 @@ export default function OnboardingForm() {
           </div>
         </div>
 
-        {/* Age group */}
-        <div className="space-y-2">
-          <label className="block text-sm text-ink-muted uppercase tracking-widest">年齡區間</label>
-          <select
-            value={ageGroup}
-            onChange={e => setAgeGroup(e.target.value)}
-            className="w-full bg-bg-elevated border border-line focus:border-line-active transition-colors px-3 py-2 text-sm text-ink outline-none appearance-none"
-          >
-            <option value="">（選填）</option>
-            {AGE_GROUPS.map(ag => <option key={ag} value={ag}>{ag}</option>)}
-          </select>
-        </div>
-
-        {/* Referral source */}
-        <div className="space-y-2">
-          <label className="block text-sm text-ink-muted uppercase tracking-widest">你從哪裡知道 Latent？</label>
-          <select
-            value={referralSource}
-            onChange={e => setReferralSource(e.target.value)}
-            className="w-full bg-bg-elevated border border-line focus:border-line-active transition-colors px-3 py-2 text-sm text-ink outline-none appearance-none"
-          >
-            <option value="">（選填）</option>
-            {REFERRAL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-
-        {/* Has project CTA */}
-        <div className="space-y-3 border border-line-accent bg-accent-950/30 p-4">
-          <p className="text-sm text-ink">你有正在開發中的專案嗎？</p>
-          <div className="flex gap-3">
-            {([true, false] as const).map(val => (
-              <button
-                key={String(val)}
-                type="button"
-                onClick={() => setHasProject(val)}
-                className={cn(
-                  'px-4 py-2 border text-sm transition-colors',
-                  hasProject === val
-                    ? 'border-accent-500 text-accent-400 bg-accent-950'
-                    : 'border-line text-ink-muted hover:border-accent-500/50 hover:text-ink'
-                )}
-              >
-                {val ? '有！' : '還沒有'}
-              </button>
-            ))}
-          </div>
-          {hasProject && (
-            <p className="text-sm text-ink-muted">完成設定後將直接帶你建立第一個專案 →</p>
-          )}
-        </div>
-
         {/* Submit error */}
         {submitError && (
           <p className="text-sm text-danger border border-danger/30 bg-danger-ghost px-3 py-2">
@@ -375,11 +312,16 @@ export default function OnboardingForm() {
           >
             {isSubmitting ? '儲存中…' : '完成設定'}
           </Button>
-          <p className="text-sm text-ink-disabled">
-            * 為必填欄位
-          </p>
+          <p className="text-sm text-ink-disabled">* 為必填欄位</p>
         </div>
       </form>
+
+      <SurveyModal
+        open={showSurvey}
+        onClose={() => handleSurveyDone()}
+        userId={user.id}
+        onComplete={handleSurveyDone}
+      />
     </div>
   )
 }

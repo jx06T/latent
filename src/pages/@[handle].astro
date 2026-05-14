@@ -16,7 +16,7 @@ const db = createAnonClient();
 // Fetch public profile
 const { data: profile } = await db
   .from("profiles")
-  .select("id, handle, nickname, bio, affiliation, avatar_url, created_at")
+  .select("id, handle, nickname, bio, tags, avatar_url, created_at")
   .eq("handle", handle!)
   .maybeSingle();
 
@@ -83,9 +83,9 @@ const joinYear = new Date(profile.created_at).getFullYear();
         </div>
 
         {
-          profile.affiliation && (
+          profile.tags?.[0] && (
             <span class="inline-block border border-primary-700 bg-primary-950 text-ink-dim text-sm px-2 py-0.5">
-              {profile.affiliation}
+              {profile.tags[0]}
             </span>
           )
         }
