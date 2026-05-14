@@ -26,6 +26,12 @@ export function exportMarkdownWithUrls(markdown: string, images: ProjectImageRow
     })
 }
 
+export function extractFirstImageId(markdown: string): string | null {
+    const pattern = /!\[[^\]]*\]\(image-id-([0-9a-f-]{36})\)/i
+    const match = pattern.exec(markdown)
+    return match ? match[1] : null
+}
+
 /**
  * Client-side editor preview: replace image-id refs with URLs from a pre-built map.
  * Keys are raw UUIDs (without the image-id- prefix); values are presigned or CDN URLs.

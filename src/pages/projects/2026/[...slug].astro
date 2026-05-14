@@ -13,7 +13,7 @@ import CommentsSection from "@/components/project/CommentsSection";
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
 import type { CategoryId } from "@/lib/schema";
-import { replaceImageIds } from "@/lib/markdown-image";
+import { replaceImageIds, extractFirstImageId } from "@/lib/markdown-image";
 import { publishedUrl, type ProjectImageRow } from "@/lib/image-paths";
 
 const { slug } = Astro.params;
@@ -60,11 +60,26 @@ const resolvedContent = project.content
   ? replaceImageIds(project.content, projectImages)
   : ""
 
+// coverImageUrl: hero image displayed on the page (only from cover_image_id)
 let coverImageUrl: string | null = null
 if (project.cover_image_id) {
   const coverImg = projectImages.find(img => img.id === project.cover_image_id)
   if (coverImg) {
     try { coverImageUrl = publishedUrl(coverImg, "md") } catch {}
+  }
+}
+
+// ogImageUrl: OG meta tag — cover → first article image → Satori fallback
+let ogImageUrl: string = new URL(`/og/2026/${project.slug}.png`, Astro.url).toString()
+if (coverImageUrl) {
+  ogImageUrl = coverImageUrl
+} else if (project.content) {
+  const firstId = extractFirstImageId(project.content)
+  if (firstId) {
+    const firstImg = projectImages.find(img => img.id === firstId)
+    if (firstImg) {
+      try { ogImageUrl = publishedUrl(firstImg, "md") } catch {}
+    }
   }
 }
 
@@ -81,7 +96,7 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   title={`${project.title} · LATENT ${CURRENT_YEAR}`}
   description={project.description ??
     `${project.title} — ${categoryLabel} 專題`}
-  ogImage={coverImageUrl ?? undefined}
+  ogImage={ogImageUrl}
   active="projects"
 >
   <!-- Breadcrumb & Categories -->
