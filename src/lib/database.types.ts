@@ -68,39 +68,36 @@ export type Database = {
       }
       profiles: {
         Row: {
-          affiliation: string | null
           avatar_url: string | null
           bio: string
           created_at: string
-          email: string | null
           handle: string | null
           id: string
           is_onboarded: boolean
           nickname: string
+          tags: string[] | null
           updated_at: string
         }
         Insert: {
-          affiliation?: string | null
           avatar_url?: string | null
           bio?: string
           created_at?: string
-          email?: string | null
           handle?: string | null
           id: string
           is_onboarded?: boolean
           nickname?: string
+          tags?: string[] | null
           updated_at?: string
         }
         Update: {
-          affiliation?: string | null
           avatar_url?: string | null
           bio?: string
           created_at?: string
-          email?: string | null
           handle?: string | null
           id?: string
           is_onboarded?: boolean
           nickname?: string
+          tags?: string[] | null
           updated_at?: string
         }
         Relationships: []
