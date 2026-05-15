@@ -79,7 +79,7 @@ if (project.cover_image_id) {
 
 // ogImageUrl: OG meta tag — cover → first article image → Satori fallback
 let ogImageUrl: string = new URL(
-  `/og/2026/${project.slug}.jpeg`,
+  `/og/${CURRENT_YEAR}/${project.slug}.jpeg`,
   Astro.url,
 ).toString();
 if (coverImageUrl) {
@@ -360,7 +360,7 @@ const similarProjects = (candidateData ?? [])
 
   <!-- Footer bar -->
   <footer class="mt-16 pt-3 border-t border-line flex items-center justify-between">
-    <Link href="/projects/2026">← 返回列表</Link>
+    <Link href={`/projects/${CURRENT_YEAR}`}>← 返回列表</Link>
     <button
       id="share-btn"
       data-title={project.title}
