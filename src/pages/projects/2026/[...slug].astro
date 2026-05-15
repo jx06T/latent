@@ -96,6 +96,17 @@ if (coverImageUrl) {
   }
 }
 
+const hoursSinceUpdate =
+  (Date.now() - new Date(project.updated_at ?? project.created_at).getTime()) / 36e5;
+const maxAge =
+  hoursSinceUpdate < 1 ? 120
+  : hoursSinceUpdate < 24 ? 600
+  : 3600;
+Astro.response.headers.set(
+  "Cache-Control",
+  `public, s-maxage=${maxAge}, stale-while-revalidate=86400`,
+);
+
 const categoryLabel =
   CATEGORIES[project.category_main as CategoryId] ?? CATEGORIES[0];
 const subCategoryLabels = project.category_sub
