@@ -7,7 +7,6 @@ import { createAnonClient } from "@/lib/supabase-server";
 import { publishedUrl, toCdnUrl, draftKey } from "@/lib/image-paths";
 import { getAvatarUrl } from "@/lib/avatar";
 import CommentLabel from "@/components/ui/CommentLabel";
-import { CATEGORIES } from "@/lib/schema";
 
 const { handle } = Astro.params;
 
@@ -60,6 +59,13 @@ function getCoverUrl(p: any): string | null {
 
 const avatarUrl = getAvatarUrl(profile.avatar_url ?? handle);
 const joinYear = new Date(profile.created_at).getFullYear();
+
+function parseBio(text: string) {
+  return text.split(/(https?:\/\/[^\s]+)/g).map((part) => ({
+    isUrl: part.startsWith("http://") || part.startsWith("https://"),
+    text: part,
+  }));
+}
 ---
 
 <Layout
@@ -94,7 +100,18 @@ const joinYear = new Date(profile.created_at).getFullYear();
     <section class="mb-16 max-h-60 overflow-y-auto">
       {
         profile.bio ? (
-          <pre class="text-sm text-ink-muted">{profile.bio}</pre>
+          <p class="text-sm text-ink-muted whitespace-pre-wrap wrap-break-word">{parseBio(profile.bio).map((part) =>
+              part.isUrl ? (
+                <a
+                  href={part.text}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary-400 underline underline-offset-2 hover:text-primary-300"
+                >{part.text}</a>
+              ) : (
+                part.text
+              ),
+            )}</p>
         ) : null
       }
     </section>

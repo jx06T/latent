@@ -387,12 +387,7 @@ export default function ProfileDashboard() {
                 />
                 <div>
                   <p className="text-sm text-ink">{profile.nickname}</p>
-                  <a
-                    href={`/@${profile.handle ?? ''}`}
-                    className="text-xs text-ink-disabled hover:text-ink transition-colors"
-                  >
-                    /@{profile.handle ?? ''}
-                  </a>
+                  <Link className=' text-xs text-ink-ddim' href={`/@${profile.handle ?? ''}`}>/@{profile.handle ?? ''}</Link>
                 </div>
               </div>
 
