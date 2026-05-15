@@ -234,7 +234,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
               />
               {cursorPos && (
                 <div
-                  className="absolute w-px bg-accent-500 animate-cursor pointer-events-none z-20"
+                  className="absolute w-px bg-[#79c9ff] animate-cursor pointer-events-none z-20"
                   style={{ top: cursorPos.top, left: cursorPos.left, height: cursorPos.height }}
                 />
               )}

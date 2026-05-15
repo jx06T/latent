@@ -2,6 +2,10 @@
 @import "highlight.js/styles/github-dark-dimmed.css";
 @plugin "@tailwindcss/typography";
 
+.hljs {
+  background: #202020;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
@@ -174,6 +178,17 @@
     /* direct override as fallback in case CSS vars don't cascade correctly */
     color: var(--color-ink-muted);
   }
+  .prose > pre {
+    padding:1.2rem 1.2rem ;
+  }
+  .prose > pre > code {
+    padding: 0;
+  }
+
+  .prose > pre > code.hljs {
+    padding: 0 !important;
+  }
+
   .prose :where(p, li, td, dd, dt, blockquote) {
     color: var(--color-ink-muted);
   }
@@ -307,13 +322,25 @@
 
 /* ── TopProjects card animations ─────────────────────────────────────────── */
 @keyframes glitch-shift {
-  0%, 100% { transform: translate(0); filter: none; }
-  20% { transform: translate(-4px, 2px); filter: hue-rotate(15deg) brightness(1.1) contrast(1.2); }
-  60% { transform: translate(4px, -2px); filter: hue-rotate(-15deg); }
+  0%,
+  100% {
+    transform: translate(0);
+    filter: none;
+  }
+  20% {
+    transform: translate(-4px, 2px);
+    filter: hue-rotate(15deg) brightness(1.1) contrast(1.2);
+  }
+  60% {
+    transform: translate(4px, -2px);
+    filter: hue-rotate(-15deg);
+  }
 }
 .card-hover-target:hover {
   animation: glitch-shift 0.25s steps(2, start) 1;
 }
 @media (min-width: 767px) {
-  .hover-top:hover { z-index: 30 !important; }
+  .hover-top:hover {
+    z-index: 30 !important;
+  }
 }
