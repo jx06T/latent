@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Tables } from '@/lib/database.types'
@@ -23,6 +23,10 @@ export function useSupabaseAuth(): SupabaseAuth {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
+  // Tracks the user id that has already been loaded so SIGNED_IN for the same
+  // user (e.g. after a tab wake-up / session recovery) can skip the profile
+  // reload cycle — which would otherwise unmount the editor and erase unsaved edits.
+  const loadedUserIdRef = useRef<string | null>(null)
 
   const loadProfile = useCallback(async (userId: string) => {
     setProfileLoading(true)
@@ -56,9 +60,19 @@ export function useSupabaseAuth(): SupabaseAuth {
         return
       }
 
+      // SIGNED_IN can fire again on tab wake-up / session recovery for the
+      // exact same user that is already loaded.  Reloading the profile would
+      // set profileLoading=true → AuthGate unmounts the editor → unsaved edits
+      // are lost.  Skip if the user id hasn't actually changed.
+      if (event === 'SIGNED_IN' && session?.user && session.user.id === loadedUserIdRef.current) {
+        setAccessToken(session?.access_token ?? null)
+        return
+      }
+
       // Synchronously update auth state so React can batch these together.
       setUser(session?.user ?? null)
       setAccessToken(session?.access_token ?? null)
+      loadedUserIdRef.current = session?.user?.id ?? null
 
       if (session?.user) {
         // Mark profile as loading synchronously to prevent a gap where
@@ -71,6 +85,7 @@ export function useSupabaseAuth(): SupabaseAuth {
       } else {
         setProfile(null)
         setProfileLoading(false)
+        loadedUserIdRef.current = null
       }
 
       setAuthLoading(false)
