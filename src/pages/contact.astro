@@ -16,7 +16,7 @@ import StatusLog from "@/components/ui/StatusLog.astro";
     <div class="prose max-w-none">
       <h1>聯絡我們</h1>
       <p class="lead">
-        有任何問題、合作意向，或是想提交你的學生專題？
+        有任何問題、合作意向，或是想一起讓這個網站更好？
         填寫以下表單，我們將盡快回覆。
       </p>
     </div>
@@ -55,9 +55,9 @@ import StatusLog from "@/components/ui/StatusLog.astro";
 
     <div class="prose max-w-none border-t border-line pt-6">
       <p class="text-sm text-ink-dim">
-        你也可以直接在
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
-        上開一個 issue，或透過各專題頁面中的作者資訊直接聯繫。
+        您也可以直接在
+        <a href="https://github.com/jx06T/latent" target="_blank" rel="noopener noreferrer">GitHub</a>
+        上建立一個 issue，或嘗試透過各專題頁面中的作者資訊直接聯繫。
       </p>
     </div>
   </div>
@@ -100,14 +100,32 @@ import StatusLog from "@/components/ui/StatusLog.astro";
     const btn = document.getElementById("submit-btn") as HTMLButtonElement | null;
     if (btn) btn.setAttribute("disabled", "true");
 
-    // Future: POST to /api/contact
-    // const formData = new FormData(form);
-    // const res = await fetch("/api/contact", { method: "POST", body: formData });
+    const formData = new FormData(form);
+    const body = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      subject: formData.get("subject"),
+      message: formData.get("message"),
+    };
 
-    // For now: simulate success
-    await new Promise((r) => setTimeout(r, 400));
-    showFeedback("success", "訊息已傳送，我們會盡快回覆！");
-    form.reset();
-    if (btn) btn.removeAttribute("disabled");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        showFeedback("success", "訊息已傳送，我們會盡快回覆！");
+        form.reset();
+      } else {
+        showFeedback("error", data.error ?? "傳送失敗，請稍後再試。");
+      }
+    } catch {
+      showFeedback("error", "網路錯誤，請稍後再試。");
+    } finally {
+      if (btn) btn.removeAttribute("disabled");
+    }
   });
 </script>
