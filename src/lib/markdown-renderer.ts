@@ -1,4 +1,6 @@
 import { Marked, type Tokens } from 'marked'
+import { markedHighlight } from 'marked-highlight'
+import hljs from 'highlight.js'
 
 function slugify(html: string): string {
   return html
@@ -72,8 +74,17 @@ const calloutExtension = {
   },
 }
 
+const highlight = markedHighlight({
+  langPrefix: 'hljs language-',
+  highlight(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+    return hljs.highlight(code, { language }).value
+  },
+})
+
 export function createMarkedInstance(): Marked {
   const instance = new Marked()
+  instance.use(highlight)
   instance.use({ extensions: [calloutExtension] })
   instance.use({ renderer, breaks: true })
 
