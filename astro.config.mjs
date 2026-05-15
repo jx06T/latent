@@ -33,7 +33,7 @@ const getAdapter = () => {
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://exhibit.ckefgisc.org',
   integrations: [mdx(), react(), sitemap()],
   output: "server", // 這裡已經宣告了 SSR 模式，Vercel Adapter 會自動配合
   vite: {

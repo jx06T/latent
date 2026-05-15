@@ -276,7 +276,7 @@ export function useProjectEditor(projectId: string) {
         return
       }
 
-      setProjectStatus('processing')
+      setProjectStatus(prev => prev === 'published' ? 'published' : 'processing')
     } catch (err) {
       setSlugError(err instanceof Error ? err.message : 'Network error during publish')
     } finally {

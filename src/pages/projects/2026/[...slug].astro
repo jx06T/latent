@@ -71,7 +71,7 @@ if (project.cover_image_id) {
 }
 
 // ogImageUrl: OG meta tag — cover → first article image → Satori fallback
-let ogImageUrl: string = new URL(`/og/2026/${project.slug}.png`, Astro.url).toString()
+let ogImageUrl: string = new URL(`/og/2026/${project.slug}.jpeg`, Astro.url).toString()
 if (coverImageUrl) {
   ogImageUrl = coverImageUrl
 } else if (project.content) {
