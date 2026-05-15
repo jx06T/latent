@@ -163,7 +163,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       const temp = document.createElement('div')
       temp.innerHTML = previewHtml
       morphdom(previewRef.current, temp, { childrenOnly: true })
-    }, [previewHtml])
+    }, [previewHtml, showPreview])
 
     return (
       <div className="flex flex-col font-mono">
@@ -251,7 +251,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
             <div
               ref={previewRef}
               className={cn(
-                'prose prose-sm prose-invert max-w-none p-4 bg-bg',
+                'prose prose-sm prose-invert max-w-none p-4 bg-bg wrap-anywhere [&_pre]:wrap-normal',
                 viewLayout === 'split' ? 'w-1/2' : 'w-full',
               )}
             />
