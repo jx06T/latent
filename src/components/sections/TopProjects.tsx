@@ -100,8 +100,8 @@ export default function TopProjects() {
             const zStages = [[1, 3, 2], [1, 2, 3], [3, 2, 1]] as const
             ScrollTrigger.create({
               trigger: container,
-              start: 'top 55%',
-              end: 'top -10%',
+              start: 'top 50%',
+              end: 'top -15%',
               onUpdate(self) {
                 const stage = self.progress < 0.5 ? 0 : self.progress < 0.95 ? 1 : 2
                 controllers.forEach((card, i) => {
