@@ -56,10 +56,10 @@
 
   /* ── Text ───────────────────────────────────────── */
   --color-ink: #f0f4f5;
-  --color-ink-muted: #d0dee5;
+  --color-ink-muted: #ccd9e0;
   --color-ink-dim: #749cba;
-  --color-ink-ddim: #537690;
-  --color-ink-disabled: #425965;
+  --color-ink-ddim: #567b96;
+  --color-ink-disabled: #47606d;
 
   /* ── Border ─────────────────────────────────────── */
   --color-line: rgba(116, 156, 186, 0.5);

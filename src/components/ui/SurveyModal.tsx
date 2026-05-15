@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Ellipsis } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import CommentLabel from '@/components/ui/CommentLabel'
 import {
@@ -27,6 +28,7 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
   const [answers, setAnswers] = useState<Answers>({})
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [showAlternative, setShowAlternative] = useState(false)
 
   if (!open) return null
 
@@ -167,12 +169,35 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
           ) : null}
 
           {!done && !isConfirmPage && (
-            <button
-              onClick={handleSkipAll}
-              className="w-full text-xs text-ink-disabled hover:text-ink-muted transition-colors border-t border-line pt-4"
-            >
-              略過整份問卷
-            </button>
+            <div className="border-t border-line pt-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleSkipAll}
+                  className="text-xs text-ink-disabled hover:text-ink-muted transition-colors"
+                >
+                  略過整份問卷
+                </button>
+                <button
+                  onClick={() => setShowAlternative(v => !v)}
+                  className="text-ink-disabled hover:text-ink-muted transition-colors p-0.5"
+                  aria-label="更多選項"
+                >
+                  <Ellipsis size={14} />
+                </button>
+              </div>
+              {showAlternative && (
+                <button
+                  onClick={() => {
+                    localStorage.setItem(SURVEY_DONE_KEY, '1')
+                    onComplete?.()
+                    onClose()
+                  }}
+                  className="mt-2 text-xs text-ink-disabled hover:text-ink-muted transition-colors"
+                >
+                  我已在其他裝置填寫過問卷
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
