@@ -13,6 +13,7 @@ import AuthGate from '@/components/ui/AuthGate'
 import SurveyModal from '@/components/ui/SurveyModal'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
+const AGE_GROUPS = ['國中以下', '國中生', '高中生', '大學生', '社會人士'] as const
 
 import { getAvatarUrl } from '@/lib/avatar'
 
@@ -45,6 +46,7 @@ export default function ProfileDashboard() {
   const [draftNickname, setDraftNickname] = useState('')
   const [draftBio, setDraftBio] = useState('')
   const [draftAffiliation, setDraftAffiliation] = useState('')
+  const [draftAgeGroup, setDraftAgeGroup] = useState('')
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
   const [profileSaved, setProfileSaved] = useState(false)
@@ -58,7 +60,9 @@ export default function ProfileDashboard() {
     if (profile) {
       setDraftNickname(profile.nickname)
       setDraftBio(profile.bio ?? '')
-      setDraftAffiliation(profile.tags?.[0] ?? '')
+      const tags = profile.tags ?? []
+      setDraftAffiliation(tags.find(t => (AFFILIATIONS as readonly string[]).includes(t)) ?? '')
+      setDraftAgeGroup(tags.find(t => (AGE_GROUPS as readonly string[]).includes(t)) ?? '')
     }
   }, [profile])
 
@@ -198,7 +202,8 @@ export default function ProfileDashboard() {
   const isDirty = profile
     ? draftNickname !== profile.nickname
       || draftBio !== (profile.bio ?? '')
-      || draftAffiliation !== (profile.tags?.[0] ?? '')
+      || draftAffiliation !== (profile.tags?.find(t => (AFFILIATIONS as readonly string[]).includes(t)) ?? '')
+      || draftAgeGroup !== (profile.tags?.find(t => (AGE_GROUPS as readonly string[]).includes(t)) ?? '')
     : false
 
   const handleTabClick = (tab: 'projects' | 'profile') => {
@@ -214,7 +219,9 @@ export default function ProfileDashboard() {
     if (!profile) return
     setDraftNickname(profile.nickname)
     setDraftBio(profile.bio ?? '')
-    setDraftAffiliation(profile.tags?.[0] ?? '')
+    const tags = profile.tags ?? []
+    setDraftAffiliation(tags.find(t => (AFFILIATIONS as readonly string[]).includes(t)) ?? '')
+    setDraftAgeGroup(tags.find(t => (AGE_GROUPS as readonly string[]).includes(t)) ?? '')
   }
 
   // ── Save profile ───────────────────────────────────────────────────────
@@ -228,7 +235,7 @@ export default function ProfileDashboard() {
       .update({
         nickname: draftNickname.trim(),
         bio: draftBio.trim(),
-        tags: draftAffiliation ? [draftAffiliation] : null,
+        tags: [draftAffiliation, draftAgeGroup].filter(Boolean) as string[] || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user.id)
@@ -429,6 +436,27 @@ export default function ProfileDashboard() {
                     onClick={() => setDraftAffiliation(draftAffiliation === aff ? '' : aff)}
                   >
                     {aff}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Age Group */}
+            <div className="space-y-2">
+              <label className="block text-xs uppercase tracking-widest text-ink-muted">
+                年級身份 <span className="text-ink-disabled text-[10px] normal-case">（選填）</span>
+              </label>
+              <div className="flex gap-3 flex-wrap">
+                {AGE_GROUPS.map(ag => (
+                  <Button
+                    key={ag}
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    active={draftAgeGroup === ag}
+                    onClick={() => setDraftAgeGroup(draftAgeGroup === ag ? '' : ag)}
+                  >
+                    {ag}
                   </Button>
                 ))}
               </div>

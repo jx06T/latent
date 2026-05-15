@@ -81,15 +81,13 @@ const joinYear = new Date(profile.created_at).getFullYear();
           <h1 class="text-xl text-ink">{profile.nickname}</h1>
           <span class="text-sm text-ink-dim">@{profile.handle}</span>
         </div>
-
         {
-          profile.tags?.[0] && (
-            <span class="inline-block border border-primary-700 bg-primary-950 text-ink-dim text-sm px-2 py-0.5">
-              {profile.tags[0]}
+          profile.tags?.map((tag) => (
+            <span class="inline-block border border-primary-700 bg-primary-950 mr-2 text-ink-dim text-sm px-2 py-0.5">
+              {tag}
             </span>
-          )
+          ))
         }
-
         <p class="text-sm text-ink-ddim">加入於 {joinYear} 年</p>
       </div>
     </section>
