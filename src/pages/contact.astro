@@ -2,17 +2,14 @@
 export const prerender = true;
 
 import ProseLayout from "@/layouts/ProseLayout.astro";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import CommentLabel from "@/components/ui/CommentLabel";
-import StatusLog from "@/components/ui/StatusLog.astro";
+import ContactForm from "@/components/contact/ContactForm";
 ---
 
 <ProseLayout
   title="聯絡我們 | Latent"
   description="有任何問題、合作意向或想提交你的專題？歡迎透過表單與我們聯繫。"
 >
-  <div class="space-y-8">
+  <div class="space-y-8 pt-6">
     <div class="prose max-w-none">
       <h1>聯絡我們</h1>
       <p class="lead">
@@ -21,39 +18,9 @@ import StatusLog from "@/components/ui/StatusLog.astro";
       </p>
     </div>
 
-    <!-- Contact form -->
-    <form id="contact-form" class="space-y-5" novalidate>
-      <div>
-        <CommentLabel text="your_name" />
-        <Input variant="terminal" id="field-name" name="name" type="text" placeholder="你的名字或 handle" wrapperClassName="w-full" />
-      </div>
+    <ContactForm client:load />
 
-      <div>
-        <CommentLabel text="email_address" />
-        <Input variant="terminal" id="field-email" name="email" type="email" placeholder="your@email.com" wrapperClassName="w-full" />
-      </div>
-
-      <div>
-        <CommentLabel text="subject" />
-        <Input variant="terminal" id="field-subject" name="subject" type="text" placeholder="一行說明你的來意" wrapperClassName="w-full" />
-      </div>
-
-      <div>
-        <CommentLabel text="message" />
-        <Input variant="terminal" as="textarea" id="field-message" name="message" rows={5} placeholder="詳細說明..." wrapperClassName="w-full" />
-      </div>
-
-      <div class="pt-2">
-        <Button id="submit-btn" variant="primary" size="lg" bracket type="submit">TRANSMIT_MESSAGE</Button>
-      </div>
-    </form>
-
-    <!-- Feedback log (hidden until form submit) -->
-    <div id="form-feedback" class="hidden">
-      <StatusLog id="feedback-log" type="success" message="" />
-    </div>
-
-    <div class="prose max-w-none border-t border-line pt-6">
+    <div class="prose max-w-none border-t border-line pt-6 mt-6">
       <p class="text-sm text-ink-dim">
         您也可以直接在
         <a href="https://github.com/jx06T/latent" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -62,70 +29,3 @@ import StatusLog from "@/components/ui/StatusLog.astro";
     </div>
   </div>
 </ProseLayout>
-
-<script>
-  const form = document.getElementById("contact-form") as HTMLFormElement | null;
-  const feedbackWrapper = document.getElementById("form-feedback");
-  const feedbackLog = document.getElementById("feedback-log");
-  const msgEl = feedbackLog?.querySelector(".js-log-msg");
-  const labelEl = feedbackLog?.querySelector(".js-log-label");
-  const colorEl = feedbackLog?.querySelector(".js-log-color");
-  const bgEl = feedbackLog?.querySelector(".js-log-bg");
-
-  function showFeedback(type: "success" | "error", message: string) {
-    if (!feedbackWrapper || !feedbackLog || !msgEl || !labelEl) return;
-
-    const colorMap = {
-      success: { label: "OK", color: "text-success", bg: "bg-success" },
-      error: { label: "ERR", color: "text-danger", bg: "bg-danger" },
-    };
-    const c = colorMap[type];
-
-    msgEl.textContent = message;
-    if (labelEl) labelEl.textContent = c.label;
-    if (colorEl) {
-      colorEl.className = colorEl.className.replace(/text-\w+/g, "");
-      colorEl.classList.add(c.color);
-    }
-    if (bgEl) {
-      bgEl.className = bgEl.className.replace(/bg-\w+/g, "bg-bg-surface");
-      bgEl.classList.add(c.bg);
-    }
-
-    feedbackWrapper.classList.remove("hidden");
-  }
-
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById("submit-btn") as HTMLButtonElement | null;
-    if (btn) btn.setAttribute("disabled", "true");
-
-    const formData = new FormData(form);
-    const body = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      subject: formData.get("subject"),
-      message: formData.get("message"),
-    };
-
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok) {
-        showFeedback("success", "訊息已傳送，我們會盡快回覆！");
-        form.reset();
-      } else {
-        showFeedback("error", data.error ?? "傳送失敗，請稍後再試。");
-      }
-    } catch {
-      showFeedback("error", "網路錯誤，請稍後再試。");
-    } finally {
-      if (btn) btn.removeAttribute("disabled");
-    }
-  });
-</script>
