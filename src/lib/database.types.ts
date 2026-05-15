@@ -262,6 +262,8 @@ export type Database = {
         Row: {
           age_group: string | null
           created_at: string
+          exhibition_plan: string | null
+          gender: string | null
           id: string
           referral_source: string | null
           user_id: string | null
@@ -269,6 +271,8 @@ export type Database = {
         Insert: {
           age_group?: string | null
           created_at?: string
+          exhibition_plan?: string | null
+          gender?: string | null
           id?: string
           referral_source?: string | null
           user_id?: string | null
@@ -276,6 +280,8 @@ export type Database = {
         Update: {
           age_group?: string | null
           created_at?: string
+          exhibition_plan?: string | null
+          gender?: string | null
           id?: string
           referral_source?: string | null
           user_id?: string | null

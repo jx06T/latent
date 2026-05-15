@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { getAvatarUrl } from '@/lib/avatar'
 import SurveyModal from '@/components/ui/SurveyModal'
+import AuthGate from '@/components/ui/AuthGate'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -14,12 +15,14 @@ interface DraftState {
   handle: string
   nickname: string
   affiliation: string
+  ageGroup: string
   avatar_seed?: string
 }
 
 const DRAFT_KEY = 'latent:onboarding:draft'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
+const AGE_GROUPS = ['國中以下', '國中生', '高中生', '大學生', '社會人士'] as const
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -37,11 +40,12 @@ function getHandleStatus(value: string): HandleStatus | null {
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function OnboardingForm() {
-  const { user, isOnboarded, loading: authLoading, signOut } = useSupabaseAuth()
+  const { user, isOnboarded, loading: authLoading, signIn, signOut } = useSupabaseAuth()
 
   const [handle, setHandle] = useState('')
   const [nickname, setNickname] = useState('')
   const [affiliation, setAffiliation] = useState('')
+  const [ageGroup, setAgeGroup] = useState('')
 
   const [avatarSeed, setAvatarSeed] = useState('')
   const avatarCustomized = useRef(false)
@@ -68,6 +72,7 @@ export default function OnboardingForm() {
       if (draft.handle) setHandle(draft.handle)
       if (draft.nickname) setNickname(draft.nickname)
       if (draft.affiliation) setAffiliation(draft.affiliation)
+      if (draft.ageGroup) setAgeGroup(draft.ageGroup)
       if (draft.avatar_seed) { setAvatarSeed(draft.avatar_seed); avatarCustomized.current = true }
     } catch {
       // ignore
@@ -87,9 +92,9 @@ export default function OnboardingForm() {
 
   // Persist draft to localStorage
   useEffect(() => {
-    const draft: DraftState = { handle, nickname, affiliation, avatar_seed: avatarSeed }
+    const draft: DraftState = { handle, nickname, affiliation, ageGroup, avatar_seed: avatarSeed }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [handle, nickname, affiliation, avatarSeed])
+  }, [handle, nickname, affiliation, ageGroup, avatarSeed])
 
   // Handle availability check (debounced)
   const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -131,7 +136,7 @@ export default function OnboardingForm() {
       handle: handle.trim(),
       nickname: nickname.trim(),
       bio: '',
-      tags: affiliation ? [affiliation] : null,
+      tags: [affiliation, ageGroup].filter(Boolean) as string[] || null,
       avatar_url: avatarSeed || handle.trim() || null,
       is_onboarded: true,
       updated_at: new Date().toISOString(),
@@ -157,24 +162,6 @@ export default function OnboardingForm() {
     window.location.replace(pendingDestRef.current)
   }
 
-  // ── Loading / auth guard ──────────────────────────────────────────────────
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg font-mono text-ink-muted text-sm animate-pulse">
-        確認身份中…
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg font-mono text-ink-muted text-sm">
-        請先登入。
-      </div>
-    )
-  }
-
   // ── Handle status UI ──────────────────────────────────────────────────────
 
   const handleStatusEl = (() => {
@@ -192,6 +179,14 @@ export default function OnboardingForm() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
+    <AuthGate
+      loading={authLoading}
+      loggedIn={!!user}
+      onSignIn={() => signIn()}
+      loadingText="確認身份中…"
+      title="LATENT · 初次設定"
+      message="請先登入以建立你的身份"
+    >
     <div className="min-h-screen bg-bg font-mono text-ink flex flex-col items-center justify-center px-4 py-12 pt-24">
       <form onSubmit={handleSubmit} className="w-full max-w-xl space-y-8">
 
@@ -242,7 +237,7 @@ export default function OnboardingForm() {
               className="relative group w-18 h-18 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
             >
               <img
-                src={getAvatarUrl(avatarSeed || user.id)}
+                src={getAvatarUrl(avatarSeed || user?.id || '')}
                 alt="Avatar preview"
                 width={72}
                 height={72}
@@ -282,11 +277,35 @@ export default function OnboardingForm() {
                 className={cn(
                   'px-4 py-2 border text-sm transition-colors',
                   affiliation === aff
-                    ? 'border-primary-500 text-ink bg-primary-950'
+                    ? 'border-accent-500 text-ink bg-bg-elevated'
                     : 'border-line text-ink-muted hover:border-line-active hover:text-ink'
                 )}
               >
                 {aff}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Age Group */}
+        <div className="space-y-2">
+          <label className="block text-sm text-ink-muted uppercase tracking-widest">
+            年級身份 <span className="text-ink-disabled text-xs normal-case">（選填）</span>
+          </label>
+          <div className="flex flex-wrap gap-3">
+            {AGE_GROUPS.map(ag => (
+              <button
+                key={ag}
+                type="button"
+                onClick={() => setAgeGroup(prev => prev === ag ? '' : ag)}
+                className={cn(
+                  'px-4 py-2 border text-sm transition-colors',
+                  ageGroup === ag
+                    ? 'border-accent-500 text-ink bg-bg-elevated'
+                    : 'border-line text-ink-muted hover:border-line-active hover:text-ink'
+                )}
+              >
+                {ag}
               </button>
             ))}
           </div>
@@ -316,9 +335,10 @@ export default function OnboardingForm() {
       <SurveyModal
         open={showSurvey}
         onClose={() => handleSurveyDone()}
-        userId={user.id}
+        userId={user?.id}
         onComplete={handleSurveyDone}
       />
     </div>
+    </AuthGate>
   )
 }
