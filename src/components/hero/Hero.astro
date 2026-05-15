@@ -161,10 +161,17 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
 
       if (els.laserTarget && els.svg) {
         cleanups.push(initLaserTarget(els.laserTarget));
-        initLaserLines(els.laserTarget, els.svg, els.scanWrappers);
+        cleanups.push(initLaserLines(els.laserTarget, els.svg, els.scanWrappers));
       }
 
+      // On iOS Safari the address bar hide/show fires a resize with width unchanged.
+      // Calling ScrollTrigger.refresh() on every such event blocks the main thread,
+      // which causes Lenis to miss frames and scroll momentum to die suddenly.
+      let lastResizeWidth = window.innerWidth;
       const throttledResize = throttle(() => {
+        const newWidth = window.innerWidth;
+        if (newWidth === lastResizeWidth) return;
+        lastResizeWidth = newWidth;
         updateSizes(false);
       }, 200);
 
