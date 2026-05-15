@@ -65,9 +65,10 @@ export const POST: APIRoute = async ({ request }) => {
   // 4. Fire background processing (same as publish flow)
   const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
+  const bgPath = process.env.VERCEL ? '/api/publish-background' : '/functions/publish-background'
 
   try {
-    const res = await fetch(`${siteUrl}/functions/publish-background`, {
+    const res = await fetch(`${siteUrl}${bgPath}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
       body: JSON.stringify({ project_id, author_id: userId }),
