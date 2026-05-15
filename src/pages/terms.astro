@@ -1,0 +1,16 @@
+---
+export const prerender = true;
+
+import ProseLayout from "@/layouts/ProseLayout.astro";
+import MarkdownContent from "@/components/ui/MarkdownContent.astro";
+import termsContent from "@/content/terms.md?raw";
+---
+
+<ProseLayout
+  title="使用條款與社群守則 | Latent"
+  description="Latent 平台的使用限制、發布規範與社群守則說明。"
+>
+  <div class="prose prose-invert max-w-none">
+    <MarkdownContent content={termsContent} />
+  </div>
+</ProseLayout>
