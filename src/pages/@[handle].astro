@@ -100,8 +100,8 @@ function parseBio(text: string) {
     <section class="mb-16 max-h-60 overflow-y-auto">
       {
         profile.bio ? (
-          <p class="text-sm text-ink-muted whitespace-pre-wrap wrap-break-word">{parseBio(profile.bio).map((part) =>
-              part.isUrl ? (
+          <p class="text-sm text-ink-muted whitespace-pre-wrap wrap-break-word">{
+            parseBio(profile.bio).map((part) =>part.isUrl ? (
                 <a
                   href={part.text}
                   target="_blank"

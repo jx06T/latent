@@ -380,7 +380,7 @@ const similarProjects = (candidateData ?? [])
     similarProjects.length > 0 && (
       <section class="mt-24">
         <CommentLabel text="similar_projects" className="text-xl text-ink-dim" />
-        <div class="grid grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+        <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
           {similarProjects.map((p) => (
             <ProjectCard
               slug={p.slug}
