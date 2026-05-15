@@ -9,6 +9,7 @@ import Link from "@/components/ui/Link";
 import MarkdownContent from "@/components/ui/MarkdownContent.astro";
 import LikeButton from "@/components/project/LikeButton";
 import CommentsSection from "@/components/project/CommentsSection";
+import ProjectCard from "@/components/modules/ProjectCard";
 
 import { supabase } from "@/lib/supabase";
 import { ProjectSchema, CATEGORIES } from "@/lib/schema";
@@ -90,6 +91,51 @@ const subCategoryLabels = project.category_sub
   .filter(Boolean);
 
 const linkEntries = Object.entries(project.links).filter(([, v]) => v);
+
+// Similar projects: fetch candidates, score by keyword/tech/category overlap
+const { data: candidateData } = await supabase
+  .from("projects")
+  .select("id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count")
+  .eq("year", CURRENT_YEAR)
+  .eq("status", "published")
+  .neq("id", project.id)
+  .limit(50);
+
+function scoreSimilarity(candidate: any): number {
+  let score = 0;
+  const kwOverlap = (candidate.keywords ?? []).filter((k: string) => project.keywords.includes(k)).length;
+  score += kwOverlap * 3;
+  const techOverlap = (candidate.tech_stack ?? []).filter((t: string) => project.tech_stack.includes(t)).length;
+  score += techOverlap * 2;
+  if (candidate.category_main === project.category_main) score += 2;
+  const subOverlap = (candidate.category_sub ?? []).filter((s: number) => project.category_sub.includes(s)).length;
+  score += subOverlap;
+  return score;
+}
+
+const topCandidates = (candidateData ?? [])
+  .map(p => ({ ...p, score: scoreSimilarity(p) }))
+  .filter(p => p.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 3);
+
+const simCoverIds = topCandidates.map(p => p.cover_image_id).filter(Boolean) as string[];
+const simCoverMap: Record<string, string> = {};
+if (simCoverIds.length > 0) {
+  const { data: simCoverImgs } = await supabase
+    .from("project_images")
+    .select("id, project_id, status, source_ext, published_ext, available_sizes")
+    .in("id", simCoverIds)
+    .eq("status", "published");
+  for (const img of simCoverImgs ?? []) {
+    try { simCoverMap[img.id] = publishedUrl(img as unknown as ProjectImageRow, "md"); } catch {}
+  }
+}
+
+const similarProjects = topCandidates.map(p => ({
+  ...p,
+  coverUrl: p.cover_image_id ? (simCoverMap[p.cover_image_id] ?? null) : null,
+}));
 ---
 
 <ProseLayout
@@ -233,13 +279,30 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
   <!-- Comments -->
   <CommentsSection client:load projectId={project.id} />
 
+  <!-- Similar projects -->
+  {similarProjects.length > 0 && (
+    <section class="mt-16">
+      <CommentLabel text="similar_projects" className="text-lg" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+        {similarProjects.map((p) => (
+          <ProjectCard
+            slug={p.slug}
+            year={CURRENT_YEAR}
+            title={p.title}
+            subtitle={p.subtitle}
+            author_handle={p.author_handle}
+            category_main={p.category_main}
+            cover_image={p.coverUrl}
+            tech_stack={p.tech_stack ?? []}
+            like_count={p.like_count ?? 0}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
   <!-- Footer bar -->
-  <footer
-    class="mt-16 pt-3 border-t border-line flex justify-between items-center"
-  >
+  <footer class="mt-16 pt-3 border-t border-line">
     <Link href="/projects/2026">← 返回列表</Link>
-    <span class="font-mono text-xs text-ink-disabled">
-      ID: {project.id.slice(0, 8)}…
-    </span>
   </footer>
 </ProseLayout>
