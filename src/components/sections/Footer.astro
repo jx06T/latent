@@ -3,6 +3,7 @@ import WaveSection from "./Wavesection.astro";
 import Link from "../ui/Link";
 import LatentLogo from "@/components/ui/LatentLogo.astro";
 import LatentIcon from "../ui/LatentIcon.astro";
+import SurveyTrigger from "@/components/ui/SurveyTrigger";
 ---
 
 <WaveSection position="top" class="mt-24">
@@ -16,6 +17,7 @@ import LatentIcon from "../ui/LatentIcon.astro";
       <Link href="/about" underLine={false}>About</Link>
       <Link href="/copyright" underLine={false}>Copyright</Link>
       <Link href="/contact" underLine={false}>Contact</Link>
+      <SurveyTrigger client:only="react" />
     </nav>
 
     <div class="text-center space-y-0">

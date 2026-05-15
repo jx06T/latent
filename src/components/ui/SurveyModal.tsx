@@ -2,34 +2,14 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import CommentLabel from '@/components/ui/CommentLabel'
-
-// ── Question definitions ───────────────────────────────────────────────────────
-
-const SURVEY_QUESTIONS = [
-  {
-    id: 'age_group',
-    label: '年齡區間',
-    options: ['15 歲以下', '15–17 歲', '18–20 歲', '21–23 歲', '24 歲以上'],
-  },
-  {
-    id: 'referral_source',
-    label: '你從哪裡知道 Latent？',
-    options: ['社群媒體', '朋友介紹', '社團公告', '學校課程', '其他'],
-  },
-  {
-    id: 'gender',
-    label: '性別',
-    options: ['男', '女', '不願透漏'],
-  },
-  {
-    id: 'exhibition_plan',
-    label: '是否有計畫參與實體展覽？',
-    options: ['是', '否 — 交通不便', '否 — 另有安排', '否 — 吸引力不夠'],
-  },
-] as const
-
-type QuestionId = (typeof SURVEY_QUESTIONS)[number]['id']
-type Answers = Partial<Record<QuestionId, string>>
+import {
+  SURVEY_QUESTIONS,
+  QUESTION_COUNT,
+  TOTAL_STEPS,
+  SURVEY_DONE_KEY,
+  type QuestionId,
+  type SurveyAnswers as Answers,
+} from '@/lib/survey-questions'
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -42,9 +22,6 @@ interface Props {
   onComplete?(): void
 }
 
-const QUESTION_COUNT = SURVEY_QUESTIONS.length
-// total steps = questions + confirm page
-const TOTAL_STEPS = QUESTION_COUNT + 1
 
 export default function SurveyModal({ open, onClose, userId, onComplete }: Props) {
   const [page, setPage] = useState(0)
@@ -66,7 +43,7 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
 
   const handleSkipQuestion = () => setPage(p => p + 1)
   const handleBack = () => setPage(p => Math.max(0, p - 1))
-  const handleSkipAll = () => { onComplete?.(); onClose() }
+  const handleSkipAll = () => { onClose() }
 
   const handleSubmit = async () => {
     setSubmitting(true)
@@ -77,6 +54,7 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
       exhibition_plan: answers.exhibition_plan ?? null,
       user_id: userId ?? null,
     })
+    localStorage.setItem(SURVEY_DONE_KEY, '1')
     setSubmitting(false)
     setDone(true)
     setTimeout(() => { onComplete?.(); onClose() }, 800)
@@ -115,10 +93,10 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
           </div>
 
           {done ? (
-            <p className="text-sm text-success py-4 text-center">感謝你的回覆 ✓</p>
+            <p className="text-sm text-success py-4 text-center">感謝您的回覆！</p>
           ) : isConfirmPage ? (
             <div className="space-y-4">
-              <p className="text-sm text-ink-muted">確認你的回答：</p>
+              <p className="text-sm text-ink-muted">確認您的回答：</p>
               <div className="space-y-2 border border-line p-3">
                 {SURVEY_QUESTIONS.map(q => (
                   <div key={q.id} className="flex justify-between gap-4 text-sm">

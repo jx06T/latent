@@ -10,6 +10,7 @@ import EditorTopBar from '@/components/editor/EditorTopBar'
 import NewProjectModal from '@/components/editor/NewProjectModal'
 import ProjectListItem, { type ProjectSummary } from '@/components/editor/ProjectListItem'
 import AuthGate from '@/components/ui/AuthGate'
+import SurveyModal from '@/components/ui/SurveyModal'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
 
@@ -47,6 +48,8 @@ export default function ProfileDashboard() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
   const [profileSaved, setProfileSaved] = useState(false)
+
+  const [showSurvey, setShowSurvey] = useState(false)
 
   const { confirm, dialog } = useConfirm()
 
@@ -446,9 +449,25 @@ export default function ProfileDashboard() {
               </Button>
               {profileSaved && <span className="text-sm text-success">✓ 已儲存</span>}
             </div>
+
+            {/* Survey */}
+            <div className="pt-4 border-t border-line space-y-2">
+              <p className="text-xs uppercase tracking-widest text-ink-muted">社群問卷</p>
+              <p className="text-xs text-ink-disabled">協助我們了解社群組成，完全匿名，約 1 分鐘。</p>
+              <Button variant="outline" size="md" onClick={() => setShowSurvey(true)}>
+                填寫問卷
+              </Button>
+            </div>
           </div>
         )}
       </main>
+
+      <SurveyModal
+        open={showSurvey}
+        onClose={() => setShowSurvey(false)}
+        userId={user?.id}
+        onComplete={() => setShowSurvey(false)}
+      />
 
       {showNewModal && (
         <NewProjectModal
