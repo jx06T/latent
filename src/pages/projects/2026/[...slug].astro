@@ -99,8 +99,8 @@ if (coverImageUrl) {
 const hoursSinceUpdate =
   (Date.now() - new Date(project.updated_at ?? project.created_at).getTime()) / 36e5;
 const maxAge =
-  hoursSinceUpdate < 1 ? 120
-  : hoursSinceUpdate < 24 ? 600
+  hoursSinceUpdate < 6 ? 60
+  : hoursSinceUpdate < 72 ? 600
   : 3600;
 Astro.response.headers.set(
   "Cache-Control",
@@ -314,7 +314,7 @@ const similarProjects = (candidateData ?? [])
       project.tech_stack.length > 0 && (
         <section>
           <CommentLabel text="tech_stack" />
-          <div class="flex flex-wrap gap-1.5 mt-2">
+          <div class="flex flex-wrap gap-x-2 gap-y-1.5 mt-2">
             {project.tech_stack.map((tech) => (
               <Tag variant="sub">{tech}</Tag>
             ))}
@@ -329,8 +329,8 @@ const similarProjects = (candidateData ?? [])
           <CommentLabel text="keywords" />
           <div class="flex flex-wrap gap-x-3 gap-y-1.5 -mt-1.5">
             {project.keywords.map((kw) => (
-              <span class="font-mono text-base text-primary-400">
-                <span class="inline-block mr-0.5">#</span>
+              <span class="font-mono text-base text-primary-400 mx-0.5">
+                <span class="inline-block -mr-1">#</span>
                 {kw}
               </span>
             ))}
@@ -379,8 +379,8 @@ const similarProjects = (candidateData ?? [])
   {
     similarProjects.length > 0 && (
       <section class="mt-24">
-        <CommentLabel text="similar_projects" className="text-lg" />
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+        <CommentLabel text="similar_projects" className="text-xl text-ink-dim" />
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
           {similarProjects.map((p) => (
             <ProjectCard
               slug={p.slug}

@@ -41,7 +41,7 @@ export default function ProjectCard({
       </div>
 
       {/* Card body */}
-      <div className="p-2 w-full pt-1">
+      <div className="p-2 w-full pt-1 grow flex flex-col justify-between">
         <div className="flex flex-col flex-1 p-2">
           <Link showIcon className="text-ink text-xl hover:text-accent-500" href={`/projects/${year}/${slug}`}>
             {title}
@@ -62,13 +62,13 @@ export default function ProjectCard({
           </div>
         </div>
 
-        <span className="inline-block px-2 py-0.5 pt-1 text-sm w-full mt-3 bg-accent-500 text-bg shadow-accent-sm">
+        <span className="inline-block px-2 py-0.5 pt-1 text-sm w-full mt-3 bg-accent-500 text-bg shadow-accent-sm ">
           <span className="text-[10px] inline-block mr-1">■</span>{categoryLabel}
         </span>
       </div>
 
       {/* Card footer */}
-      <footer className="flex justify-between items-center px-4 py-2.5 border-t border-line font-mono text-xs text-ink-dim">
+      <footer className="flex justify-between items-center px-4 py-2.5 border-t border-line font-mono text-xs text-ink-dim grow-0">
         <Link href={`/@${author_handle}`} className="text-ink-dim">
           @{author_handle}
         </Link>

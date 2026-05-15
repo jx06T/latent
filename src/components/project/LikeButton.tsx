@@ -78,7 +78,7 @@ export default function LikeButton({ projectId, initialCount }: Props) {
           'cursor-pointer group flex items-center gap-3 px-6 py-3.5 border font-mono transition-all duration-200',
           liked
             ? 'border-accent-500 bg-accent-950/60 text-accent-400 shadow-[0_0_20px_rgba(227,124,70,0.15)]'
-            : 'border-line text-ink-muted hover:border-accent-500/70 hover:bg-accent-950/30 hover:text-accent-400',
+            : 'border-line text-ink-muted hover:border-accent-500/70 hover:bg-accent-950/30 ',
           (pending || !ready) && 'opacity-60 cursor-wait',
         )}
       >
@@ -91,10 +91,10 @@ export default function LikeButton({ projectId, initialCount }: Props) {
         >
           ♦
         </span>
-        <div className="flex flex-col items-start leading-tight" suppressHydrationWarning>
+        <div className="flex flex-col items-start leading-tight w-14" suppressHydrationWarning>
           <span className="text-2xl font-black tabular-nums leading-none">{count}</span>
           <span className="text-xs uppercase tracking-widest opacity-70">
-            {liked ? 'VOTED' : 'VOTE'}
+            {liked ? 'VOTED' : 'VOTE IT'}
           </span>
         </div>
       </button>

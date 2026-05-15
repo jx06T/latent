@@ -67,7 +67,7 @@ export default function CommentsSection({ projectId }: Props) {
       setComments(prev => [...prev, newComment])
       setContent('')
       if (!isOnboarded) {
-        ;(window as any).notify?.(
+        ; (window as any).notify?.(
           '建立創作者檔案，讓你的留言顯示你的代稱！',
           'success',
           { href: '/profile', newTab: true },
@@ -86,9 +86,9 @@ export default function CommentsSection({ projectId }: Props) {
 
       {/* Comment list */}
       {fetchingComments ? (
-        <div className="text-sm text-ink-muted animate-pulse py-4">載入留言…</div>
+        <div className="text-sm text-ink-muted animate-pulse py-4 h-26">載入留言…</div>
       ) : comments.length === 0 ? (
-        <div className="border border-dashed border-line text-center py-10 text-sm text-ink-muted">
+        <div className="border border-dashed border-line text-center py-10 text-sm text-ink-muted h-26">
           還沒有留言，成為第一個留言的人
         </div>
       ) : (
@@ -132,8 +132,8 @@ export default function CommentsSection({ projectId }: Props) {
       )}
 
       {/* Comment form */}
-      {loading ? null : !isLoggedIn ? (
-        <div className="border border-line p-5 text-center space-y-3">
+      {loading ? <div className=' w-full h-32'></div> : !isLoggedIn ? (
+        <div className="border border-line p-5 text-center space-y-3 h-32">
           <p className="text-sm text-ink-muted">登入後才能留言</p>
           <GoogleSignInButton
             label="Google 登入"
@@ -141,7 +141,7 @@ export default function CommentsSection({ projectId }: Props) {
           />
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-2">
+        <form onSubmit={submit} className="space-y-2 h-32">
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
