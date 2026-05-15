@@ -137,7 +137,7 @@ export default function CommentsSection({ projectId }: Props) {
           <p className="text-sm text-ink-muted">登入後才能留言</p>
           <GoogleSignInButton
             label="Google 登入"
-            onClick={() => signIn(typeof window !== 'undefined' ? window.location.pathname : '/')}
+            onClick={() => signIn()}
           />
         </div>
       ) : (

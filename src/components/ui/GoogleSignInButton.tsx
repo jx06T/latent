@@ -18,7 +18,7 @@ interface Props {
 
 export default function GoogleSignInButton({ onClick, label = 'Google Sign In', className }: Props) {
   return (
-    <Button variant="outline" size="md" onClick={onClick} className={cn('gap-2', className)}>
+    <Button variant="outline" size="md" onClick={() => onClick()} className={cn('gap-2', className)}>
       <GoogleIcon />
       {label}
     </Button>

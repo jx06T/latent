@@ -91,7 +91,16 @@ export function useSupabaseAuth(): SupabaseAuth {
     const origin = import.meta.env.PUBLIC_SITE_URL ||
       (typeof window !== 'undefined' ? window.location.origin : '')
     const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/'
-    const next = encodeURIComponent(targetPath ?? currentPath)
+
+    const safeTarget =
+      typeof targetPath === 'string' &&
+        targetPath.startsWith('/') &&
+        !targetPath.startsWith('//')
+        ? targetPath
+        : currentPath
+
+    const next = encodeURIComponent(safeTarget)
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

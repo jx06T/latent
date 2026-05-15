@@ -120,7 +120,7 @@ export default function LikeButton({ projectId, initialCount }: Props) {
               <button
                 onClick={() => {
                   setShowLoginPrompt(false)
-                  signIn(typeof window !== 'undefined' ? window.location.pathname : '/')
+                  signIn()
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-line hover:border-accent-500 hover:text-accent-400 transition-colors text-sm"
               >
