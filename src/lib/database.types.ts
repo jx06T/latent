@@ -292,6 +292,7 @@ export type Database = {
           exhibition_plan: string | null
           gender: string | null
           id: string
+          ip_hash: string | null
           referral_source: string | null
           user_id: string | null
         }
@@ -301,6 +302,7 @@ export type Database = {
           exhibition_plan?: string | null
           gender?: string | null
           id?: string
+          ip_hash?: string | null
           referral_source?: string | null
           user_id?: string | null
         }
@@ -310,6 +312,7 @@ export type Database = {
           exhibition_plan?: string | null
           gender?: string | null
           id?: string
+          ip_hash?: string | null
           referral_source?: string | null
           user_id?: string | null
         }

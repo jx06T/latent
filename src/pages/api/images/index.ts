@@ -14,14 +14,15 @@ const CONTENT_TYPE_TO_EXT: Record<string, string> = {
 }
 
 const bodySchema = z.object({
-  project_id: z.string().uuid(),
+  project_id: z.uuid(),
   content_type: z.enum(['image/jpeg', 'image/png', 'image/webp']),
   file_size: z.number().int().positive().max(MAX_FILE_BYTES),
 })
 
+const ORIGIN = import.meta.env.PUBLIC_SITE_URL
 const cors = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ORIGIN,
 }
 const json = (d: unknown, s = 200) => new Response(JSON.stringify(d), { status: s, headers: cors })
 
@@ -29,7 +30,7 @@ export const OPTIONS: APIRoute = () =>
   new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': ORIGIN,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
@@ -50,7 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const parsed = bodySchema.safeParse(raw)
   if (!parsed.success) {
-    return json({ error: 'Invalid request', details: parsed.error.issues }, 400)
+    return json({ error: 'Invalid request' }, 400)
   }
 
   const { project_id, content_type } = parsed.data

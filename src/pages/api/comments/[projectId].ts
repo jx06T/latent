@@ -1,9 +1,13 @@
 import type { APIRoute } from 'astro'
-import { createAnonClient, createUserClient, verifyToken } from '@/lib/supabase-server'
+import { z } from 'zod'
+import { createAnonClient, createUserClient, createServiceClient, verifyToken } from '@/lib/supabase-server'
+
+const UUID = z.uuid()
 
 export const GET: APIRoute = async ({ params }) => {
-  const { projectId } = params
-  if (!projectId) return json({ error: 'Missing projectId' }, 400)
+  const idResult = UUID.safeParse(params.projectId)
+  if (!idResult.success) return json({ error: 'Invalid projectId' }, 400)
+  const projectId = idResult.data
 
   const db = createAnonClient()
 
@@ -37,8 +41,9 @@ export const GET: APIRoute = async ({ params }) => {
 }
 
 export const POST: APIRoute = async ({ params, request }) => {
-  const { projectId } = params
-  if (!projectId) return json({ error: 'Missing projectId' }, 400)
+  const idResult = UUID.safeParse(params.projectId)
+  if (!idResult.success) return json({ error: 'Invalid projectId' }, 400)
+  const projectId = idResult.data
 
   const token = request.headers.get('Authorization')?.replace('Bearer ', '')
   if (!token) return json({ error: 'Unauthorized' }, 401)
@@ -50,12 +55,30 @@ export const POST: APIRoute = async ({ params, request }) => {
     return json({ error: 'Unauthorized' }, 401)
   }
 
+  const serviceDb = createServiceClient()
+  const since = new Date(Date.now() - 60_000).toISOString()
+
+  const [{ count: recentCount }, { data: project }] = await Promise.all([
+    serviceDb
+      .from('comments')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', since),
+    serviceDb
+      .from('projects')
+      .select('status')
+      .eq('id', projectId)
+      .single(),
+  ])
+
+  if ((recentCount ?? 0) >= 5) return json({ error: '留言過於頻繁，請稍後再試' }, 429)
+  if (!project || project.status !== 'published') return json({ error: 'Cannot comment on this project' }, 403)
+
   const body = await request.json().catch(() => null)
-  const content = (body as any)?.content?.trim()
+  const content = typeof (body as any)?.content === 'string' ? (body as any).content.trim() : ''
   if (!content) return json({ error: '留言不能為空' }, 400)
   if (content.length > 500) return json({ error: '留言不能超過 500 字' }, 400)
 
-  // Insert using user-scoped client so RLS auth.uid() resolves correctly
   const db = createUserClient(token)
   const { data: row, error } = await db
     .from('comments')
@@ -65,7 +88,6 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   if (error) return json({ error: error.message }, 500)
 
-  // Fetch author profile (if exists) for the response
   const anonDb = createAnonClient()
   const { data: profile } = await anonDb
     .from('profiles')

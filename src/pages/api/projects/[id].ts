@@ -10,9 +10,10 @@ import { createServiceClient, verifyToken } from '@/lib/supabase-server'
 import { deleteR2Objects } from '@/lib/r2'
 import { allKeysFor, type ProjectImageRow } from '@/lib/image-paths'
 
+const ORIGIN = import.meta.env.PUBLIC_SITE_URL
 const cors = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': ORIGIN,
 }
 const json = (d: unknown, s = 200) => new Response(JSON.stringify(d), { status: s, headers: cors })
 
@@ -20,7 +21,7 @@ export const OPTIONS: APIRoute = () =>
     new Response(null, {
         status: 204,
         headers: {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': ORIGIN,
             'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
@@ -29,7 +30,7 @@ export const OPTIONS: APIRoute = () =>
 export const DELETE: APIRoute = async ({ request, params }) => {
     if (!params.id) return json({ error: 'ID is required' }, 400)
 
-    const idResult = z.string().uuid().safeParse(params.id)
+    const idResult = z.uuid().safeParse(params.id)
     if (!idResult.success) return json({ error: 'Invalid id' }, 400)
     const projectId = idResult.data
 

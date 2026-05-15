@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
 import CommentLabel from '@/components/ui/CommentLabel'
 import {
@@ -47,12 +46,16 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
 
   const handleSubmit = async () => {
     setSubmitting(true)
-    await supabase.from('surveys').insert({
-      age_group: answers.age_group ?? null,
-      referral_source: answers.referral_source ?? null,
-      gender: answers.gender ?? null,
-      exhibition_plan: answers.exhibition_plan ?? null,
-      user_id: userId ?? null,
+    await fetch('/api/surveys', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        age_group: answers.age_group ?? null,
+        referral_source: answers.referral_source ?? null,
+        gender: answers.gender ?? null,
+        exhibition_plan: answers.exhibition_plan ?? null,
+        user_id: userId ?? null,
+      }),
     })
     localStorage.setItem(SURVEY_DONE_KEY, '1')
     setSubmitting(false)
