@@ -11,6 +11,7 @@ import NewProjectModal from '@/components/editor/NewProjectModal'
 import ProjectListItem, { type ProjectSummary } from '@/components/editor/ProjectListItem'
 import AuthGate from '@/components/ui/AuthGate'
 import SurveyModal from '@/components/ui/SurveyModal'
+import { SURVEY_DONE_KEY } from '@/lib/survey-questions'
 
 const AFFILIATIONS = ['建電', '北資', '其他'] as const
 const AGE_GROUPS = ['國中以下', '國中生', '高中生', '大學生', '社會人士'] as const
@@ -52,6 +53,11 @@ export default function ProfileDashboard() {
   const [profileSaved, setProfileSaved] = useState(false)
 
   const [showSurvey, setShowSurvey] = useState(false)
+  const [surveyDone, setSurveyDone] = useState(true) // start hidden to avoid flicker
+
+  useEffect(() => {
+    setSurveyDone(localStorage.getItem(SURVEY_DONE_KEY) === '1')
+  }, [])
 
   const { confirm, dialog } = useConfirm()
 
@@ -479,13 +485,15 @@ export default function ProfileDashboard() {
             </div>
 
             {/* Survey */}
-            <div className="pt-4 border-t border-line space-y-2">
-              <p className="text-xs uppercase tracking-widest text-ink-muted">社群問卷</p>
-              <p className="text-xs text-ink-disabled">協助我們了解社群組成，完全匿名，約 1 分鐘。</p>
-              <Button variant="outline" size="md" onClick={() => setShowSurvey(true)}>
-                填寫問卷
-              </Button>
-            </div>
+            {!surveyDone && (
+              <div className="pt-4 border-t border-line space-y-2">
+                <p className="text-xs uppercase tracking-widest text-ink-muted">社群問卷</p>
+                <p className="text-xs text-ink-disabled">協助我們了解社群組成，完全匿名，約 1 分鐘。</p>
+                <Button variant="outline" size="md" onClick={() => setShowSurvey(true)}>
+                  填寫問卷
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -494,7 +502,7 @@ export default function ProfileDashboard() {
         open={showSurvey}
         onClose={() => setShowSurvey(false)}
         userId={user?.id}
-        onComplete={() => setShowSurvey(false)}
+        onComplete={() => { setShowSurvey(false); setSurveyDone(true) }}
       />
 
       {showNewModal && (
