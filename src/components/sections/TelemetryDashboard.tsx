@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ScrambleText from "@/components/ui/ScrambleText";
 import CommentLabel from "../ui/CommentLabel";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
 
 const STATS_CONFIG = [
   { id: "stat-projects", label: "TOTAL_PROJECTS", unit: "件", desc: "已發佈專題" },
@@ -73,7 +74,7 @@ export default function TelemetryDashboard() {
               <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-500" aria-hidden="true" />
 
               <div id={stat.id} className="text-5xl sm:text-6xl font-black text-accent-500 tabular-nums font-mono">
-                {loading ? "..." : values[i]}
+                {loading ? "♦" : <AnimatedCounter value={values[i]} />}
               </div>
               <div className="font-mono text-base text-ink-dim mt-2">{stat.unit}</div>
               <div className="font-mono text-sm text-ink-dim mt-3 tracking-widest uppercase">
