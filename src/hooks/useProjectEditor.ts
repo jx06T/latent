@@ -409,6 +409,18 @@ export function useProjectEditor(projectId: string) {
     return image_id
   }, [accessToken, projectId])
 
+  // ── Published project URL ───────────────────────────────────────────────
+  const slugYear = useMemo(() =>
+    firstPublishedAt ? new Date(firstPublishedAt).getFullYear() : new Date().getFullYear(),
+    [firstPublishedAt],
+  )
+  const publishedProjectUrl = useMemo(() =>
+    projectStatus === 'published' && savedState.slug
+      ? `/projects/${slugYear}/${savedState.slug}`
+      : null,
+    [projectStatus, savedState.slug, slugYear],
+  )
+
   // ── Image URL map for markdown preview ─────────────────────────────────
   const imageUrlMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -433,6 +445,8 @@ export function useProjectEditor(projectId: string) {
     loadStatus,
     projectStatus,
     isSlugLocked,
+    publishedProjectUrl,
+    slugYear,
     formState,
     images,
     isSaving,

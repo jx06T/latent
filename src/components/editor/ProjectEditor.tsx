@@ -26,6 +26,8 @@ export default function ProjectEditor({ projectId }: Props) {
     loadStatus,
     projectStatus,
     isSlugLocked,
+    publishedProjectUrl,
+    slugYear,
     formState,
     images,
     isSaving,
@@ -220,6 +222,8 @@ export default function ProjectEditor({ projectId }: Props) {
               isSlugLocked={isSlugLocked}
               disabled={isProcessing}
               slugError={slugError}
+              publishedProjectUrl={publishedProjectUrl}
+              slugYear={slugYear}
             />
             <div className="border-t border-line">
               <MarkdownEditor

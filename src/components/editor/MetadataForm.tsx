@@ -25,13 +25,15 @@ interface Props {
   isSlugLocked: boolean
   slugError: string | null
   disabled?: boolean
+  publishedProjectUrl?: string | null
+  slugYear?: number
 }
 
 const LINK_KEYS = ['demo', 'github', 'report', 'slides']
 
 const label = 'block text-xs uppercase tracking-wider text-ink-dim mb-1 font-mono select-none'
 
-export default function MetadataForm({ data, onChange, isSlugLocked, slugError, disabled }: Props) {
+export default function MetadataForm({ data, onChange, isSlugLocked, slugError, disabled, publishedProjectUrl, slugYear = new Date().getFullYear() }: Props) {
   const [slugTouched, setSlugTouched] = useState(false)
   const [tagRaw, setTagRaw] = useState({
     keywords: data.keywords.join(', '),
@@ -100,7 +102,11 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
       <div className="grid grid-cols-2 gap-4 items-start">
         <div>
           <label className={label}>
-            Slug{isSlugLocked && <span className="ml-1.5 text-danger/70">[published]</span>}
+            Slug{isSlugLocked && (
+              publishedProjectUrl
+                ? <a href={publishedProjectUrl} target="_blank" rel="noopener noreferrer" className="ml-1.5 text-danger/70 hover:text-danger">[published<span>↗</span>]</a>
+                : <span className="ml-1.5 text-danger/70">[published]</span>
+            )}
           </label>
           <Input
             size="sm"
@@ -115,7 +121,7 @@ export default function MetadataForm({ data, onChange, isSlugLocked, slugError, 
             ? <p className="text-xs text-danger mt-0.5">{slugError}</p>
             : !slugValid && data.slug
               ? <p className="text-xs text-warning mt-0.5">3–60 chars · a–z 0–9 hyphens</p>
-              : <p className="text-xs text-ink-ddim mt-0.5">/projects/2026/{data.slug || '…'}</p>
+              : <p className="text-xs text-ink-ddim mt-0.5">/projects/{slugYear}/{data.slug || '…'}</p>
           }
         </div>
 
