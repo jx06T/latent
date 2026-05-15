@@ -231,7 +231,7 @@ export default function OnboardingForm() {
               />
             </div>
             {handleStatusEl}
-            <p className="text-sm text-ink-disabled">設定後無法修改 · 你的公開頁面將是 /@{handle || 'handle'}</p>
+            <p className="text-sm text-ink-ddim">設定後無法修改 · 你的公開頁面將是 /@{handle || 'handle'}</p>
           </div>
 
           <div className="shrink-0 flex flex-col items-center gap-2">
@@ -239,20 +239,17 @@ export default function OnboardingForm() {
               type="button"
               onClick={randomizeAvatar}
               title="點擊更換頭像"
-              className="relative group w-16 h-16 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
+              className="relative group w-18 h-18 border border-line bg-bg-elevated focus:outline-none focus:border-line-active"
             >
               <img
                 src={getAvatarUrl(avatarSeed || user.id)}
                 alt="Avatar preview"
-                width={64}
-                height={64}
+                width={72}
+                height={72}
                 className="w-full h-full"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-[10px] text-white font-mono leading-tight text-center">點擊<br/>更換</span>
-              </div>
             </button>
-            <p className="text-[11px] text-ink-disabled text-center">頭像預覽</p>
+            <p className="text-[11px] text-ink-ddim text-center">頭像預覽<br />點擊更換</p>
           </div>
         </div>
 

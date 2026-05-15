@@ -31,7 +31,7 @@ export default function TelemetryDashboard() {
         const calculatedVotes = voteData?.reduce((acc, curr) => acc + (curr.like_count || 0), 0) || 0;
 
         setTotalProjects(count ?? 0);
-        setTotalVotes(calculatedVotes > 0 ? calculatedVotes : 150);
+        setTotalVotes(calculatedVotes > 0 ? calculatedVotes : 21);
 
         if (statsRes.ok) {
           const stats = await statsRes.json();

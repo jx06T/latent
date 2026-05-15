@@ -57,8 +57,8 @@ export const POST: APIRoute = async ({ request }) => {
       conflicting_field: 'slug',
     }, 409)
   }
-  
-  // 原子鎖：只有 status=draft 才能轉 processing
+
+  // ── 3. 原子鎖：只有 status=draft 才能轉 processing ──
   const { data: locked, error: lockErr } = await db
     .from('projects')
     .update({ status: 'processing' })
@@ -69,14 +69,28 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (lockErr || !locked) return json({ error: 'Failed to acquire lock' }, 409)
 
+  // ── 4. 觸發 background function ──
   const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
 
-  fetch(`${siteUrl}/functions/publish-background`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
-    body: JSON.stringify({ project_id, author_id: userId }),
-  }).catch(err => console.error('[publish] background trigger failed:', err))
+  try {
+    const res = await fetch(`${siteUrl}/functions/publish-background`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
+      body: JSON.stringify({ project_id, author_id: userId }),
+    })
+
+    // Background function 應該回 202；一般 function 回 2xx 也算成功
+    if (!res.ok && res.status !== 202) {
+      console.error('[publish] background returned non-ok:', res.status)
+      await db.from('projects').update({ status: 'draft' }).eq('id', project_id)
+      return json({ error: 'Failed to enqueue' }, 502)
+    }
+  } catch (err) {
+    console.error('[publish] background trigger failed:', err)
+    await db.from('projects').update({ status: 'draft' }).eq('id', project_id)
+    return json({ error: 'Failed to enqueue' }, 502)
+  }
 
   return json({ message: 'Publishing started', project_id }, 202)
 }

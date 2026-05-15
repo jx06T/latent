@@ -101,6 +101,7 @@ export function useSupabaseAuth(): SupabaseAuth {
 
     const next = encodeURIComponent(safeTarget)
 
+    console.log(`${origin.replace(/\/$/, '')}/api/auth/callback?next=${next}`)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
