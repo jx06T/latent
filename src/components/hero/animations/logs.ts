@@ -3,11 +3,13 @@ import { continuousPool } from "../log-data";
 
 const MAX_VISIBLE = 9;
 
-export function initLogAnimations(logContainer: HTMLElement): void {
-  if (!logContainer) return;
+export function initLogAnimations(logContainer: HTMLElement): () => void {
+  let continuousCleanup: (() => void) | null = null;
+
+  if (!logContainer) return () => {};
 
   const entries = logContainer.querySelectorAll<HTMLElement>(".log-entry");
-  if (entries.length === 0) return;
+  if (entries.length === 0) return () => {};
 
   const tl = gsap.timeline({
     scrollTrigger: {
@@ -16,7 +18,9 @@ export function initLogAnimations(logContainer: HTMLElement): void {
       start: "top bottom",
       toggleActions: "play return play return",
     },
-    onComplete: () => startContinuousLogs(logContainer),
+    onComplete: () => {
+      continuousCleanup = startContinuousLogs(logContainer);
+    },
   });
 
   entries.forEach((entry) => {
@@ -27,8 +31,11 @@ export function initLogAnimations(logContainer: HTMLElement): void {
       delaySec
     );
   });
+
+  return () => continuousCleanup?.();
 }
-function startContinuousLogs(container: HTMLElement): void {
+
+function startContinuousLogs(container: HTMLElement): () => void {
   const list = container.querySelector<HTMLElement>(".log-list");
   if (!list) return;
 
@@ -82,9 +89,5 @@ function startContinuousLogs(container: HTMLElement): void {
 
   let timerId = window.setTimeout(tick, 1000);
 
-  document.addEventListener(
-    "astro:before-swap",
-    () => clearTimeout(timerId),
-    { once: true }
-  );
+  return () => clearTimeout(timerId);
 }

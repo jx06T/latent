@@ -11,8 +11,9 @@ export function initScannerAnimations(
     svg: SVGSVGElement,
     wrappers: SVGElement[],
     boxes: ScanBox[]
-): { updateSizes: () => void } {
+): { updateSizes: () => void; cleanup: () => void } {
     const sizeTargets: SizeTarget[] = [];
+    const flickerCleanups: Array<() => void> = [];
 
     if (wrappers.length === 0) return { updateSizes: () => { } };
 
@@ -69,7 +70,7 @@ export function initScannerAnimations(
             .to(labelMask, { scaleX: 1, duration: 0.4, ease: "power2.out" }, "-=0.5"); // 🌟 動畫加回來了！
 
         const confEl = document.querySelector<SVGTSpanElement>(`[data-scanner-conf="${boxData.id}"]`);
-        if (confEl) startConfidenceFlicker(confEl, boxData.confidence);
+        if (confEl) flickerCleanups.push(startConfidenceFlicker(confEl, boxData.confidence));
 
         // ... (Parallax 與 RandomFloat 邏輯保持原樣不變) ...
         if (boxData.speed !== 0) {
@@ -92,7 +93,7 @@ export function initScannerAnimations(
             );
         }
 
-        function startConfidenceFlicker(el: SVGTSpanElement, base: number): void {
+        function startConfidenceFlicker(el: SVGTSpanElement, base: number): () => void {
             let timerId: number;
             const tick = () => {
                 const delta = Math.round((Math.random() * 2 - 1) * 15);
@@ -101,7 +102,7 @@ export function initScannerAnimations(
                 timerId = window.setTimeout(tick, 500);
             };
             timerId = window.setTimeout(tick, 1000 + Math.random() * 1000);
-            document.addEventListener("astro:before-swap", () => clearTimeout(timerId), { once: true });
+            return () => clearTimeout(timerId);
         }
 
         function randomFloat() {
@@ -127,5 +128,8 @@ export function initScannerAnimations(
         });
     }
 
-    return { updateSizes };
+    return {
+        updateSizes,
+        cleanup: () => flickerCleanups.forEach((fn) => fn()),
+    };
 }

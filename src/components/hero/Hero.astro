@@ -127,7 +127,7 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
         ...els.floatingEls,
       ]);
 
-      const { updateSizes: scannerUpdate } = initScannerAnimations(
+      const { updateSizes: scannerUpdate, cleanup: scannerCleanup } = initScannerAnimations(
         heroSection,
         els.svg!,
         els.scanWrappers,
@@ -148,7 +148,7 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
         ScrollTrigger.refresh();
       }
 
-      const cleanups: Array<() => void> = [];
+      const cleanups: Array<() => void> = [scannerCleanup];
 
       if (els.ufoWrappers.length > 0) {
         cleanups.push(initUfoTracking(els.ufoWrappers));
@@ -156,7 +156,7 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
 
       if (els.log.wrapper && els.log.content) {
         initTargetDropAnimation(masterTl, els.log.content);
-        initLogAnimations(els.log.wrapper);
+        cleanups.push(initLogAnimations(els.log.wrapper));
       }
 
       if (els.laserTarget && els.svg) {
@@ -166,7 +166,7 @@ const RATIO_H_W = BG_HEIGHT / BG_WIDTH;
 
       // On iOS Safari the address bar hide/show fires a resize with width unchanged.
       // Calling ScrollTrigger.refresh() on every such event blocks the main thread,
-      // which causes Lenis to miss frames and scroll momentum to die suddenly.
+      // which causes Lenis to miss frames and scroll momentum to die suddenly. (我猜這可能沒差但沒差)
       let lastResizeWidth = window.innerWidth;
       const throttledResize = throttle(() => {
         const newWidth = window.innerWidth;

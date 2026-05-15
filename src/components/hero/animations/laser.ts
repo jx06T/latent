@@ -25,7 +25,7 @@ export function initLaserTarget(target: HTMLElement): () => void {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("touchmove", onTouchMove, { passive: true });
 
-    gsap.ticker.add(() => {
+    const targetTickerFn = () => {
         const currentScrollY = window.scrollY;
         const scrollDeltaY = currentScrollY - scrollY;
         scrollY = currentScrollY;
@@ -51,11 +51,14 @@ export function initLaserTarget(target: HTMLElement): () => void {
 
         xTo(targetX);
         yTo(targetY + lagY);
-    });
+    };
+
+    gsap.ticker.add(targetTickerFn);
 
     return () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("touchmove", onTouchMove);
+        gsap.ticker.remove(targetTickerFn);
     };
 }
 
