@@ -104,7 +104,19 @@ const subCategoryLabels = project.category_sub
 
 const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 
-// Similar projects: fetch candidates, score by keyword/tech/category overlap
+// Similar projects: pre-filter by category/author at DB level, then score in JS
+const _subFilter =
+  project.category_sub.length > 0
+    ? `category_sub.ov.{${project.category_sub.join(",")}}`
+    : null;
+const _orFilter = [
+  `category_main.eq.${project.category_main}`,
+  _subFilter,
+  `author_handle.eq.${project.author_handle}`,
+]
+  .filter(Boolean)
+  .join(",");
+
 const { data: candidateData } = await supabase
   .from("projects")
   .select(
@@ -116,7 +128,8 @@ const { data: candidateData } = await supabase
   .eq("year", CURRENT_YEAR)
   .eq("status", "published")
   .neq("id", project.id)
-  .limit(50);
+  .or(_orFilter)
+  .limit(20);
 
 function scoreSimilarity(candidate: any): number {
   let score = 0;
@@ -133,6 +146,7 @@ function scoreSimilarity(candidate: any): number {
     project.category_sub.includes(s),
   ).length;
   score += subOverlap;
+  if (candidate.author_handle === project.author_handle) score += 2;
   return score;
 }
 
