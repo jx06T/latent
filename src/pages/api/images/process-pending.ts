@@ -66,11 +66,22 @@ export const POST: APIRoute = async ({ request }) => {
   const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'http://localhost:8888'
   const internalToken = import.meta.env.INTERNAL_TOKEN ?? ''
 
-  fetch(`${siteUrl}/functions/publish-background`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
-    body: JSON.stringify({ project_id, author_id: userId }),
-  }).catch(err => console.error('[process-pending] background trigger failed:', err))
+  try {
+    const res = await fetch(`${siteUrl}/functions/publish-background`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Internal-Token': internalToken },
+      body: JSON.stringify({ project_id, author_id: userId }),
+    })
+    if (!res.ok && res.status !== 202) {
+      console.error('[process-pending] background returned non-ok:', res.status)
+      await db.from('projects').update({ status: 'published' }).eq('id', project_id)
+      return json({ error: 'Failed to enqueue' }, 502)
+    }
+  } catch (err) {
+    console.error('[process-pending] background trigger failed:', err)
+    await db.from('projects').update({ status: 'published' }).eq('id', project_id)
+    return json({ error: 'Failed to enqueue' }, 502)
+  }
 
   return json({ message: 'Processing started', project_id }, 202)
 }
