@@ -29,7 +29,7 @@ export default function ProjectCard({
         {cover_image ? (
           <img
             loading="lazy" src={cover_image} alt=""
-            className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
           <div className="w-full h-full p-[10%] group-hover:scale-105 transition-all duration-500">
