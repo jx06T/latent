@@ -95,7 +95,10 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 // Similar projects: fetch candidates, score by keyword/tech/category overlap
 const { data: candidateData } = await supabase
   .from("projects")
-  .select("id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count")
+  .select(`
+    id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count,
+    cover_image:project_images!cover_image_id(id, project_id, status, source_ext, published_ext, available_sizes)
+  `)
   .eq("year", CURRENT_YEAR)
   .eq("status", "published")
   .neq("id", project.id)
@@ -113,29 +116,18 @@ function scoreSimilarity(candidate: any): number {
   return score;
 }
 
-const topCandidates = (candidateData ?? [])
+const similarProjects = (candidateData ?? [])
   .map(p => ({ ...p, score: scoreSimilarity(p) }))
   .filter(p => p.score > 0)
   .sort((a, b) => b.score - a.score)
-  .slice(0, 3);
-
-const simCoverIds = topCandidates.map(p => p.cover_image_id).filter(Boolean) as string[];
-const simCoverMap: Record<string, string> = {};
-if (simCoverIds.length > 0) {
-  const { data: simCoverImgs } = await supabase
-    .from("project_images")
-    .select("id, project_id, status, source_ext, published_ext, available_sizes")
-    .in("id", simCoverIds)
-    .eq("status", "published");
-  for (const img of simCoverImgs ?? []) {
-    try { simCoverMap[img.id] = publishedUrl(img as unknown as ProjectImageRow, "md"); } catch {}
-  }
-}
-
-const similarProjects = topCandidates.map(p => ({
-  ...p,
-  coverUrl: p.cover_image_id ? (simCoverMap[p.cover_image_id] ?? null) : null,
-}));
+  .slice(0, 3)
+  .map(p => {
+    let coverUrl: string | null = null
+    if (p.cover_image) {
+      try { coverUrl = publishedUrl(p.cover_image as unknown as ProjectImageRow, "md") } catch {}
+    }
+    return { ...p, coverUrl }
+  });
 ---
 
 <ProseLayout

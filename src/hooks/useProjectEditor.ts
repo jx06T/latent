@@ -213,7 +213,9 @@ export function useProjectEditor(projectId: string) {
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
             body: JSON.stringify({ project_id: projectId }),
           })
-          if (res.ok) setProjectStatus('processing')
+          // On Vercel the background job runs synchronously, so Realtime may have
+          // already updated the status to 'published' before we get here.
+          if (res.ok) setProjectStatus(prev => prev === 'published' ? 'published' : 'processing')
         }
         return true
       } else {
