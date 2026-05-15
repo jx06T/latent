@@ -3,7 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import { Button } from "@/components/ui/Button";
 import Link from "@/components/ui/Link";
 import Tag from "@/components/ui/Tag.astro";
-import ScrambleText from "@/components/ui/ScrambleText.astro";
+import ScrambleText from "@/components/ui/ScrambleText";
 import { House } from "lucide-react";
 import CommentLabel from "@/components/ui/CommentLabel";
 import { Input } from "@/components/ui/Input";
@@ -87,7 +87,7 @@ const colorGroups = [
   <main class="max-w-5xl mx-auto p-8 space-y-16">
     <header class="border-b border-line-strong pb-4">
       <h1 class="text-4xl font-black text-glow-primary">
-        <ScrambleText text="系統偵錯儀表板_DEBUG" trigger="load" />
+        <ScrambleText text="系統偵錯儀表板_DEBUG" trigger="load" client:load />
       </h1>
       <p class="text-ink-dim font-mono text-sm mt-2 uppercase">
         Status: Online | Localization: ZH-TW

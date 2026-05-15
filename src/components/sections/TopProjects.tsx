@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { publishedUrl, toCdnUrl, draftKey } from '@/lib/image-paths'
 import ProjectCard, { type ProjectCardProps } from '@/components/modules/ProjectCard'
 import { LinkButton } from '@/components/ui/Button'
+import ScrambleText from '@/components/ui/ScrambleText'
+import CommentLabel from '../ui/CommentLabel'
+
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -123,10 +126,10 @@ export default function TopProjects() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-4 text-center">
           <h2 className="text-3xl sm:text-4xl font-black text-ink text-glow-primary mt-2 font-mono">
-            [ TOP_PROJECTS ]
+            <ScrambleText text="[ TOP_PROJECTS ]" />
           </h2>
           <div className="font-mono text-base uppercase text-ink-dim/90 mb-2 tracking-tighter">
-            // 本屆最受矚目的三件專題
+            <CommentLabel text="本屆最受矚目的三件專題" />
           </div>
         </div>
 

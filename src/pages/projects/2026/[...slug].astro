@@ -30,10 +30,12 @@ if (!cleanSlug || !/^[a-zA-Z0-9-]+$/.test(cleanSlug)) {
 
 const { data: rawData, error: dbError } = await supabase
   .from("projects")
-  .select(`
+  .select(
+    `
     *,
     project_images!project_images_project_id_fkey(id, project_id, status, source_ext, published_ext, available_sizes)
-  `)
+  `,
+  )
   .eq("year", CURRENT_YEAR)
   .eq("slug", cleanSlug)
   .single();
@@ -44,8 +46,9 @@ if (dbError || !rawData) {
 }
 
 // Extract images before Zod parses (Zod strips unknown keys)
-const projectImages = (((rawData as any).project_images ?? []) as ProjectImageRow[])
-  .filter((img) => img.status === "published");
+const projectImages = (
+  ((rawData as any).project_images ?? []) as ProjectImageRow[]
+).filter((img) => img.status === "published");
 
 const result = ProjectSchema.safeParse(rawData);
 if (!result.success) {
@@ -59,27 +62,36 @@ const project = result.data;
 
 const resolvedContent = project.content
   ? replaceImageIds(project.content, projectImages)
-  : ""
+  : "";
 
 // coverImageUrl: hero image displayed on the page (only from cover_image_id)
-let coverImageUrl: string | null = null
+let coverImageUrl: string | null = null;
 if (project.cover_image_id) {
-  const coverImg = projectImages.find(img => img.id === project.cover_image_id)
+  const coverImg = projectImages.find(
+    (img) => img.id === project.cover_image_id,
+  );
   if (coverImg) {
-    try { coverImageUrl = publishedUrl(coverImg, "md") } catch {}
+    try {
+      coverImageUrl = publishedUrl(coverImg, "md");
+    } catch {}
   }
 }
 
 // ogImageUrl: OG meta tag — cover → first article image → Satori fallback
-let ogImageUrl: string = new URL(`/og/2026/${project.slug}.jpeg`, Astro.url).toString()
+let ogImageUrl: string = new URL(
+  `/og/2026/${project.slug}.jpeg`,
+  Astro.url,
+).toString();
 if (coverImageUrl) {
-  ogImageUrl = coverImageUrl
+  ogImageUrl = coverImageUrl;
 } else if (project.content) {
-  const firstId = extractFirstImageId(project.content)
+  const firstId = extractFirstImageId(project.content);
   if (firstId) {
-    const firstImg = projectImages.find(img => img.id === firstId)
+    const firstImg = projectImages.find((img) => img.id === firstId);
     if (firstImg) {
-      try { ogImageUrl = publishedUrl(firstImg, "md") } catch {}
+      try {
+        ogImageUrl = publishedUrl(firstImg, "md");
+      } catch {}
     }
   }
 }
@@ -95,10 +107,12 @@ const linkEntries = Object.entries(project.links).filter(([, v]) => v);
 // Similar projects: fetch candidates, score by keyword/tech/category overlap
 const { data: candidateData } = await supabase
   .from("projects")
-  .select(`
+  .select(
+    `
     id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count,
     cover_image:project_images!cover_image_id(id, project_id, status, source_ext, published_ext, available_sizes)
-  `)
+  `,
+  )
   .eq("year", CURRENT_YEAR)
   .eq("status", "published")
   .neq("id", project.id)
@@ -106,33 +120,45 @@ const { data: candidateData } = await supabase
 
 function scoreSimilarity(candidate: any): number {
   let score = 0;
-  const kwOverlap = (candidate.keywords ?? []).filter((k: string) => project.keywords.includes(k)).length;
+  const kwOverlap = (candidate.keywords ?? []).filter((k: string) =>
+    project.keywords.includes(k),
+  ).length;
   score += kwOverlap * 3;
-  const techOverlap = (candidate.tech_stack ?? []).filter((t: string) => project.tech_stack.includes(t)).length;
+  const techOverlap = (candidate.tech_stack ?? []).filter((t: string) =>
+    project.tech_stack.includes(t),
+  ).length;
   score += techOverlap * 2;
   if (candidate.category_main === project.category_main) score += 2;
-  const subOverlap = (candidate.category_sub ?? []).filter((s: number) => project.category_sub.includes(s)).length;
+  const subOverlap = (candidate.category_sub ?? []).filter((s: number) =>
+    project.category_sub.includes(s),
+  ).length;
   score += subOverlap;
   return score;
 }
 
 const similarProjects = (candidateData ?? [])
-  .map(p => ({ ...p, score: scoreSimilarity(p) }))
-  .filter(p => p.score > 0)
+  .map((p) => ({ ...p, score: scoreSimilarity(p) }))
+  .filter((p) => p.score > 0)
   .sort((a, b) => b.score - a.score)
   .slice(0, 3)
-  .map(p => {
-    let coverUrl: string | null = null
+  .map((p) => {
+    let coverUrl: string | null = null;
     if (p.cover_image) {
-      try { coverUrl = publishedUrl(p.cover_image as unknown as ProjectImageRow, "md") } catch {}
+      try {
+        coverUrl = publishedUrl(
+          p.cover_image as unknown as ProjectImageRow,
+          "md",
+        );
+      } catch {}
     }
-    return { ...p, coverUrl }
+    return { ...p, coverUrl };
   });
 ---
 
 <ProseLayout
   title={`${project.title} | LATENT — ${CURRENT_YEAR}`}
-  description={project.description ?? `${project.title} — ${categoryLabel} 專題`}
+  description={project.description ??
+    `${project.title} — ${categoryLabel} 專題`}
   ogImage={ogImageUrl}
   type="article"
   article={{
@@ -154,7 +180,7 @@ const similarProjects = (candidateData ?? [])
     >
       <Link href="/projects">projects</Link>
       <span>/</span>
-      <span>{CURRENT_YEAR}</span>
+      <Link href={`/projects/${CURRENT_YEAR}`}>{CURRENT_YEAR}</Link>
       <span>/</span>
       <span class="text-ink">{project.slug}</span>
     </nav>
@@ -186,9 +212,16 @@ const similarProjects = (candidateData ?? [])
     >
       {project.title}
     </h1>
-    {project.subtitle && <p class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</p>}
+    {
+      project.subtitle && (
+        <p class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</p>
+      )
+    }
     <p class="font-mono text-lg text-ink-dim -mt-1">
-      by <a href={`/@${project.author_handle}`} class="text-ink hover:text-accent-400 transition-colors">
+      by <a
+        href={`/@${project.author_handle}`}
+        class="text-ink hover:text-accent-400 transition-colors"
+      >
         {project.author_handle}
       </a>
     </p>
@@ -199,15 +232,42 @@ const similarProjects = (candidateData ?? [])
     linkEntries.length > 0 && (
       <div class="flex flex-wrap gap-3 mb-10">
         {project.links.demo && (
-          <LinkButton href={project.links.demo} variant="primary" size="lg" bracket target="_blank" rel="noopener noreferrer">線上展示</LinkButton>
+          <LinkButton
+            href={project.links.demo}
+            variant="primary"
+            size="lg"
+            bracket
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            線上展示
+          </LinkButton>
         )}
         {project.links.github && (
-          <LinkButton href={project.links.github} variant="outline" size="lg" bracket target="_blank" rel="noopener noreferrer">原始碼</LinkButton>
+          <LinkButton
+            href={project.links.github}
+            variant="outline"
+            size="lg"
+            bracket
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            原始碼
+          </LinkButton>
         )}
         {linkEntries
           .filter(([key]) => key !== "demo" && key !== "github")
           .map(([key, url]) => (
-            <LinkButton href={url!} variant="secondary" size="lg" bracket target="_blank" rel="noopener noreferrer">{key}</LinkButton>
+            <LinkButton
+              href={url!}
+              variant="secondary"
+              size="lg"
+              bracket
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {key}
+            </LinkButton>
           ))}
       </div>
     )
@@ -218,7 +278,10 @@ const similarProjects = (candidateData ?? [])
     <section>
       <CommentLabel text="project_overview" />
       <p class="text-base text-ink-muted leading-relaxed -mt-1">
-        {project.description || `由 ${project.author_handle} 製作的專案 「 ${project.title} 」`}
+        {
+          project.description ||
+            `由 ${project.author_handle} 製作的專案 「 ${project.title} 」`
+        }
       </p>
     </section>
 
@@ -250,7 +313,6 @@ const similarProjects = (candidateData ?? [])
         </section>
       )
     }
-
   </div>
 
   <!-- Like button -->
@@ -272,26 +334,28 @@ const similarProjects = (candidateData ?? [])
   <CommentsSection client:load projectId={project.id} />
 
   <!-- Similar projects -->
-  {similarProjects.length > 0 && (
-    <section class="mt-16">
-      <CommentLabel text="similar_projects" className="text-lg" />
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-        {similarProjects.map((p) => (
-          <ProjectCard
-            slug={p.slug}
-            year={CURRENT_YEAR}
-            title={p.title}
-            subtitle={p.subtitle}
-            author_handle={p.author_handle}
-            category_main={p.category_main}
-            cover_image={p.coverUrl}
-            tech_stack={p.tech_stack ?? []}
-            like_count={p.like_count ?? 0}
-          />
-        ))}
-      </div>
-    </section>
-  )}
+  {
+    similarProjects.length > 0 && (
+      <section class="mt-16">
+        <CommentLabel text="similar_projects" className="text-lg" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+          {similarProjects.map((p) => (
+            <ProjectCard
+              slug={p.slug}
+              year={CURRENT_YEAR}
+              title={p.title}
+              subtitle={p.subtitle}
+              author_handle={p.author_handle}
+              category_main={p.category_main}
+              cover_image={p.coverUrl}
+              tech_stack={p.tech_stack ?? []}
+              like_count={p.like_count ?? 0}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   <!-- Footer bar -->
   <footer class="mt-16 pt-3 border-t border-line">

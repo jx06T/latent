@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import ScrambleText from "@/components/ui/ScrambleText";
+import CommentLabel from "../ui/CommentLabel";
 
 const STATS_CONFIG = [
   { id: "stat-projects", label: "TOTAL_PROJECTS", unit: "件", desc: "已發佈專題" },
-  { id: "stat-votes",    label: "ENERGY_VOTES",   unit: "票", desc: "累積投票人次" },
-  { id: "stat-views",    label: "TOTAL_VIEWS",    unit: "+",  desc: "累積瀏覽次數" },
+  { id: "stat-votes", label: "ENERGY_VOTES", unit: "票", desc: "累積投票人次" },
+  { id: "stat-views", label: "TOTAL_VIEWS", unit: "+", desc: "累積瀏覽次數" },
 ] as const;
 
 export default function TelemetryDashboard() {
@@ -53,9 +55,11 @@ export default function TelemetryDashboard() {
     <section id="telemetry" className="relative py-20 overflow-hidden bg-bg-surface border-t border-line">
       <div className="relative z-10 max-w-6xl mx-auto px-[10%]">
         <div className="text-center mb-6 md:mb-12">
-          <p className=" font-mono text-base uppercase text-ink-dim/90 mb-2 tracking-tighter">// system_telemetry</p>
+          <p className=" font-mono text-base uppercase text-ink-dim/90 mb-2 tracking-tighter">
+            <CommentLabel text="system_telemetry" />
+          </p>
           <h2 className="text-2xl sm:text-3xl font-black text-ink mt-2 tracking-widest font-mono">
-            [ 2026_LATENT_STATUS ]
+            <ScrambleText text="[ STATUS ]" />
           </h2>
         </div>
 

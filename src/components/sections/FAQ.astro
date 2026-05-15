@@ -2,7 +2,7 @@
 import CommentLabel from "@/components/ui/CommentLabel";
 import Accordion from "@/components/ui/Accordion.astro";
 import { FAQ_ITEMS } from "@/data/faq";
-import ScrambleText from "../ui/ScrambleText.astro";
+import ScrambleText from "../ui/ScrambleText";
 ---
 
 <section id="faq" class="py-24 border-t border-line bg-bg-surface">
@@ -10,8 +10,8 @@ import ScrambleText from "../ui/ScrambleText.astro";
 
     <div class="mb-10">
       <CommentLabel text="frequently_asked_questions" />
-      <h2 class="text-3xl sm:text-4xl font-black text-ink text-glow-primary mt-2">
-        <ScrambleText text="[ FAQ ]"/>
+      <h2 class="text-3xl sm:text-4xl font-black text-ink mt-2">
+        <ScrambleText text="[ FAQ ]" client:visible />
       </h2>
     </div>
 

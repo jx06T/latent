@@ -1,6 +1,6 @@
 ---
 import CommentLabel from "@/components/ui/CommentLabel";
-import ScrambleText from "@/components/ui/ScrambleText.astro";
+import ScrambleText from "@/components/ui/ScrambleText";
 import LatentLogo from "@/components/ui/LatentLogo.astro";
 ---
 
@@ -11,7 +11,7 @@ import LatentLogo from "@/components/ui/LatentLogo.astro";
     <LatentLogo class="w-32 md:w-36 xl:w-40 block" />
   </h2>
   <h3 class="mt-1 text-base md:text-lg lg:text-xl text-accent-500">
-    <ScrambleText text="2026 建北電資聯合社展" />
+    <ScrambleText text="2026 建北電資聯合社展" client:visible />
   </h3>
   <div class="mt-8 space-y-4 font-mono text-base">
     <div class="flex gap-1 items-start">
