@@ -31,6 +31,7 @@ const cleanHtml = sanitizeHtml(rawHtml, {
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "style"],
+    h1: ["id"], h2: ["id"], h3: ["id"], h4: ["id"], h5: ["id"], h6: ["id"],
     a: ["href", "title", "target", "rel", "class"],
     img: ["src", "alt", "title", "loading", "class"], // 記得允許 img 的 loading 屬性
     svg: [

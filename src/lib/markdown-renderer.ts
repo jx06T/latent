@@ -1,5 +1,16 @@
 import { Marked, type Tokens } from 'marked'
 
+function slugify(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\p{L}\p{N}\-_]/gu, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 const renderer = {
   link(token: Tokens.Link) {
     const { href, title, text } = token
@@ -65,5 +76,19 @@ export function createMarkedInstance(): Marked {
   const instance = new Marked()
   instance.use({ extensions: [calloutExtension] })
   instance.use({ renderer, breaks: true })
+
+  const usedIds = new Map<string, number>()
+  instance.use({
+    renderer: {
+      heading({ text, depth }: Tokens.Heading) {
+        const base = slugify(text)
+        const count = usedIds.get(base) ?? 0
+        usedIds.set(base, count + 1)
+        const id = (count === 0 ? base : `${base}-${count}`) || `h${depth}-${count}`
+        return `<h${depth} id="${id}">${text}</h${depth}>`
+      },
+    },
+  })
+
   return instance
 }
