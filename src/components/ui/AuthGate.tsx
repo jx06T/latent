@@ -35,6 +35,12 @@ export default function AuthGate({
           {title && <p className="text-sm uppercase tracking-widest text-ink-muted">{title}</p>}
           <p className="text-sm text-ink">{message}</p>
           <GoogleSignInButton onClick={onSignIn} className="w-full" />
+          <button
+            onClick={() => history.back()}
+            className="w-full text-sm text-ink-muted hover:text-ink transition-colors py-1"
+          >
+            ← Back
+          </button>
         </div>
       </div>
     )
