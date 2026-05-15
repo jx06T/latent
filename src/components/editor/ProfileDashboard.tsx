@@ -292,7 +292,7 @@ export default function ProfileDashboard() {
         <EditorTopBar
           left={
             <>
-              <LinkButton href="/" variant="ghost" className="text-sm">← Home</LinkButton>
+              <LinkButton href="/" variant="ghost" className="text-sm  px-0">← Home</LinkButton>
               <span className="w-px h-4 bg-line hidden sm:block" />
               <a
                 href={`/@${userHandle}`}

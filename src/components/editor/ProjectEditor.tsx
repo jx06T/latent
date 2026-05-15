@@ -110,132 +110,132 @@ export default function ProjectEditor({ projectId }: Props) {
       message="Sign in to access the editor"
       onSignIn={signIn}
     >
-    <div className="h-screen flex flex-col bg-bg text-ink overflow-hidden">
-      <EditorTopBar
-        left={
-          <>
-            <LinkButton href="/profile" variant="ghost" className="text-sm">← Profile</LinkButton>
-            {/* Mobile image panel toggle */}
-            <Button
-              variant="outline"
-              className="md:hidden w-7 h-7 p-0 mx-1.5"
-              onClick={() => setMobileSidebarOpen(o => !o)}
-              title="Toggle image panel"
-            >
-              {mobileSidebarOpen ? '✕' : '⊞'}
-            </Button>
-          </>
-        }
-        right={
-          <ActionIsland
-            state={{ status: projectStatus, isDirty, isSaving, isPublishing, error: slugError ?? saveError }}
-            userEmail={user?.email}
-            onSave={handleSave}
-            onPublish={handlePublish}
-            onSignOut={signOut}
-          />
-        }
-      />
-
-      {/* ── Mobile floating image panel ── */}
-      <div
-        className={cn(
-          'md:hidden fixed top-11 left-0 right-0 z-30 h-[13.3rem] bg-bg-elevated border-b border-line shadow-lg',
-          'transition-transform duration-200',
-          mobileSidebarOpen ? 'translate-y-0' : '-translate-y-full',
-        )}
-      >
-        <ImageSidebar
-          variant="panel"
-          images={images}
-          coverId={formState.cover_image_id}
-          disabled={isProcessing}
-          onUpload={handleUpload}
-          onDelete={handleDeleteImage}
-          onReplace={handleSeamlessSwap}
-          onInsert={handleInsertImage}
-          onSetCover={handleSetCover}
+      <div className="h-screen flex flex-col bg-bg text-ink overflow-hidden">
+        <EditorTopBar
+          left={
+            <>
+              <LinkButton href="/profile" variant="ghost" className="text-sm px-0">← Profile</LinkButton>
+              {/* Mobile image panel toggle */}
+              <Button
+                variant="outline"
+                className="md:hidden w-7 h-7 p-0 mx-1.5"
+                onClick={() => setMobileSidebarOpen(o => !o)}
+                title="Toggle image panel"
+              >
+                {mobileSidebarOpen ? '✕' : '⊞'}
+              </Button>
+            </>
+          }
+          right={
+            <ActionIsland
+              state={{ status: projectStatus, isDirty, isSaving, isPublishing, error: slugError ?? saveError }}
+              userEmail={user?.email}
+              onSave={handleSave}
+              onPublish={handlePublish}
+              onSignOut={signOut}
+            />
+          }
         />
-      </div>
 
-      {/* ── Main: sidebar + content ── */}
-      <div className="flex flex-1 overflow-hidden  pt-11">
-
-        {/* Desktop sidebar — hidden on mobile */}
+        {/* ── Mobile floating image panel ── */}
         <div
           className={cn(
-            'hidden md:flex shrink-0 border-r border-line flex-col relative overflow-visible',
-            sidebarCollapsed ? 'w-7' : '',
+            'md:hidden fixed top-11 left-0 right-0 z-30 h-[13.3rem] bg-bg-elevated border-b border-line shadow-lg',
+            'transition-transform duration-200',
+            mobileSidebarOpen ? 'translate-y-0' : '-translate-y-full',
           )}
-          style={sidebarCollapsed ? undefined : { width: sidebarWidth }}
         >
-          {/* Collapse / expand toggle tab */}
-          <button
-            className="absolute top-0 right-0 z-10 w-7 h-7 flex items-center justify-center border-l border-b border-line bg-bg text-ink-dim hover:text-accent-500 hover:bg-bg-surface transition-colors text-[10px]"
-            onClick={() => setSidebarCollapsed(c => !c)}
-            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? '›' : '‹'}
-          </button>
+          <ImageSidebar
+            variant="panel"
+            images={images}
+            coverId={formState.cover_image_id}
+            disabled={isProcessing}
+            onUpload={handleUpload}
+            onDelete={handleDeleteImage}
+            onReplace={handleSeamlessSwap}
+            onInsert={handleInsertImage}
+            onSetCover={handleSetCover}
+          />
+        </div>
 
-          {/* Sidebar content */}
-          {!sidebarCollapsed && (
-            <div className="flex-1 overflow-hidden flex flex-col">
-              <ImageSidebar
-                images={images}
-                coverId={formState.cover_image_id}
+        {/* ── Main: sidebar + content ── */}
+        <div className="flex flex-1 overflow-hidden  pt-11">
+
+          {/* Desktop sidebar — hidden on mobile */}
+          <div
+            className={cn(
+              'hidden md:flex shrink-0 border-r border-line flex-col relative overflow-visible',
+              sidebarCollapsed ? 'w-7' : '',
+            )}
+            style={sidebarCollapsed ? undefined : { width: sidebarWidth }}
+          >
+            {/* Collapse / expand toggle tab */}
+            <button
+              className="absolute top-0 right-0 z-10 w-7 h-7 flex items-center justify-center border-l border-b border-line bg-bg text-ink-dim hover:text-accent-500 hover:bg-bg-surface transition-colors text-[10px]"
+              onClick={() => setSidebarCollapsed(c => !c)}
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? '›' : '‹'}
+            </button>
+
+            {/* Sidebar content */}
+            {!sidebarCollapsed && (
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <ImageSidebar
+                  images={images}
+                  coverId={formState.cover_image_id}
+                  disabled={isProcessing}
+                  onUpload={handleUpload}
+                  onDelete={handleDeleteImage}
+                  onReplace={handleSeamlessSwap}
+                  onInsert={handleInsertImage}
+                  onSetCover={handleSetCover}
+                />
+              </div>
+            )}
+
+            {/* Drag resize handle — 4px touch target centered on the right border */}
+            {!sidebarCollapsed && (
+              <div
+                className="absolute top-0 bottom-0 w-1 cursor-col-resize group"
+                style={{ right: -2 }}
+                onMouseDown={onDragHandleMouseDown}
+              >
+                <div className="absolute inset-y-0 left-0 right-0 group-hover:bg-accent-500/40 transition-colors" />
+              </div>
+            )}
+          </div>
+
+          {/* Right main content */}
+          <div
+            className={cn(
+              'flex-1 overflow-y-auto min-w-0',
+              // On mobile: push content below the floating panel when it's open
+              mobileSidebarOpen && 'pt-48 md:pt-0',
+            )}
+          >
+            <MetadataForm
+              data={formState}
+              onChange={handleFormChange}
+              isSlugLocked={isSlugLocked}
+              disabled={isProcessing}
+              slugError={slugError}
+            />
+            <div className="border-t border-line">
+              <MarkdownEditor
+                ref={markdownRef}
+                content={formState.content}
+                onChange={v => handleFormChange('content', v)}
                 disabled={isProcessing}
-                onUpload={handleUpload}
-                onDelete={handleDeleteImage}
-                onReplace={handleSeamlessSwap}
-                onInsert={handleInsertImage}
-                onSetCover={handleSetCover}
+                onImageDrop={isProcessing ? undefined : handleMarkdownImageDrop}
+                imageUrlMap={imageUrlMap}
               />
             </div>
-          )}
-
-          {/* Drag resize handle — 4px touch target centered on the right border */}
-          {!sidebarCollapsed && (
-            <div
-              className="absolute top-0 bottom-0 w-1 cursor-col-resize group"
-              style={{ right: -2 }}
-              onMouseDown={onDragHandleMouseDown}
-            >
-              <div className="absolute inset-y-0 left-0 right-0 group-hover:bg-accent-500/40 transition-colors" />
-            </div>
-          )}
-        </div>
-
-        {/* Right main content */}
-        <div
-          className={cn(
-            'flex-1 overflow-y-auto min-w-0',
-            // On mobile: push content below the floating panel when it's open
-            mobileSidebarOpen && 'pt-48 md:pt-0',
-          )}
-        >
-          <MetadataForm
-            data={formState}
-            onChange={handleFormChange}
-            isSlugLocked={isSlugLocked}
-            disabled={isProcessing}
-            slugError={slugError}
-          />
-          <div className="border-t border-line">
-            <MarkdownEditor
-              ref={markdownRef}
-              content={formState.content}
-              onChange={v => handleFormChange('content', v)}
-              disabled={isProcessing}
-              onImageDrop={isProcessing ? undefined : handleMarkdownImageDrop}
-              imageUrlMap={imageUrlMap}
-            />
           </div>
         </div>
-      </div>
 
-      {dialog}
-    </div>
+        {dialog}
+      </div>
     </AuthGate>
   )
 }
