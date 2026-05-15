@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
     .eq('ip_hash', hash)
     .gte('created_at', since)
 
-  if ((ipCount ?? 0) >= 3) return json({ error: 'Too many submissions' }, 429)
+  if ((ipCount ?? 0) >= 30) return json({ error: 'Too many submissions' }, 429)
 
   const { error } = await db.from('surveys').insert({
     ...fields,

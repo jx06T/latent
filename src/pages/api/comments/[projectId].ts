@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ params }) => {
     .eq('project_id', projectId)
     .order('created_at', { ascending: true })
 
-  if (error) return json({ error: (error as any).message }, 500)
+  if (error) return json({ error: 'Failed to load comments' }, 500)
 
   const rows = (data ?? []) as VCommentRow[]
   if (!rows.length) return json([], 200)
@@ -86,7 +86,7 @@ export const POST: APIRoute = async ({ params, request }) => {
     .select('id, content, created_at, user_id')
     .single()
 
-  if (error) return json({ error: error.message }, 500)
+  if (error) return json({ error: '留言失敗，請稍後再試' }, 500)
 
   const anonDb = createAnonClient()
   const { data: profile } = await anonDb

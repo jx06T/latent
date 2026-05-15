@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     .from('contact_messages')
     .insert({ name, email, subject: subject || null, message })
 
-  if (error) return json({ error: error.message }, 500)
+  if (error) return json({ error: '傳送失敗，請稍後再試' }, 500)
   return json({ ok: true }, 201)
 }
 
