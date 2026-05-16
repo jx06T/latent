@@ -57,20 +57,17 @@ export default function ProjectEditor({ projectId }: Props) {
   const rightScrollRef = useRef<HTMLDivElement>(null)
   const stickyWrapRef = useRef<HTMLDivElement>(null)
 
-  // ── Scroll routing — single capture-phase handler on the sticky wrapper ──
-  // Before sticky: redirect every wheel tick to the outer scroll container so
-  // the meta form scrolls away naturally regardless of where the cursor is.
-  // After sticky: redirect only when the target pane has hit its scroll boundary,
-  // so the outer container scrolls back up and the editor un-sticks.
+  // ── Scroll routing ───────────────────────────────────────────────────────
+  // Mounted on `document` (always alive) so the listener is never missed even
+  // if the sticky element mounts after this effect runs (e.g. AuthGate delay).
+  // Capture phase fires before CodeMirror / preview can consume the event.
   useEffect(() => {
-    const sticky = stickyWrapRef.current
-    if (!sticky) return
-
     const normDelta = (e: WheelEvent, el: HTMLElement) =>
       e.deltaMode === 0 ? e.deltaY
         : e.deltaMode === 1 ? e.deltaY * 16
         : e.deltaY * el.clientHeight
 
+    // Walk up from target to boundary, returning the first element that actually scrolls.
     const nearestScrollable = (target: HTMLElement, boundary: HTMLElement): HTMLElement | null => {
       let el: HTMLElement | null = target
       while (el && el !== boundary) {
@@ -83,20 +80,25 @@ export default function ProjectEditor({ projectId }: Props) {
 
     const onWheel = (e: WheelEvent) => {
       const outer = rightScrollRef.current
-      if (!outer || e.deltaY === 0) return
+      const sticky = stickyWrapRef.current
+      // Ignore events outside our sticky wrapper or pure horizontal scrolls.
+      if (!outer || !sticky || e.deltaY === 0) return
+      if (!sticky.contains(e.target as Node)) return
 
       const isSticky = sticky.getBoundingClientRect().top <= outer.getBoundingClientRect().top + 1
 
       if (!isSticky) {
+        // Not yet sticky → send everything to the outer container.
         outer.scrollTop += normDelta(e, outer)
         e.preventDefault()
         e.stopPropagation()
         return
       }
 
+      // Already sticky → only redirect when the inner pane hits its boundary.
       const pane = nearestScrollable(e.target as HTMLElement, sticky)
       if (!pane) return
-      const atTop = e.deltaY < 0 && pane.scrollTop <= 0
+      const atTop    = e.deltaY < 0 && pane.scrollTop <= 0
       const atBottom = e.deltaY > 0 && pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 1
       if (atTop || atBottom) {
         outer.scrollTop += normDelta(e, outer)
@@ -105,8 +107,8 @@ export default function ProjectEditor({ projectId }: Props) {
       }
     }
 
-    sticky.addEventListener('wheel', onWheel, { passive: false, capture: true })
-    return () => sticky.removeEventListener('wheel', onWheel, { capture: true })
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true })
+    return () => document.removeEventListener('wheel', onWheel, { capture: true })
   }, [])
 
   // ── Drag-to-resize ──────────────────────────────────────────────────────
