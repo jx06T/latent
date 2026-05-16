@@ -6,7 +6,7 @@
 
 ## 1. 平台設計與技術架構 (Design & Architecture)
 
-本網站之系統架構、視覺設計、使用者介面 (UI/UX)、以及前後端程式碼，皆由 **jx06t** 獨立開發完成。
+本網站之系統架構、視覺設計、使用者介面 (UI/UX)、以及前後端程式碼，主要由 **jx06t** 開發完成。
 
 - **版權所有：** © 2026 latent. All rights reserved.
 - **技術實作：** Crafted by JX06T.

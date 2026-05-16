@@ -230,7 +230,7 @@ export default function ProjectEditor({ projectId }: Props) {
           >
             {/* Collapse / expand toggle tab */}
             <button
-              className="absolute top-0 right-0 z-10 w-7 h-7 flex items-center justify-center border-l border-b border-line bg-bg text-ink-dim hover:text-accent-500 hover:bg-bg-surface transition-colors text-[10px]"
+              className="absolute top-0 right-0 z-10 w-7 h-7 flex items-center justify-center border-l border-b border-line bg-bg text-ink-dim hover:text-accent-500 hover:bg-bg-surface transition-colors text-[16px]"
               onClick={() => setSidebarCollapsed(c => !c)}
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
