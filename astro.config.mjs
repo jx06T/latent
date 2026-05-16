@@ -1,7 +1,6 @@
 // @ts-check
 
 import mdx from '@astrojs/mdx';
-import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 
 import { defineConfig } from 'astro/config';
@@ -34,7 +33,7 @@ const getAdapter = () => {
 // https://astro.build/config
 export default defineConfig({
   site: 'https://exhibit.ckefgisc.org',
-  integrations: [mdx(), react(), sitemap()],
+  integrations: [mdx(), react()],
   output: "server", // 這裡已經宣告了 SSR 模式，Vercel Adapter 會自動配合
   vite: {
     plugins: [tailwindcss()],

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block internal/utility paths
+Disallow: /api/
+Disallow: /og/
+
+Sitemap: https://exhibit.ckefgisc.org/sitemap.xml
