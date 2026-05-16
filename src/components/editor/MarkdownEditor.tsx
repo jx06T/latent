@@ -6,16 +6,59 @@ import {
   useCallback,
   useMemo,
   useEffect,
-  type DragEvent,
 } from 'react'
 import { createMarkedInstance } from '@/lib/markdown-renderer'
 import morphdom from 'morphdom'
-
-const markedInstance = createMarkedInstance()
+import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view'
+import { EditorState, Compartment } from '@codemirror/state'
+import { history, defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands'
+import { markdown } from '@codemirror/lang-markdown'
+import { HighlightStyle, syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language'
+import { tags } from '@lezer/highlight'
 import { Button } from '@/components/ui/Button'
 import { resolveImageIdsToUrls } from '@/lib/markdown-image'
-import TextareaAutosize from 'react-textarea-autosize'
 import { cn } from '@/lib/utils'
+
+const markedInstance = createMarkedInstance()
+
+const markdownHighlight = HighlightStyle.define([
+  { tag: tags.punctuation, color: '#749cba' },           // generic punctuation → ink-dim
+  { tag: tags.processingInstruction, color: '#749cba' }, // **, *, _ emphasis marks → ink-dim
+  { tag: tags.url, color: '#e37c46' },                  // URLs/link href → accent
+  { tag: tags.strong, fontWeight: 'bold' },              // bold text (explicit, don't depend on fallback)
+  { tag: tags.emphasis, fontStyle: 'italic' },           // italic text (same reason)
+  { tag: tags.typeName, color: '#b8cfd9' },              // code fence language annotation
+])
+
+function wrapWithMarker(view: EditorView, marker: string): boolean {
+  const { from, to, empty } = view.state.selection.main
+  const len = marker.length
+  if (empty) {
+    view.dispatch({
+      changes: { from, insert: marker.repeat(2) },
+      selection: { anchor: from + len },
+    })
+  } else {
+    const text = view.state.doc.sliceString(from, to)
+    if (text.startsWith(marker) && text.endsWith(marker) && text.length > len * 2) {
+      view.dispatch({
+        changes: { from, to, insert: text.slice(len, -len) },
+        selection: { anchor: from, head: to - len * 2 },
+      })
+    } else {
+      view.dispatch({
+        changes: { from, to, insert: `${marker}${text}${marker}` },
+        selection: { anchor: from, head: to + len * 2 },
+      })
+    }
+  }
+  return true
+}
+
+const markdownKeymap = [
+  { key: 'Mod-b', run: (view: EditorView) => wrapWithMarker(view, '**') },
+  { key: 'Mod-i', run: (view: EditorView) => wrapWithMarker(view, '*') },
+]
 
 export interface MarkdownEditorHandle {
   insertAtCursor: (text: string, opts?: { newLine?: boolean }) => void
@@ -32,125 +75,175 @@ interface Props {
 type ViewLayout = 'split' | 'tab'
 type TabView = 'edit' | 'preview'
 
-interface CursorPos { top: number; left: number; height: number }
-
-function getCaretCoords(ta: HTMLTextAreaElement): CursorPos {
-  const mirror = document.createElement('div')
-  const cs = window.getComputedStyle(ta)
-  const taRect = ta.getBoundingClientRect()
-
-  for (const p of [
-    'font-family', 'font-size', 'font-weight', 'font-style', 'letter-spacing',
-    'line-height', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-    'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-    'box-sizing', 'width', 'word-break', 'overflow-wrap', 'white-space',
-  ]) mirror.style.setProperty(p, cs.getPropertyValue(p))
-
-  Object.assign(mirror.style, {
-    position: 'fixed', visibility: 'hidden',
-    top: `${taRect.top}px`, left: `${taRect.left}px`,
-    height: 'auto', overflow: 'hidden',
-  })
-
-  mirror.appendChild(document.createTextNode(ta.value.slice(0, ta.selectionStart)))
-  const caret = document.createElement('span')
-  caret.textContent = '​'
-  mirror.appendChild(caret)
-  document.body.appendChild(mirror)
-
-  const caretRect = caret.getBoundingClientRect()
-  document.body.removeChild(mirror)
-  const parentRect = ta.parentElement!.getBoundingClientRect()
-
-  return {
-    top: caretRect.top - parentRect.top,
-    left: caretRect.left - parentRect.left,
-    height: caretRect.height,
-  }
-}
+const editorTheme = EditorView.theme({
+  '&': { backgroundColor: '#1c1c1c', color: '#f0f4f5' },
+  '.cm-scroller': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', overflow: 'auto' },
+  '.cm-content': {
+    fontSize: '0.75rem',
+    lineHeight: '1.625',
+    padding: '0.75rem',
+    caretColor: '#e37c46',
+    minHeight: '25rem',
+  },
+  '&.cm-focused': { outline: 'none' },
+  '.cm-cursor': { borderLeftColor: '#e37c46' },
+  '.cm-selectionBackground': { backgroundColor: '#284260 !important' },
+  '&.cm-focused .cm-selectionBackground': { backgroundColor: '#284260 !important' },
+  '.cm-gutters': { display: 'none' },
+  '.cm-activeLine': { backgroundColor: 'transparent' },
+  '.cm-placeholder': { color: '#749cba', fontStyle: 'normal' },
+}, { dark: true })
 
 const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
   function MarkdownEditor({ content, onChange, disabled, onImageDrop, imageUrlMap }, ref) {
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const editorPaneRef = useRef<HTMLDivElement>(null)
+    const viewRef = useRef<EditorView | null>(null)
+    const lastOnChangeRef = useRef(content)
+    const onChangeRef = useRef(onChange)
+    const onImageDropRef = useRef(onImageDrop)
     const previewRef = useRef<HTMLDivElement>(null)
+    const editableCompartment = useRef(new Compartment()).current
+
     const [viewLayout, setViewLayout] = useState<ViewLayout>('split')
     const [tabView, setTabView] = useState<TabView>('edit')
     const [isDragging, setIsDragging] = useState(false)
     const [isDropUploading, setIsDropUploading] = useState(false)
-    const [cursorPos, setCursorPos] = useState<CursorPos | null>(null)
+    const [blurCursor, setBlurCursor] = useState<{ top: number; left: number; height: number } | null>(null)
 
-    const insertAtCursor = useCallback(
-      (text: string, opts?: { newLine?: boolean }) => {
-        const ta = textareaRef.current
-        if (!ta) {
-          onChange(content + '\n' + text)
-          return
-        }
-        const start = ta.selectionStart
+    useEffect(() => { onChangeRef.current = onChange }, [onChange])
+    useEffect(() => { onImageDropRef.current = onImageDrop }, [onImageDrop])
 
-        if (opts?.newLine) {
-          const lineEnd = content.indexOf('\n', start)
-          let insertAt: number
-          let toInsert: string
-          if (lineEnd === -1) {
-            insertAt = content.length
-            toInsert = '\n' + text
-          } else {
-            insertAt = lineEnd + 1
-            toInsert = text + '\n'
-          }
-          onChange(content.slice(0, insertAt) + toInsert + content.slice(insertAt))
-          requestAnimationFrame(() => {
-            ta.selectionStart = ta.selectionEnd = insertAt + toInsert.length
-            ta.focus()
-          })
-          return
-        }
+    // ── Setup CodeMirror ─────────────────────────────────────────────────
+    useEffect(() => {
+      if (!containerRef.current) return
 
-        const end = ta.selectionEnd
-        const updated = content.slice(0, start) + text + content.slice(end)
-        onChange(updated)
-        requestAnimationFrame(() => {
-          ta.selectionStart = ta.selectionEnd = start + text.length
-          ta.focus()
+      const view = new EditorView({
+        state: EditorState.create({
+          doc: content,
+          extensions: [
+            history(),
+            markdown(),
+            EditorView.lineWrapping,
+            syntaxHighlighting(markdownHighlight),
+            syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+            keymap.of([...markdownKeymap, ...defaultKeymap, ...historyKeymap, indentWithTab]),
+            cmPlaceholder('Markdown content… drag images here or use sidebar'),
+            editorTheme,
+            editableCompartment.of(EditorView.editable.of(!disabled)),
+            EditorView.updateListener.of(update => {
+              if (!update.docChanged) return
+              const next = update.state.doc.toString()
+              lastOnChangeRef.current = next
+              onChangeRef.current(next)
+            }),
+            EditorView.domEventHandlers({
+              focus() {
+                setBlurCursor(null)
+              },
+              blur() {
+                const v = viewRef.current
+                const pane = editorPaneRef.current
+                if (!v || !pane) return
+                const coords = v.coordsAtPos(v.state.selection.main.head)
+                if (!coords) return
+                const rect = pane.getBoundingClientRect()
+                setBlurCursor({
+                  top: coords.top - rect.top,
+                  left: coords.left - rect.left,
+                  height: coords.bottom - coords.top,
+                })
+              },
+              dragover(e) {
+                e.preventDefault()
+                if (onImageDropRef.current) setIsDragging(true)
+                return true
+              },
+              dragleave() {
+                setIsDragging(false)
+              },
+              drop(e) {
+                e.preventDefault()
+                setIsDragging(false)
+                const handler = onImageDropRef.current
+                if (!handler) return
+                const files = Array.from(e.dataTransfer?.files ?? []).filter(f => f.type.startsWith('image/'))
+                if (!files.length) return
+                setIsDropUploading(true);
+                (async () => {
+                  for (const file of files) {
+                    try {
+                      const imageId = await handler(file)
+                      const v = viewRef.current
+                      if (v) {
+                        const { from } = v.state.selection.main
+                        const line = v.state.doc.lineAt(from)
+                        const toInsert = '\n' + `![](image-id-${imageId})`
+                        v.dispatch({
+                          changes: { from: line.to, insert: toInsert },
+                          selection: { anchor: line.to + toInsert.length },
+                        })
+                      }
+                    } catch { /* ignore individual failures */ }
+                  }
+                  setIsDropUploading(false)
+                })()
+              },
+            }),
+          ],
+        }),
+        parent: containerRef.current,
+      })
+
+      viewRef.current = view
+      return () => { view.destroy(); viewRef.current = null }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Sync content when changed externally (e.g. project load) ────────
+    useEffect(() => {
+      const view = viewRef.current
+      if (!view || content === lastOnChangeRef.current) return
+      const current = view.state.doc.toString()
+      if (current !== content) {
+        view.dispatch({ changes: { from: 0, to: current.length, insert: content } })
+        lastOnChangeRef.current = content
+      }
+    }, [content])
+
+    // ── Sync disabled state ──────────────────────────────────────────────
+    useEffect(() => {
+      viewRef.current?.dispatch({
+        effects: editableCompartment.reconfigure(EditorView.editable.of(!disabled)),
+      })
+    }, [disabled, editableCompartment])
+
+    // ── insertAtCursor ───────────────────────────────────────────────────
+    const insertAtCursor = useCallback((text: string, opts?: { newLine?: boolean }) => {
+      const view = viewRef.current
+      if (!view) return
+
+      if (opts?.newLine) {
+        const { from } = view.state.selection.main
+        const line = view.state.doc.lineAt(from)
+        const toInsert = '\n' + text
+        view.dispatch({
+          changes: { from: line.to, insert: toInsert },
+          selection: { anchor: line.to + toInsert.length },
         })
-      },
-      [content, onChange],
-    )
+        view.focus()
+        return
+      }
+
+      view.dispatch(view.state.replaceSelection(text))
+      view.focus()
+    }, [])
 
     useImperativeHandle(ref, () => ({ insertAtCursor }), [insertAtCursor])
 
-    // ── Cursor insert hint ────────────────────────────────────────────────
-    const handleTextareaBlur  = useCallback(() => {
-      const ta = textareaRef.current
-      if (ta) setCursorPos(getCaretCoords(ta))
-    }, [])
-    const handleTextareaFocus = useCallback(() => setCursorPos(null), [])
-
-    // ── Drag-drop image upload ────────────────────────────────────────────
-    const handleDragOver = (e: DragEvent) => {
-      e.preventDefault()
-      if (onImageDrop) setIsDragging(true)
-    }
-    const handleDragLeave = () => setIsDragging(false)
-    const handleDrop = async (e: DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      if (!onImageDrop) return
-      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))
-      if (!files.length) return
-      setIsDropUploading(true)
-      for (const file of files) {
-        try {
-          const imageId = await onImageDrop(file)
-          insertAtCursor(`![](image-id-${imageId})`, { newLine: true })
-        } catch { /* ignore individual failures */ }
-      }
-      setIsDropUploading(false)
-    }
-
+    // ── Preview ──────────────────────────────────────────────────────────
     const showEditor = viewLayout === 'split' || tabView === 'edit'
     const showPreview = viewLayout === 'split' || tabView === 'preview'
+
     const resolvedContent = useMemo(() => {
       if (!imageUrlMap || Object.keys(imageUrlMap).length === 0) return content
       return resolveImageIdsToUrls(content, imageUrlMap)
@@ -159,7 +252,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     const previewHtml = markedInstance.parse(resolvedContent) as string
 
     useEffect(() => {
-      if (!previewRef.current) return
+      if (!previewRef.current || !showPreview) return
       const temp = document.createElement('div')
       temp.innerHTML = previewHtml
       morphdom(previewRef.current, temp, { childrenOnly: true })
@@ -205,46 +298,33 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
           {isDropUploading && (
             <span className="ml-2 text-[9px] text-info animate-pulse">Uploading…</span>
           )}
-
         </div>
 
         {/* ── Edit / Preview panes ── */}
-        <div
-          className={cn('flex min-h-100', isDragging && 'ring-1 ring-accent-500')}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {/* Editor pane */}
-          {showEditor && (
-            <div className={cn(
-              'relative flex flex-col',
+        <div className={cn('flex min-h-100', isDragging && 'ring-1 ring-accent-500')}>
+
+          {/* Editor pane — always mounted to keep CodeMirror state alive */}
+          <div
+            ref={editorPaneRef}
+            className={cn(
+              'relative',
               viewLayout === 'split' ? 'w-1/2 border-r border-line' : 'w-full',
-            )}>
-              <TextareaAutosize
-                ref={textareaRef}
-                value={content}
-                onChange={e => onChange(e.target.value)}
-                onBlur={handleTextareaBlur}
-                onFocus={handleTextareaFocus}
-                disabled={disabled}
-                spellCheck={false}
-                className="w-full bg-bg-surface text-ink text-xs p-3 resize-none outline-none font-mono leading-relaxed disabled:opacity-50 overflow-hidden caret-accent-500"
-                placeholder={onImageDrop ? 'Markdown content… drag images here or use sidebar' : 'Markdown content…'}
+              !showEditor && 'hidden',
+            )}
+          >
+            <div ref={containerRef} className="h-full" />
+            {blurCursor && (
+              <div
+                className="absolute w-px bg-primary-500 pointer-events-none animate-cursor"
+                style={{ top: blurCursor.top, left: blurCursor.left, height: blurCursor.height }}
               />
-              {cursorPos && (
-                <div
-                  className="absolute w-px bg-[#79c9ff] animate-cursor pointer-events-none z-20"
-                  style={{ top: cursorPos.top, left: cursorPos.left, height: cursorPos.height }}
-                />
-              )}
-              {isDragging && (
-                <div className="absolute inset-0 flex items-center justify-center bg-bg/70 pointer-events-none">
-                  <span className="text-accent-500 text-xs">Drop image to upload</span>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+            {isDragging && (
+              <div className="absolute inset-0 flex items-center justify-center bg-bg/70 pointer-events-none">
+                <span className="text-accent-500 text-xs">Drop image to upload</span>
+              </div>
+            )}
+          </div>
 
           {/* Preview pane */}
           {showPreview && (

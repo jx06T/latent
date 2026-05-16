@@ -192,6 +192,9 @@
   .prose :where(p, li, td, dd, dt, blockquote) {
     color: var(--color-ink-muted);
   }
+  .prose blockquote{
+    border-left-width: 2px;
+  }
   .prose :is(h1, h2, h3, h4, h5, h6) {
     color: var(--color-ink);
   }
