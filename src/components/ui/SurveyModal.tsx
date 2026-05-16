@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Ellipsis } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 import CommentLabel from '@/components/ui/CommentLabel'
 import {
   SURVEY_QUESTIONS,
@@ -16,14 +17,12 @@ import {
 interface Props {
   open: boolean
   onClose(): void
-  /** 登入使用者的 id；不傳則以匿名方式提交 */
-  userId?: string | null
   /** 送出或略過後的回調 */
   onComplete?(): void
 }
 
 
-export default function SurveyModal({ open, onClose, userId, onComplete }: Props) {
+export default function SurveyModal({ open, onClose, onComplete }: Props) {
   const [page, setPage] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
   const [submitting, setSubmitting] = useState(false)
@@ -48,15 +47,17 @@ export default function SurveyModal({ open, onClose, userId, onComplete }: Props
 
   const handleSubmit = async () => {
     setSubmitting(true)
+    const { data: { session } } = await supabase.auth.getSession()
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
     await fetch('/api/surveys', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         age_group: answers.age_group ?? null,
         referral_source: answers.referral_source ?? null,
         gender: answers.gender ?? null,
         exhibition_plan: answers.exhibition_plan ?? null,
-        user_id: userId ?? null,
       }),
     })
     localStorage.setItem(SURVEY_DONE_KEY, '1')

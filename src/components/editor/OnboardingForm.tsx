@@ -335,7 +335,6 @@ export default function OnboardingForm() {
       <SurveyModal
         open={showSurvey}
         onClose={() => handleSurveyDone()}
-        userId={user?.id}
         onComplete={handleSurveyDone}
       />
     </div>

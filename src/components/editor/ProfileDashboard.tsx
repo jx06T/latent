@@ -502,7 +502,6 @@ export default function ProfileDashboard() {
         <SurveyModal
           open={showSurvey}
           onClose={() => setShowSurvey(false)}
-          userId={user?.id}
           onComplete={() => { setShowSurvey(false); setSurveyDone(true) }}
         />
 

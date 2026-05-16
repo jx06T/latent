@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro'
 import { z } from 'zod'
-import { createServiceClient } from '@/lib/supabase-server'
+import { createServiceClient, verifyToken } from '@/lib/supabase-server'
 import { SURVEY_QUESTIONS } from '@/lib/survey-questions'
+import { ipHash, clientIp } from '@/lib/rate-limit'
 
 const [ageQ, referralQ, genderQ, exhibitionQ] = SURVEY_QUESTIONS
 const bodySchema = z.object({
@@ -9,21 +10,7 @@ const bodySchema = z.object({
   referral_source:  z.enum(referralQ.options).nullish(),
   gender:           z.enum(genderQ.options).nullish(),
   exhibition_plan:  z.enum(exhibitionQ.options).nullish(),
-  user_id:          z.uuid().nullish(),
 })
-
-async function ipHash(ip: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip + ':latent'))
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-function clientIp(request: Request): string {
-  return (
-    request.headers.get('x-nf-client-connection-ip') ??
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    'unknown'
-  )
-}
 
 export const POST: APIRoute = async ({ request }) => {
   let raw: unknown
@@ -32,33 +19,41 @@ export const POST: APIRoute = async ({ request }) => {
   const parsed = bodySchema.safeParse(raw)
   if (!parsed.success) return json({ error: 'Invalid request' }, 400)
 
-  const { user_id, ...fields } = parsed.data
+  const fields = parsed.data
+
+  // Derive user_id from verified JWT (never trust body-supplied user_id)
+  let userId: string | null = null
+  const authHeader = request.headers.get('Authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    try { userId = await verifyToken(authHeader.slice(7)) } catch { /* anonymous */ }
+  }
+
   const db = createServiceClient()
 
   // Deduplicate by user_id (logged-in users)
-  if (user_id) {
+  if (userId) {
     const { count } = await db
       .from('surveys')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', user_id)
+      .eq('user_id', userId)
 
     if ((count ?? 0) > 0) return json({ ok: true }, 200)
   }
 
-  // Rate limit by IP: max 3 per 24h
+  // Rate limit by IP: max 60 per 12h
   const hash = await ipHash(clientIp(request))
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const since = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
   const { count: ipCount } = await db
     .from('surveys')
     .select('id', { count: 'exact', head: true })
     .eq('ip_hash', hash)
     .gte('created_at', since)
 
-  if ((ipCount ?? 0) >= 30) return json({ error: 'Too many submissions' }, 429)
+  if ((ipCount ?? 0) >= 60) return json({ error: 'Too many submissions' }, 429)
 
   const { error } = await db.from('surveys').insert({
     ...fields,
-    user_id: user_id ?? null,
+    user_id: userId,
     ip_hash: hash,
   })
 
