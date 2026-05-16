@@ -258,7 +258,11 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       if (!previewRef.current || !showPreview) return
       const temp = document.createElement('div')
       temp.innerHTML = previewHtml
-      morphdom(previewRef.current, temp, { childrenOnly: true })
+      morphdom(previewRef.current, temp, {
+        childrenOnly: true,
+        getNodeKey: (node: Node) =>
+          node instanceof Element ? (node.getAttribute('data-morph-key') ?? undefined) : undefined,
+      })
     }, [previewHtml, showPreview])
 
     return (

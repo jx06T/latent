@@ -71,7 +71,7 @@ const renderer = {
   image(token: Tokens.Image) {
     const { href, title, text } = token
     const titleAttr = title ? ` title="${title}"` : ''
-    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" />`
+    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" data-morph-key="${href}" />`
   },
 }
 
