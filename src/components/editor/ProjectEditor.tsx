@@ -54,6 +54,61 @@ export default function ProjectEditor({ projectId }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
+  const rightScrollRef = useRef<HTMLDivElement>(null)
+  const stickyWrapRef = useRef<HTMLDivElement>(null)
+
+  // ── Scroll routing — single capture-phase handler on the sticky wrapper ──
+  // Before sticky: redirect every wheel tick to the outer scroll container so
+  // the meta form scrolls away naturally regardless of where the cursor is.
+  // After sticky: redirect only when the target pane has hit its scroll boundary,
+  // so the outer container scrolls back up and the editor un-sticks.
+  useEffect(() => {
+    const sticky = stickyWrapRef.current
+    if (!sticky) return
+
+    const normDelta = (e: WheelEvent, el: HTMLElement) =>
+      e.deltaMode === 0 ? e.deltaY
+        : e.deltaMode === 1 ? e.deltaY * 16
+        : e.deltaY * el.clientHeight
+
+    const nearestScrollable = (target: HTMLElement, boundary: HTMLElement): HTMLElement | null => {
+      let el: HTMLElement | null = target
+      while (el && el !== boundary) {
+        const ov = getComputedStyle(el).overflowY
+        if ((ov === 'auto' || ov === 'scroll') && el.scrollHeight > el.clientHeight) return el
+        el = el.parentElement
+      }
+      return null
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      const outer = rightScrollRef.current
+      if (!outer || e.deltaY === 0) return
+
+      const isSticky = sticky.getBoundingClientRect().top <= outer.getBoundingClientRect().top + 1
+
+      if (!isSticky) {
+        outer.scrollTop += normDelta(e, outer)
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+
+      const pane = nearestScrollable(e.target as HTMLElement, sticky)
+      if (!pane) return
+      const atTop = e.deltaY < 0 && pane.scrollTop <= 0
+      const atBottom = e.deltaY > 0 && pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 1
+      if (atTop || atBottom) {
+        outer.scrollTop += normDelta(e, outer)
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    }
+
+    sticky.addEventListener('wheel', onWheel, { passive: false, capture: true })
+    return () => sticky.removeEventListener('wheel', onWheel, { capture: true })
+  }, [])
+
   // ── Drag-to-resize ──────────────────────────────────────────────────────
   const isDraggingRef = useRef(false)
   const dragStartXRef = useRef(0)
@@ -210,6 +265,7 @@ export default function ProjectEditor({ projectId }: Props) {
 
           {/* Right main content */}
           <div
+            ref={rightScrollRef}
             className={cn(
               'flex-1 overflow-y-auto min-w-0',
               // On mobile: push content below the floating panel when it's open
@@ -225,7 +281,7 @@ export default function ProjectEditor({ projectId }: Props) {
               publishedProjectUrl={publishedProjectUrl}
               slugYear={slugYear}
             />
-            <div className="border-t border-line">
+            <div ref={stickyWrapRef} className="sticky top-0 z-10 border-t border-line h-[calc(100vh-2.75rem)]">
               <MarkdownEditor
                 ref={markdownRef}
                 content={formState.content}

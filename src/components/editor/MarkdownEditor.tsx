@@ -292,7 +292,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
     }, [previewHtml, showPreview])
 
     return (
-      <div className="flex flex-col font-mono">
+      <div className="flex flex-col h-full font-mono">
         {/* ── Toolbar ── */}
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line bg-bg-surface">
           <Button
@@ -334,7 +334,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
         </div>
 
         {/* ── Edit / Preview panes ── */}
-        <div className={cn('flex min-h-100', isDragging && 'ring-1 ring-accent-500')}>
+        <div className={cn('flex flex-1 min-h-0', isDragging && 'ring-1 ring-accent-500')}>
 
           {/* Editor pane — always mounted to keep CodeMirror state alive */}
           <div
@@ -345,7 +345,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
               !showEditor && 'hidden',
             )}
           >
-            <div ref={containerRef} className="h-full" />
+            <div ref={containerRef} className="h-full [&_.cm-editor]:h-full" />
             {blurCursor && (
               <div
                 className="absolute w-px bg-primary-500 pointer-events-none animate-cursor"
@@ -364,7 +364,7 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
             <div
               ref={previewRef}
               className={cn(
-                'prose prose-sm prose-invert max-w-none p-4 bg-bg wrap-anywhere [&_pre]:wrap-normal',
+                'prose prose-sm prose-invert max-w-none p-4 bg-bg wrap-anywhere [&_pre]:wrap-normal overflow-y-auto',
                 viewLayout === 'split' ? 'w-1/2' : 'w-full',
               )}
             />
