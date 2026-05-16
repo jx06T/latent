@@ -8,7 +8,7 @@ import {
   useEffect,
 } from 'react'
 import { createMarkedInstance } from '@/lib/markdown-renderer'
-import morphdom from 'morphdom'
+import { Idiomorph } from 'idiomorph'
 import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view'
 import { EditorState, Compartment } from '@codemirror/state'
 import { history, defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands'
@@ -256,12 +256,38 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
 
     useEffect(() => {
       if (!previewRef.current || !showPreview) return
+
+      // Snapshot existing img DOM nodes by id before morphing
+      const imgSnapshot = new Map<string, HTMLImageElement>()
+      previewRef.current.querySelectorAll<HTMLImageElement>('img[id]').forEach(img => {
+        imgSnapshot.set(img.id, img)
+      })
+
       const temp = document.createElement('div')
       temp.innerHTML = previewHtml
-      morphdom(previewRef.current, temp, {
-        childrenOnly: true,
-        getNodeKey: (node: Node) =>
-          node instanceof Element ? (node.getAttribute('data-morph-key') ?? undefined) : undefined,
+
+      Idiomorph.morph(previewRef.current, temp, {
+        morphStyle: 'innerHTML',
+        callbacks: {
+          // Block src re-assignment on img nodes — even setting the same value triggers
+          // a reload after reparenting in some browsers
+          beforeAttributeUpdated: (attributeName, el) => {
+            if (el instanceof Element && el.tagName === 'IMG' && attributeName === 'src') {
+              return false
+            }
+            return true
+          },
+        },
+      })
+
+      // Restore pre-morph img nodes in the same JS tick (before browser paint).
+      // If idiomorph created a fresh <img> element (e.g. cross-parent move fell back to
+      // recreation), swap it back with the already-loaded cached node to suppress flicker.
+      previewRef.current.querySelectorAll<HTMLImageElement>('img[id]').forEach(img => {
+        const cached = imgSnapshot.get(img.id)
+        if (cached && cached !== img) {
+          img.parentNode?.replaceChild(cached, img)
+        }
       })
     }, [previewHtml, showPreview])
 

@@ -1,4 +1,18 @@
 import { Marked, type Tokens } from 'marked'
+
+// cyrb53 — stable non-cryptographic hash for generating img ids used by idiomorph's ID-set matching
+function cyrb53(str: string, seed = 0): number {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i)
+    h1 = Math.imul(h1 ^ ch, 2654435761)
+    h2 = Math.imul(h2 ^ ch, 1597334677)
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0)
+}
+
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
@@ -71,7 +85,7 @@ const renderer = {
   image(token: Tokens.Image) {
     const { href, title, text } = token
     const titleAttr = title ? ` title="${title}"` : ''
-    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" data-morph-key="${href}" />`
+    return `<img src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" />`
   },
 }
 
@@ -143,9 +157,10 @@ export function createMarkedInstance(): Marked {
   instance.use({ renderer, breaks: true })
 
   const usedIds = new Map<string, number>()
+  const usedImgIds = new Map<string, number>()
   instance.use({
     hooks: {
-      preprocess(src: string) { usedIds.clear(); return src },
+      preprocess(src: string) { usedIds.clear(); usedImgIds.clear(); return src },
     },
     renderer: {
       heading({ text, depth }: Tokens.Heading) {
@@ -154,6 +169,14 @@ export function createMarkedInstance(): Marked {
         usedIds.set(base, count + 1)
         const id = (count === 0 ? base : `${base}-${count}`) || `h${depth}-${count}`
         return `<h${depth} id="${id}">${text}</h${depth}>`
+      },
+      image({ href, title, text }: Tokens.Image) {
+        const titleAttr = title ? ` title="${title}"` : ''
+        const base = `img-${cyrb53(`${href}|${title ?? ''}`)}`
+        const count = usedImgIds.get(base) ?? 0
+        usedImgIds.set(base, count + 1)
+        const id = count === 0 ? base : `${base}-${count}`
+        return `<img id="${id}" src="${href}" alt="${text}"${titleAttr} loading="lazy" class="rounded-md" />`
       },
     },
   })

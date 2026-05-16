@@ -68,6 +68,9 @@ importers:
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
+      idiomorph:
+        specifier: ^0.7.4
+        version: 0.7.4
       jsdom:
         specifier: ^29.0.2
         version: 29.1.1
@@ -83,9 +86,6 @@ importers:
       marked-highlight:
         specifier: ^2.2.4
         version: 2.2.4(marked@18.0.3)
-      morphdom:
-        specifier: ^2.7.8
-        version: 2.7.8
       react:
         specifier: ^19.2.5
         version: 19.2.5
@@ -3288,6 +3288,9 @@ packages:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
     engines: {node: '>=20.0.0'}
 
+  idiomorph@0.7.4:
+    resolution: {integrity: sha512-uCdSpLo3uMfqOmrwXTpR1k/sq4sSmKC7l4o/LdJOEU+MMMq+wkevRqOQYn3lP7vfz9Mv+USBEqPvi0XhdL9ENw==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -4010,9 +4013,6 @@ packages:
 
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
-
-  morphdom@2.7.8:
-    resolution: {integrity: sha512-D/fR4xgGUyVRbdMGU6Nejea1RFzYxYtyurG4Fbv2Fi/daKlWKuXGLOdXtl+3eIwL110cI2hz1ZojGICjjFLgTg==}
 
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -9338,6 +9338,8 @@ snapshots:
 
   iceberg-js@0.8.1: {}
 
+  idiomorph@0.7.4: {}
+
   ieee754@1.2.1: {}
 
   image-meta@0.2.2: {}
@@ -10311,8 +10313,6 @@ snapshots:
       node-source-walk: 7.0.2
 
   module-details-from-path@1.0.4: {}
-
-  morphdom@2.7.8: {}
 
   mrmime@2.0.1: {}
 
