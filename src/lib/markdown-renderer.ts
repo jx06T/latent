@@ -144,6 +144,9 @@ export function createMarkedInstance(): Marked {
 
   const usedIds = new Map<string, number>()
   instance.use({
+    hooks: {
+      preprocess(src: string) { usedIds.clear(); return src },
+    },
     renderer: {
       heading({ text, depth }: Tokens.Heading) {
         const base = slugify(text)

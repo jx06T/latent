@@ -249,7 +249,10 @@ const MarkdownEditor = forwardRef<MarkdownEditorHandle, Props>(
       return resolveImageIdsToUrls(content, imageUrlMap)
     }, [content, imageUrlMap])
 
-    const previewHtml = markedInstance.parse(resolvedContent) as string
+    const previewHtml = useMemo(
+      () => markedInstance.parse(resolvedContent) as string,
+      [resolvedContent],
+    )
 
     useEffect(() => {
       if (!previewRef.current || !showPreview) return
