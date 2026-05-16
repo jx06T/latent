@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { savePendingReturnUrl } from '@/lib/pending-action'
 import type { Tables } from '@/lib/database.types'
 
 export type Profile = Tables<'profiles'>
@@ -12,7 +13,7 @@ export interface SupabaseAuth {
   isOnboarded: boolean
   accessToken: string | null
   loading: boolean
-  signIn: (targetPath?: string) => Promise<void>
+  signIn: (targetPath?: string) => void
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -102,27 +103,22 @@ export function useSupabaseAuth(): SupabaseAuth {
     await loadProfile(user.id)
   }, [user, loadProfile])
 
-  const signIn = useCallback(async (targetPath?: string) => {
-    const origin = import.meta.env.PUBLIC_SITE_URL ||
-      (typeof window !== 'undefined' ? window.location.origin : '')
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/'
+  const signIn = useCallback((targetPath?: string) => {
+    if (typeof window === 'undefined') return
 
-    const safeTarget =
+    const returnPath =
       typeof targetPath === 'string' &&
-        targetPath.startsWith('/') &&
-        !targetPath.startsWith('//')
+      targetPath.startsWith('/') &&
+      !targetPath.startsWith('//')
         ? targetPath
-        : currentPath
+        : window.location.pathname
 
-    const next = encodeURIComponent(safeTarget)
+    // Save where to go after auth completes (used by LoginModal and auth-callback).
+    savePendingReturnUrl(returnPath)
 
-    console.log(`${origin.replace(/\/$/, '')}/api/auth/callback?next=${next}`)
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${origin.replace(/\/$/, '')}/api/auth/callback?next=${next}`,
-      },
-    })
+    // LoginModal (mounted globally in Layout.astro) handles the rest:
+    // it initialises GIS, renders the Google button, and calls signInWithIdToken.
+    document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
   }, [])
 
   const signOut = useCallback(async () => {

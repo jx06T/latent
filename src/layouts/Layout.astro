@@ -6,6 +6,7 @@ import Header from "@/components/sections/Header.astro";
 import Footer from "@/components/sections/Footer.astro";
 import SmoothScroll from "@/components/SmoothScroll.astro";
 import LogManager from "@/components/modules/LogManager.astro";
+import LoginModal from "@/components/ui/LoginModal";
 import { cn } from "@/lib/utils";
 
 import type { ArticleMeta } from "@/lib/og-types";
@@ -27,6 +28,8 @@ const { title, description, image, type, article, activeNav, bodyClass = "" } = 
 <html lang="zh-TW">
   <head>
     <BaseHead title={title} description={description} image={image} type={type} article={article} />
+    <!-- Google Identity Services SDK — required for GIS-based auth (no Supabase domain in URL) -->
+    <script is:inline src="https://accounts.google.com/gsi/client" async></script>
   </head>
   <body class={cn("", bodyClass)}>
     <SmoothScroll />
@@ -34,5 +37,7 @@ const { title, description, image, type, article, activeNav, bodyClass = "" } = 
     <slot />
     <Footer />
     <LogManager />
+    <!-- Global login modal: listens for latent:show-login-modal events from any island -->
+    <LoginModal client:load />
   </body>
 </html>

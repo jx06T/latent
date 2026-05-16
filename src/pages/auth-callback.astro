@@ -1,0 +1,83 @@
+---
+/**
+ * GIS redirect-mode auth callback.
+ * Google POSTs here with: credential (id_token JWT) + g_csrf_token.
+ * We verify the CSRF token, then complete sign-in client-side via signInWithIdToken.
+ *
+ * Normal Supabase OAuth (PKCE code exchange) still uses /api/auth/callback.
+ * This page is only reached from GIS ux_mode:'redirect' (LINE / FB / IG browsers).
+ */
+
+let credential = ''
+
+if (Astro.request.method === 'POST') {
+  let body: FormData | null = null
+  try {
+    body = await Astro.request.formData()
+  } catch {
+    return Astro.redirect('/?auth_error=1')
+  }
+
+  const postCsrf = body.get('g_csrf_token')?.toString() ?? ''
+  const cookieCsrf = Astro.cookies.get('g_csrf_token')?.value ?? ''
+
+  // CSRF guard: both values must be present and identical.
+  if (!postCsrf || !cookieCsrf || postCsrf !== cookieCsrf) {
+    return Astro.redirect('/?auth_error=csrf')
+  }
+
+  credential = body.get('credential')?.toString() ?? ''
+  if (!credential) {
+    return Astro.redirect('/?auth_error=1')
+  }
+} else {
+  // Direct GET (no credential) → redirect home.
+  return Astro.redirect('/')
+}
+---
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>登入中...</title>
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background: #0a0a0a;
+        color: #888;
+        font-family: monospace;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>登入中，請稍候...</p>
+
+    <!-- Pass the server-validated credential to the module script below. -->
+    <script define:vars={{ _cred: credential }}>
+      window.__gisCred = _cred
+    </script>
+
+    <script>
+      import { supabase } from '@/lib/supabase'
+      import { consumePendingReturnUrl } from '@/lib/pending-action'
+
+      const token = (window as unknown as { __gisCred: string }).__gisCred
+
+      if (!token) {
+        window.location.replace('/?auth_error=1')
+      } else {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token,
+        })
+        window.location.replace(error ? '/?auth_error=1' : consumePendingReturnUrl())
+      }
+    </script>
+  </body>
+</html>
