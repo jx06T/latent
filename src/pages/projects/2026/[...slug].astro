@@ -240,7 +240,7 @@ const similarProjects = (candidateData ?? [])
     </h1>
     {
       project.subtitle && (
-        <p class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</p>
+        <h2 class="text-lg text-ink-dim -mt-1.5">{project.subtitle}</h2>
       )
     }
     <p class="font-mono text-lg text-ink-dim -mt-1">
@@ -303,7 +303,7 @@ const similarProjects = (candidateData ?? [])
   <div class="border-dashed-cyber p-5 mb-10 space-y-5">
     <section>
       <CommentLabel text="project_overview" />
-      <p class="text-base text-ink-muted leading-relaxed -mt-1">
+      <p class="text-base text-ink-muted leading-relaxed -mt-1 wrap-anywhere">
         {
           project.description ||
             `由 ${project.author_handle} 製作的專案 「 ${project.title} 」`

@@ -43,14 +43,18 @@ export default function ProjectCard({
       {/* Card body */}
       <div className="p-2 w-full pt-1 grow flex flex-col justify-between">
         <div className="flex flex-col flex-1 p-2">
-          <Link showIcon className="text-ink text-xl hover:text-accent-500" href={`/projects/${year}/${slug}`}>
-            {title}
-          </Link>
-          <CommentLabel text={subtitle ?? 'NO_SUBTITLE'} />
+          <h2>
+            <Link showIcon spanClassName="line-clamp-2" className="text-ink text-xl hover:text-accent-500" href={`/projects/${year}/${slug}`}>
+              {title}
+            </Link>
+          </h2>
+          <h3>
+            <CommentLabel className="line-clamp-3" text={subtitle ?? 'NO_SUBTITLE'} />
+          </h3>
 
           <div className="flex flex-wrap gap-1.5 mt-2">
             {tech_stack.slice(0, 3).map((t) => (
-              <span key={t} className="inline-block px-2 py-0.5 pt-1 text-xs border text-ink-dim hover:border-solid-cyber transition-colors">
+              <span key={t} className="inline-block px-2 py-0.5 pt-1 text-xs border text-ink-dim hover:border-solid-cyber transition-colors max-w-32 truncate">
                 {t}
               </span>
             ))}

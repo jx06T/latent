@@ -52,6 +52,6 @@ const cleanHtml = sanitizeHtml(rawHtml, {
 ---
 
 <div
-  class={`prose prose-invert max-w-none ${className}`}
+  class={`prose prose-invert max-w-none wrap-anywhere ${className}`}
   set:html={cleanHtml}
 />

@@ -109,7 +109,7 @@ export default function CommentsSection({ projectId }: Props) {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1">
-                    <span className="text-sm text-ink">{name}</span>
+                    <span className="text-sm text-ink max-w-40 truncate">{name}</span>
                     {handle && (
                       <a
                         href={`/@${handle}`}

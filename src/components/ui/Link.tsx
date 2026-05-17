@@ -8,6 +8,7 @@ interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   showIcon?: boolean
   isExternal?: boolean
   underLine?: boolean
+  spanClassName?: string
 }
 
 export default function Link({
@@ -17,6 +18,7 @@ export default function Link({
   isExternal,
   underLine = true,
   className,
+  spanClassName,
   children,
   ...rest
 }: LinkProps) {
@@ -34,7 +36,7 @@ export default function Link({
       {...rest}
       {...externalProps}
     >
-      <span className={cn(underLine && 'underline underline-offset-3', 'inline-block')}>
+      <span className={cn(underLine && 'underline underline-offset-3', 'inline-block', spanClassName)}>
         {text ?? children}
       </span>
       {showIcon && <ArrowUpRight className="inline-block -ml-0.5" />}
