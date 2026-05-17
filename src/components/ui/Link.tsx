@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AnchorHTMLAttributes } from 'react'
 
@@ -38,7 +38,10 @@ export default function Link({
     >
       <span className={cn(underLine && 'underline underline-offset-3', 'inline-block', spanClassName)}>
         {text ?? children}
-        {showIcon && <ArrowUpRight className="inline-block -ml-0.5" />}
+        {showIcon && (isExternal
+          ? <ArrowUpRight className="inline-block -ml-0.5 " />
+          : <ArrowRight className="inline-block " />
+        )}
       </span>
     </a>
   )
