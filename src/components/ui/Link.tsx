@@ -38,8 +38,8 @@ export default function Link({
     >
       <span className={cn(underLine && 'underline underline-offset-3', 'inline-block', spanClassName)}>
         {text ?? children}
+        {showIcon && <ArrowUpRight className="inline-block -ml-0.5" />}
       </span>
-      {showIcon && <ArrowUpRight className="inline-block -ml-0.5" />}
     </a>
   )
 }
