@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { cn } from '@/lib/utils'
 import GISButton from '@/components/ui/GISButton'
+import OneTapPrompt from '@/components/ui/OneTapPrompt'
 
 interface CommentAuthor {
   handle: string
@@ -133,8 +134,9 @@ export default function CommentsSection({ projectId }: Props) {
 
       {/* Comment form */}
       {loading ? <div className="w-full h-32" /> : !isLoggedIn ? (
-        <div className="border border-line p-5 text-center space-y-3 h-32">
-          <p className="text-sm text-ink-muted">登入後才能留言</p>
+        <div className="border border-line p-5 space-y-3">
+          <p className="text-sm text-ink-muted text-center">登入後才能留言</p>
+          <OneTapPrompt />
           <GISButton />
         </div>
       ) : (

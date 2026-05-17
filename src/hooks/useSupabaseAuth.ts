@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { savePendingReturnUrl } from '@/lib/pending-action'
+import { promptOneTap, isGISInitialized } from '@/lib/gis'
 import type { Tables } from '@/lib/database.types'
 
 export type Profile = Tables<'profiles'>
@@ -113,12 +114,17 @@ export function useSupabaseAuth(): SupabaseAuth {
         ? targetPath
         : window.location.pathname
 
-    // Save where to go after auth completes (used by LoginModal and auth-callback).
     savePendingReturnUrl(returnPath)
 
-    // LoginModal (mounted globally in Layout.astro) handles the rest:
-    // it initialises GIS, renders the Google button, and calls signInWithIdToken.
-    document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
+    // If GISInit has already initialized the SDK, try One Tap first.
+    // One Tap suppressed / in-app browser → fall back to LoginModal.
+    if (isGISInitialized()) {
+      promptOneTap(() => {
+        document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
+      })
+    } else {
+      document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
+    }
   }, [])
 
   const signOut = useCallback(async () => {

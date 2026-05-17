@@ -18,6 +18,10 @@ export function isGISReady(): boolean {
   )
 }
 
+export function isGISInitialized(): boolean {
+  return _initialized
+}
+
 /**
  * Initialize GIS with a credential callback.
  * Automatically selects popup vs redirect mode based on the browser UA.

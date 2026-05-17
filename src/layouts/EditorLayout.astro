@@ -1,6 +1,7 @@
 ---
 import BaseHead from "@/components/sections/BaseHead.astro"
 import "@/styles/global.css"
+import GISInit from "@/components/ui/GISInit"
 
 interface Props {
   title: string
@@ -15,10 +16,10 @@ const { title, description = title, bodyClass = 'bg-bg text-ink' } = Astro.props
   <head>
     <BaseHead title={title} description={description} />
     <meta name="robots" content="noindex, nofollow" />
-    <!-- GIS SDK: required for AuthGate's inline Google Sign-In button -->
     <script is:inline src="https://accounts.google.com/gsi/client" async></script>
   </head>
   <body class={bodyClass}>
     <slot />
+    <GISInit client:load />
   </body>
 </html>

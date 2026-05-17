@@ -7,6 +7,7 @@ import Footer from "@/components/sections/Footer.astro";
 import SmoothScroll from "@/components/SmoothScroll.astro";
 import LogManager from "@/components/modules/LogManager.astro";
 import LoginModal from "@/components/ui/LoginModal";
+import GISInit from "@/components/ui/GISInit";
 import { cn } from "@/lib/utils";
 
 import type { ArticleMeta } from "@/lib/og-types";
@@ -19,6 +20,7 @@ interface Props {
   article?: ArticleMeta;
   activeNav?: "home" | "about" | "projects" | "profile";
   bodyClass?: string;
+  withAuth?: boolean;
 }
 
 const {
@@ -29,6 +31,7 @@ const {
   article,
   activeNav,
   bodyClass = "",
+  withAuth = false,
 } = Astro.props;
 ---
 
@@ -54,5 +57,7 @@ const {
     <LogManager />
     <!-- Global login modal: listens for latent:show-login-modal events from any island -->
     <LoginModal client:load />
+    <!-- GIS SDK init: enables promptOneTap + GISButton rendering on auth-required pages -->
+    {withAuth && <GISInit client:load />}
   </body>
 </html>

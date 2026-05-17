@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import GISButton from '@/components/ui/GISButton'
+import OneTapPrompt from '@/components/ui/OneTapPrompt'
 
 interface Props {
   loading: boolean
   loggedIn: boolean
-  onSignIn?(): void  // kept for call-site compatibility, no longer used internally
+  onSignIn?(): void
   loadingText?: string
   title?: string
   message?: string
@@ -30,6 +31,8 @@ export default function AuthGate({
   if (!loggedIn) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-bg gap-4 font-mono">
+        {/* OneTapPrompt fires silently; GISButton is the visible fallback */}
+        <OneTapPrompt />
         <div className="border border-line p-8 text-center space-y-4 max-w-sm w-full">
           {title && <p className="text-sm uppercase tracking-widest text-ink-muted">{title}</p>}
           <p className="text-sm text-ink">{message}</p>

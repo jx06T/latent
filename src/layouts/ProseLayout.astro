@@ -9,9 +9,10 @@ interface Props {
   type?: "website" | "article";
   article?: ArticleMeta;
   active?: "home" | "about" | "projects" | "profile";
+  withAuth?: boolean;
 }
 
-const { title, description, ogImage, type, article, active } = Astro.props;
+const { title, description, ogImage, type, article, active, withAuth } = Astro.props;
 ---
 
 <BaseLayout
@@ -21,6 +22,7 @@ const { title, description, ogImage, type, article, active } = Astro.props;
   type={type}
   article={article}
   activeNav={active}
+  withAuth={withAuth}
 >
   <main class="pt-24 pb-32 min-h-screen">
     <article class="mx-auto w-full max-w-3xl px-7 sm:px-10 pt-4 ">

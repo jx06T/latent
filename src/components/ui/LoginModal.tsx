@@ -1,10 +1,8 @@
 /**
  * Global login modal — one instance per page, mounted in Layout.astro.
  *
- * Shows when any component dispatches:
- *   document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
- *
- * Auth is handled by <GISButton>, which also fires One Tap simultaneously.
+ * Opens when any component dispatches:  latent:show-login-modal
+ * Closes when auth succeeds via:        latent:auth-success  (fired by GISInit)
  */
 import { useState, useEffect, useCallback } from 'react'
 import { isInAppBrowser } from '@/lib/browser-detection'
@@ -17,12 +15,18 @@ export default function LoginModal() {
   const close = useCallback(() => setVisible(false), [])
 
   useEffect(() => {
-    const handler = () => {
+    const onShow = () => {
       setIsRedirectMode(isInAppBrowser())
       setVisible(true)
     }
-    document.addEventListener('latent:show-login-modal', handler)
-    return () => document.removeEventListener('latent:show-login-modal', handler)
+    const onAuthSuccess = () => setVisible(false)
+
+    document.addEventListener('latent:show-login-modal', onShow)
+    document.addEventListener('latent:auth-success', onAuthSuccess)
+    return () => {
+      document.removeEventListener('latent:show-login-modal', onShow)
+      document.removeEventListener('latent:auth-success', onAuthSuccess)
+    }
   }, [])
 
   if (!visible) return null
@@ -49,7 +53,7 @@ export default function LoginModal() {
           )}
         </div>
 
-        <GISButton onSuccess={close} oneTap={!isRedirectMode} />
+        <GISButton />
 
         <button
           onClick={close}
