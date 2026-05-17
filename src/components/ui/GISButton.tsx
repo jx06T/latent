@@ -87,7 +87,12 @@ export default function GISButton({ onSuccess, oneTap = false, className }: Prop
   if (showFallback) {
     return (
       <button
-        onClick={() => document.dispatchEvent(new CustomEvent('latent:show-login-modal'))}
+        onClick={() => supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(window.location.pathname)}`,
+          },
+        })}
         className={cn(
           'flex justify-center items-center min-h-11 w-full border border-line',
           'text-sm text-ink hover:border-accent-500/70 hover:text-accent-400 transition-colors px-4',

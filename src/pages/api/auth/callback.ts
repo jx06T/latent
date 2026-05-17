@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro'
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 
 // 白名單：只允許導向這些路徑（或其子路徑）
-const ALLOWED_NEXT_PREFIXES = ['/', '/profile', '/explore', '/onboarding'] // 依你的實際路由調整
+const ALLOWED_NEXT_PREFIXES = ['/', '/profile', '/explore', '/onboarding', '/projects', '/editor']
 
 function sanitizeNext(raw: string | null): string {
   if (!raw) return '/'

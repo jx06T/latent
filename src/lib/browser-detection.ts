@@ -5,5 +5,5 @@
 export function isInAppBrowser(): boolean {
   if (typeof navigator === 'undefined') return false
   const ua = navigator.userAgent || ''
-  return /FBAN|FBAV|Instagram|Line/i.test(ua)
+  return /FBAN|FBAV|Instagram|Line|MicroMessenger/i.test(ua)
 }
