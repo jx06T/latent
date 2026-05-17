@@ -4,32 +4,18 @@
  * Shows when any component dispatches:
  *   document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
  *
- * Renders the official GIS button (popup or redirect mode, auto-detected).
- * After successful auth, redirects only if the saved return URL differs
- * from the current path; otherwise React's onAuthStateChange handles the update.
+ * Auth is handled by <GISButton>, which also fires One Tap simultaneously.
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect, useCallback } from 'react'
 import { isInAppBrowser } from '@/lib/browser-detection'
-import { initGIS, renderGISButton, promptOneTap, isGISReady } from '@/lib/gis'
-import { consumePendingReturnUrl } from '@/lib/pending-action'
+import GISButton from '@/components/ui/GISButton'
 
 export default function LoginModal() {
   const [visible, setVisible] = useState(false)
   const [isRedirectMode, setIsRedirectMode] = useState(false)
-  const btnRef = useRef<HTMLDivElement>(null)
-  // Track mount attempts so we retry if GIS script hasn't loaded yet.
-  const retryRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const close = useCallback(() => {
-    setVisible(false)
-    if (retryRef.current) {
-      clearInterval(retryRef.current)
-      retryRef.current = null
-    }
-  }, [])
+  const close = useCallback(() => setVisible(false), [])
 
-  // Listen for the global show-login event.
   useEffect(() => {
     const handler = () => {
       setIsRedirectMode(isInAppBrowser())
@@ -38,54 +24,6 @@ export default function LoginModal() {
     document.addEventListener('latent:show-login-modal', handler)
     return () => document.removeEventListener('latent:show-login-modal', handler)
   }, [])
-
-  // Render GIS button once the modal is visible and the SDK is ready.
-  useEffect(() => {
-    if (!visible || !btnRef.current) return
-
-    const credentialHandler = async (idToken: string) => {
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: idToken,
-      })
-      close()
-      if (!error) {
-        const returnUrl = consumePendingReturnUrl()
-        if (returnUrl !== window.location.pathname) {
-          window.location.replace(returnUrl)
-        }
-        // Same page: Supabase onAuthStateChange fires → React re-renders automatically.
-      }
-    }
-
-    const mount = () => {
-      if (!isGISReady() || !btnRef.current) return false
-      initGIS(credentialHandler)
-      renderGISButton(btnRef.current, btnRef.current.offsetWidth || 280)
-      // Also fire One Tap so both UI surfaces appear simultaneously.
-      // On in-app browsers One Tap is suppressed by the browser itself; the
-      // modal button (redirect mode) remains the sole CTA in that case.
-      if (!isRedirectMode) promptOneTap(() => { /* One Tap unavailable — modal button suffices */ })
-      return true
-    }
-
-    if (!mount()) {
-      // GIS script still loading — poll until ready (max ~3 s).
-      retryRef.current = setInterval(() => {
-        if (mount() && retryRef.current) {
-          clearInterval(retryRef.current)
-          retryRef.current = null
-        }
-      }, 100)
-    }
-
-    return () => {
-      if (retryRef.current) {
-        clearInterval(retryRef.current)
-        retryRef.current = null
-      }
-    }
-  }, [visible, close])
 
   if (!visible) return null
 
@@ -111,8 +49,7 @@ export default function LoginModal() {
           )}
         </div>
 
-        {/* GIS renders its own button here */}
-        <div ref={btnRef} className="flex justify-center min-h-11" />
+        <GISButton onSuccess={close} oneTap={!isRedirectMode} />
 
         <button
           onClick={close}

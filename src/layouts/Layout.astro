@@ -21,15 +21,30 @@ interface Props {
   bodyClass?: string;
 }
 
-const { title, description, image, type, article, activeNav, bodyClass = "" } = Astro.props;
+const {
+  title,
+  description,
+  image,
+  type,
+  article,
+  activeNav,
+  bodyClass = "",
+} = Astro.props;
 ---
 
 <!doctype html>
 <html lang="zh-TW">
   <head>
-    <BaseHead title={title} description={description} image={image} type={type} article={article} />
+    <BaseHead
+      title={title}
+      description={description}
+      image={image}
+      type={type}
+      article={article}
+    />
     <!-- Google Identity Services SDK — required for GIS-based auth (no Supabase domain in URL) -->
-    <script is:inline src="https://accounts.google.com/gsi/client" async></script>
+    <script is:inline src="https://accounts.google.com/gsi/client" async
+    ></script>
   </head>
   <body class={cn("", bodyClass)}>
     <SmoothScroll />

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
-import GoogleSignInButton from '@/components/ui/GoogleSignInButton'
+import GISButton from '@/components/ui/GISButton'
 
 interface Props {
   loading: boolean
   loggedIn: boolean
-  onSignIn(): void
+  onSignIn?(): void  // kept for call-site compatibility, no longer used internally
   loadingText?: string
   title?: string
   message?: string
@@ -14,7 +14,6 @@ interface Props {
 export default function AuthGate({
   loading,
   loggedIn,
-  onSignIn,
   loadingText = 'Loading…',
   title,
   message = 'Sign in to continue',
@@ -34,9 +33,9 @@ export default function AuthGate({
         <div className="border border-line p-8 text-center space-y-4 max-w-sm w-full">
           {title && <p className="text-sm uppercase tracking-widest text-ink-muted">{title}</p>}
           <p className="text-sm text-ink">{message}</p>
-          <GoogleSignInButton onClick={onSignIn} className="w-full" />
+          <GISButton />
           <button
-            onClick={() => history.back()}
+            onClick={() => window.history.length > 1 ? window.history.back() : (window.location.href = '/')}
             className="w-full text-sm text-ink-muted hover:text-ink transition-colors py-1"
           >
             ← Back

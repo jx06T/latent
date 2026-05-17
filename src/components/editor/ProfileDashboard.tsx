@@ -20,6 +20,7 @@ const AGE_GROUPS = ['國中以下', '國中生', '高中生', '大學生', '社�
 
 
 export default function ProfileDashboard() {
+
   const { user, profile, isLoggedIn, isOnboarded, accessToken, loading: authLoading, signIn, signOut, refreshProfile } = useSupabaseAuth()
 
   // ── Tab ────────────────────────────────────────────────────────────────

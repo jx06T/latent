@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { cn } from '@/lib/utils'
-import GoogleSignInButton from '@/components/ui/GoogleSignInButton'
+import GISButton from '@/components/ui/GISButton'
 
 interface CommentAuthor {
   handle: string
@@ -32,7 +32,7 @@ function formatDate(iso: string) {
 }
 
 export default function CommentsSection({ projectId }: Props) {
-  const { isLoggedIn, isOnboarded, accessToken, loading, signIn } = useSupabaseAuth()
+  const { isLoggedIn, isOnboarded, accessToken, loading } = useSupabaseAuth()
   const [comments, setComments] = useState<Comment[]>([])
   const [fetchingComments, setFetchingComments] = useState(true)
   const [content, setContent] = useState('')
@@ -132,13 +132,10 @@ export default function CommentsSection({ projectId }: Props) {
       )}
 
       {/* Comment form */}
-      {loading ? <div className=' w-full h-32'></div> : !isLoggedIn ? (
+      {loading ? <div className="w-full h-32" /> : !isLoggedIn ? (
         <div className="border border-line p-5 text-center space-y-3 h-32">
           <p className="text-sm text-ink-muted">登入後才能留言</p>
-          <GoogleSignInButton
-            label="Google 登入"
-            onClick={() => signIn()}
-          />
+          <GISButton />
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-2 h-32">

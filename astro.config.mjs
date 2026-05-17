@@ -37,6 +37,9 @@ export default defineConfig({
   output: "server", // 這裡已經宣告了 SSR 模式，Vercel Adapter 會自動配合
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
     optimizeDeps: {
       include: ['astro/runtime/client/dev-toolbar/entrypoint.js'],
     },

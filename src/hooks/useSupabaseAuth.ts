@@ -108,8 +108,8 @@ export function useSupabaseAuth(): SupabaseAuth {
 
     const returnPath =
       typeof targetPath === 'string' &&
-      targetPath.startsWith('/') &&
-      !targetPath.startsWith('//')
+        targetPath.startsWith('/') &&
+        !targetPath.startsWith('//')
         ? targetPath
         : window.location.pathname
 
