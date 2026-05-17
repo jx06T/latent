@@ -116,14 +116,12 @@ export function useSupabaseAuth(): SupabaseAuth {
 
     savePendingReturnUrl(returnPath)
 
-    // If GISInit has already initialized the SDK, try One Tap first.
-    // One Tap suppressed / in-app browser → fall back to LoginModal.
+    // Show modal immediately — user always has a visible fallback.
+    // Also fire One Tap on top if GIS is ready; no-op callback since the
+    // modal is already open, so dismiss/skip doesn't cause a second popup.
+    document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
     if (isGISInitialized()) {
-      promptOneTap(() => {
-        document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
-      })
-    } else {
-      document.dispatchEvent(new CustomEvent('latent:show-login-modal'))
+      promptOneTap(() => {})
     }
   }, [])
 
