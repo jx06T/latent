@@ -56,8 +56,8 @@ const {
     <Footer />
     <LogManager />
     <!-- Global login modal: listens for latent:show-login-modal events from any island -->
-    <LoginModal client:load />
+    <LoginModal client:only="react" />
     <!-- GIS SDK init: enables promptOneTap + GISButton rendering on auth-required pages -->
-    {withAuth && <GISInit client:load />}
+    {withAuth && <GISInit client:only="react" />}
   </body>
 </html>

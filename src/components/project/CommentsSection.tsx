@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import { cn } from '@/lib/utils'
-import GISButton from '@/components/ui/GISButton'
-import { promptOneTap, isGISInitialized } from '@/lib/gis'
 
 interface CommentAuthor {
   handle: string
@@ -33,7 +31,7 @@ function formatDate(iso: string) {
 }
 
 export default function CommentsSection({ projectId }: Props) {
-  const { isLoggedIn, isOnboarded, accessToken, loading } = useSupabaseAuth()
+  const { isLoggedIn, isOnboarded, accessToken, loading, signIn } = useSupabaseAuth()
   const [comments, setComments] = useState<Comment[]>([])
   const [fetchingComments, setFetchingComments] = useState(true)
   const [content, setContent] = useState('')
@@ -134,9 +132,14 @@ export default function CommentsSection({ projectId }: Props) {
 
       {/* Comment form */}
       {loading ? <div className="w-full h-32" /> : !isLoggedIn ? (
-        <div className="border border-line p-5 space-y-3 cursor-pointer" onClick={() => { if (isGISInitialized()) promptOneTap(() => {}) }}>
+        <div className="border border-line p-5 space-y-3">
           <p className="text-sm text-ink-muted text-center">登入後才能留言</p>
-          <GISButton />
+          <button
+            onClick={() => signIn()}
+            className="flex justify-center items-center min-h-11 w-full border border-line text-sm text-ink hover:border-accent-500/70 hover:text-accent-400 transition-colors px-4"
+          >
+            使用 Google 帳號繼續
+          </button>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-2 h-32">

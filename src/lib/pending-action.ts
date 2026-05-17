@@ -46,7 +46,7 @@ export function savePendingReturnUrl(path: string): void {
 
 export function consumePendingReturnUrl(): string {
   if (typeof localStorage === 'undefined') return '/'
-  const url = localStorage.getItem(RETURN_URL_KEY) ?? '/'
+  const url = localStorage.getItem(RETURN_URL_KEY)
   localStorage.removeItem(RETURN_URL_KEY)
-  return url
+  return url ?? (typeof window !== 'undefined' ? window.location.pathname : '/')
 }

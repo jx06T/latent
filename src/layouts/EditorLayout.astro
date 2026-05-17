@@ -20,6 +20,6 @@ const { title, description = title, bodyClass = 'bg-bg text-ink' } = Astro.props
   </head>
   <body class={bodyClass}>
     <slot />
-    <GISInit client:load />
+    <GISInit client:only="react" />
   </body>
 </html>
