@@ -40,11 +40,13 @@ export async function generatePresignedGetUrl(
 export async function generatePresignedPutUrl(
   key: string,
   contentType: string,
+  contentLength: number,
 ): Promise<string> {
   const command = new PutObjectCommand({
     Bucket: bucket(),
     Key: key,
     ContentType: contentType,
+    ContentLength: contentLength,
   })
   return getSignedUrl(createClient(), command, { expiresIn: 300 })
 }

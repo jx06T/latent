@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({ request }) => {
   let previewUrl: string
   try {
     [uploadUrl, previewUrl] = await Promise.all([
-      generatePresignedPutUrl(key, content_type),
+      generatePresignedPutUrl(key, content_type, parsed.data.file_size),
       generatePresignedGetUrl(key),
     ])
   } catch (err) {
