@@ -14,11 +14,14 @@ export interface ProjectCardProps {
   cover_image?: string | null
   tech_stack: string[]
   like_count: number
+  is_official?: boolean
+  is_exhibition?: boolean
 }
 
 export default function ProjectCard({
   slug, year, title, subtitle, author_handle,
   category_main, cover_image, tech_stack, like_count,
+  is_official = false, is_exhibition = false,
 }: ProjectCardProps) {
   const categoryLabel = CATEGORIES[category_main as CategoryId] ?? CATEGORIES[0]
 
@@ -72,11 +75,19 @@ export default function ProjectCard({
       </div>
 
       {/* Card footer */}
-      <footer className="flex justify-between items-center px-4 py-2.5 border-t border-line font-mono text-xs text-ink-dim grow-0">
+      <footer className="flex flex-wrap justify-between items-center px-4 py-2.5 border-t border-line font-mono text-xs text-ink-dim grow-0 gap-x-2 gap-y-1">
         <Link href={`/@${author_handle}`} className="text-ink-dim">
           @{author_handle}
         </Link>
-        <span className="text-accent-500">♦ {like_count}</span>
+        <div className="flex items-center gap-2 ml-auto">
+          {is_official && (
+            <span className="px-1.5 py-0.5 border border-success text-success text-[10px] leading-none">官方</span>
+          )}
+          {is_exhibition && (
+            <span className="px-1.5 py-0.5 border border-warning text-warning text-[10px] leading-none">現場展覽</span>
+          )}
+          <span className="text-accent-500">♦ {like_count}</span>
+        </div>
       </footer>
 
       <span className="absolute -top-0.5 -right-0.5 w-4 h-4 border-t-2 border-r-2 border-accent-500 opacity-0 group-hover:opacity-100 transition-opacity duration-700" aria-hidden="true" />

@@ -4,34 +4,38 @@ export const ProjectSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string().nullable().optional(),
+  first_published_at: z.string().nullable().optional(),
   year: z.number().int(),
   slug: z.string(),
 
   title: z.string(),
   subtitle: z.string().nullable().optional(),
   author_handle: z.string(),
-  author_id: z.string().uuid().nullable().optional(),
+  author_id: z.string().uuid(),
 
   description: z.string().nullable().optional(),
-  content: z.string().nullable().optional(), // Markdown 正文
+  content: z.string().nullable().optional(),
 
-  // category_main: z.number().int(),
   category_main: z.number().int().transform((val): CategoryId => {
     return (val in CATEGORIES ? val : 0) as CategoryId;
   }),
 
-  category_sub: z.array(z.number()).default([]), // 子分類 ID 陣列
-  keywords: z.array(z.string()).default([]),
-  tech_stack: z.array(z.string()).default([]),
+  category_sub: z.array(z.number()).nullable().transform(v => v ?? []),
+  keywords: z.array(z.string()).nullable().transform(v => v ?? []),
+  tech_stack: z.array(z.string()).nullable().transform(v => v ?? []),
 
-  links: z.record(z.string(), z.string().nullable().optional()).default({}), //存 demo, github 等
+  links: z.record(z.string(), z.string().nullable().optional()).nullable().transform(v => v ?? {}),
 
   cover_image_id: z.uuid().nullable().optional(),
   poster_url: z.url().nullable().optional(),
 
   status: z.enum(['draft', 'published', 'processing']).default('draft'),
-  
+
   like_count: z.number().int().default(0),
+  comment_count: z.number().int().default(0),
+
+  is_official: z.boolean().default(false),
+  is_exhibition: z.boolean().default(false),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

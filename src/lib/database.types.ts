@@ -71,6 +71,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          ip_hash: string | null
           message: string
           name: string
           subject: string | null
@@ -79,6 +80,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          ip_hash?: string | null
           message: string
           name: string
           subject?: string | null
@@ -87,6 +89,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          ip_hash?: string | null
           message?: string
           name?: string
           subject?: string | null
@@ -215,6 +218,8 @@ export type Database = {
           description: string | null
           first_published_at: string | null
           id: string
+          is_exhibition: boolean
+          is_official: boolean
           keywords: string[] | null
           like_count: number
           links: Json | null
@@ -239,6 +244,8 @@ export type Database = {
           description?: string | null
           first_published_at?: string | null
           id?: string
+          is_exhibition?: boolean
+          is_official?: boolean
           keywords?: string[] | null
           like_count?: number
           links?: Json | null
@@ -263,6 +270,8 @@ export type Database = {
           description?: string | null
           first_published_at?: string | null
           id?: string
+          is_exhibition?: boolean
+          is_official?: boolean
           keywords?: string[] | null
           like_count?: number
           links?: Json | null
@@ -343,7 +352,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      check_array_element_length: {
+        Args: { arr: string[]; max_length: number }
+        Returns: boolean
+      }
     }
     Enums: {
       status: "draft" | "published" | "processing"

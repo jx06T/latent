@@ -3,15 +3,18 @@
 import { cn } from "@/lib/utils";
 
 interface Props {
-  variant?: "main" | "sub"; // main = 橘底黑字, sub = 虛線框藍字
+  variant?: "main" | "sub" | "official" | "community" | "exhibition";
   class?: string;
 }
 
 const { variant = "main", class: className } = Astro.props;
 
 const styles = {
-  main: "bg-accent-500 text-bg shadow-accent-sm",
-  sub: "border text-ink-dim  hover:border-solid-cyber transition-colors",
+  main:       "bg-accent-500 text-bg shadow-accent-sm",
+  sub:        "border text-ink-dim hover:border-solid-cyber transition-colors",
+  official:   "border border-success text-success bg-success-ghost",
+  community:  "border border-line text-ink-ddim",
+  exhibition: "border border-warning text-warning bg-warning-ghost",
 };
 ---
 

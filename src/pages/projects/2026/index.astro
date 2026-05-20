@@ -140,6 +140,8 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
                   cover_image={project.cover_image_id ? (coverUrlMap[project.cover_image_id] ?? null) : null}
                   tech_stack={project.tech_stack}
                   like_count={project.like_count}
+                  is_official={project.is_official}
+                  is_exhibition={project.is_exhibition}
                 />
               </li>
             ))}

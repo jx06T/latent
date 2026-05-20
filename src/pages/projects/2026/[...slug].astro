@@ -132,7 +132,7 @@ const { data: candidateData } = await supabase
   .from("projects")
   .select(
     `
-    id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count,
+    id, slug, title, subtitle, author_handle, category_main, category_sub, keywords, tech_stack, cover_image_id, like_count, is_official, is_exhibition,
     cover_image:project_images!cover_image_id(id, project_id, status, source_ext, published_ext, available_sizes)
   `,
   )
@@ -161,7 +161,7 @@ function scoreSimilarity(candidate: any): number {
   return score;
 }
 
-const similarProjects = (candidateData ?? [])
+const similarProjects = ((candidateData ?? []) as any[])
   .map((p) => ({ ...p, score: scoreSimilarity(p) }))
   .filter((p) => p.score > 0)
   .sort((a, b) => b.score - a.score)
@@ -221,7 +221,7 @@ const similarProjects = (candidateData ?? [])
   <!-- Cover image -->
   {
     coverImageUrl && (
-      <div class="w-full aspect-video overflow-hidden border border-line mb-10">
+      <div class="w-full aspect-video overflow-hidden border border-line mb-8">
         <img
           src={coverImageUrl}
           alt={project.title}
@@ -230,6 +230,15 @@ const similarProjects = (candidateData ?? [])
       </div>
     )
   }
+
+  <!-- System designation strip (admin-set, not user content) -->
+  <div class="flex items-center gap-3 mb-6 py-2 border-y border-line">
+    <span class="font-mono text-[10px] text-ink-ddim tracking-widest shrink-0">// SYS</span>
+    <Tag variant={project.is_official ? "official" : "community"}>
+      {project.is_official ? "官方專案" : "社區專案"}
+    </Tag>
+    {project.is_exhibition && <Tag variant="exhibition">當日現場展覽</Tag>}
+  </div>
 
   <!-- Header -->
   <header class="mb-8 space-y-2">
@@ -393,6 +402,8 @@ const similarProjects = (candidateData ?? [])
               cover_image={p.coverUrl}
               tech_stack={p.tech_stack ?? []}
               like_count={p.like_count ?? 0}
+              is_official={p.is_official ?? false}
+              is_exhibition={p.is_exhibition ?? false}
             />
           ))}
         </div>
