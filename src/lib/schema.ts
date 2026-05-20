@@ -27,7 +27,7 @@ export const ProjectSchema = z.object({
   links: z.record(z.string(), z.string().nullable().optional()).nullable().transform(v => v ?? {}),
 
   cover_image_id: z.uuid().nullable().optional(),
-  poster_url: z.url().nullable().optional(),
+  poster_url: z.url().nullable().optional().catch(null),
 
   status: z.enum(['draft', 'published', 'processing']).default('draft'),
 
