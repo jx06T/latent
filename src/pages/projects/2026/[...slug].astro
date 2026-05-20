@@ -40,9 +40,18 @@ const { data: rawData, error: dbError } = await supabase
   .eq("slug", cleanSlug)
   .single();
 
-if (dbError || !rawData) {
+if (dbError) {
+  // PGRST116 = "no rows" → page doesn't exist
+  if (dbError.code === "PGRST116") {
+    return Astro.rewrite("/404");
+  }
+  // Other DB errors are transient — preserve URL so user can retry
   console.error("DB Error:", dbError);
-  return Astro.redirect("/404");
+  return Astro.rewrite("/500");
+}
+
+if (!rawData) {
+  return Astro.rewrite("/404");
 }
 
 // Extract images before Zod parses (Zod strips unknown keys)
@@ -52,11 +61,12 @@ const projectImages = (
 
 const result = ProjectSchema.safeParse(rawData);
 if (!result.success) {
+  // Data integrity issue, not a user error — preserve URL, show 500
   console.error(
     "Zod Validation Failed:",
     JSON.stringify(result.error.format(), null, 2),
   );
-  return Astro.redirect("/404");
+  return Astro.rewrite("/500");
 }
 const project = result.data;
 
