@@ -38,6 +38,9 @@ if (coverIds.length > 0) {
 
 const YEAR = 2026;
 const allCategories = Object.entries(CATEGORIES) as [string, string][];
+const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
+                     hover:border-line-active hover:text-ink transition-colors duration-150
+                     [&.active]:bg-accent-500/20 [&.active]:border-accent-500 [&.active]:text-accent-500`
 ---
 
 <Layout
@@ -83,9 +86,7 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
       <div id="category-filters" class="flex flex-wrap gap-2 mt-4">
         <button
           data-category="all"
-          class="font-mono text-xs px-3 py-1.5 border border-line-active text-accent-500
-                   hover:bg-accent-500/10 transition-colors duration-150
-                   [&.active]:bg-accent-500/20 [&.active]:border-accent-500 active"
+          class={tagBase}
         >
           全部
         </button>
@@ -93,14 +94,36 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
           allCategories.map(([id, label]) => (
             <button
               data-category={id}
-              class="font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
-                     hover:border-line-active hover:text-ink transition-colors duration-150
-                     [&.active]:bg-accent-500/20 [&.active]:border-accent-500 [&.active]:text-accent-500"
+                       class={tagBase}
+
             >
               {label}
             </button>
           ))
         }
+      </div>
+
+      <!-- Official tag filters -->
+      <div class="flex items-center justify-start mt-4 gap-3 border-t py-3 border-line">
+        <div id="official-filters" class="flex gap-2">
+          <button data-official="all"
+                      class={tagBase}
+
+          >全部</button>
+          <button data-official="true"
+                      class={tagBase}
+
+          >官方</button>
+          <button data-official="false"
+                     class={tagBase}
+
+          >社區</button>
+        </div>
+        <div class="w-px h-6 bg-line-active"></div>
+        <button id="exhibition-filter"
+                    class={tagBase}
+
+        >現場展覽</button>
       </div>
     </section>
 
@@ -129,6 +152,8 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
                 data-subtitle={(project.subtitle ?? "").toLowerCase()}
                 data-tech={project.tech_stack.join(" ").toLowerCase()}
                 data-description={(project.description ?? "").toLowerCase()}
+                data-official={String(project.is_official)}
+                data-exhibition={String(project.is_exhibition)}
               >
                 <ProjectCard
                   slug={project.slug}
@@ -155,14 +180,17 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
 <script>
   const searchInput = document.getElementById("search-input") as HTMLInputElement | null;
   const categoryButtons = document.querySelectorAll<HTMLButtonElement>("#category-filters [data-category]");
+  const officialButtons = document.querySelectorAll<HTMLButtonElement>("#official-filters [data-official]");
+  const exhibitionBtn = document.getElementById("exhibition-filter") as HTMLButtonElement | null;
   const grid = document.getElementById("project-grid");
   const noResults = document.getElementById("no-results");
 
-  // Snapshot with original index for stable sort restoration
   const items = Array.from(document.querySelectorAll<HTMLLIElement>("#project-grid li"))
     .map((li, i) => ({ li, i }));
 
   let activeCategory = "all";
+  let activeOfficial = "all";   // "all" | "true" | "false"
+  let filterExhibition = false;
 
   function scoreItem(terms: string[], li: HTMLLIElement): number {
     const fields = [
@@ -179,15 +207,16 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
       li, i,
       score: scoreItem(terms, li),
       cat: activeCategory === "all" || li.dataset.category === activeCategory,
+      official: activeOfficial === "all" || li.dataset.official === activeOfficial,
+      exhibition: !filterExhibition || li.dataset.exhibition === "true",
     }));
 
-    // Higher score first; ties preserve original order (score=0 when no query → full original order)
     scored.sort((a, b) => b.score - a.score || a.i - b.i);
     scored.forEach(({ li }) => grid?.appendChild(li));
 
     let visible = 0;
-    scored.forEach(({ li, score, cat }) => {
-      const show = cat && (terms.length === 0 || score > 0);
+    scored.forEach(({ li, score, cat, official, exhibition }) => {
+      const show = cat && official && exhibition && (terms.length === 0 || score > 0);
       li.classList.toggle("hidden", !show);
       if (show) visible++;
     });
@@ -201,6 +230,8 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
     const q = searchInput?.value.trim();
     if (q) params.set("q", q);
     if (activeCategory !== "all") params.set("cat", activeCategory);
+    if (activeOfficial !== "all") params.set("official", activeOfficial);
+    if (filterExhibition) params.set("exhibition", "1");
     const qs = params.toString();
     history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
   }
@@ -216,14 +247,39 @@ const allCategories = Object.entries(CATEGORIES) as [string, string][];
     });
   });
 
+  officialButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeOfficial = btn.dataset.official ?? "all";
+      officialButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyFilters();
+    });
+  });
+
+  exhibitionBtn?.addEventListener("click", () => {
+    filterExhibition = !filterExhibition;
+    exhibitionBtn.classList.toggle("active", filterExhibition);
+    applyFilters();
+  });
+
   // Restore state from URL on page load
   const urlParams = new URLSearchParams(location.search);
   const initQ = urlParams.get("q") ?? "";
   const initCat = urlParams.get("cat") ?? "all";
+  const initOfficial = urlParams.get("official") ?? "all";
+  const initExhibition = urlParams.get("exhibition") === "1";
   if (searchInput && initQ) searchInput.value = initQ;
   if (initCat !== "all") {
     activeCategory = initCat;
     categoryButtons.forEach((b) => b.classList.toggle("active", b.dataset.category === initCat));
   }
-  if (initQ || initCat !== "all") applyFilters();
+  if (initOfficial !== "all") {
+    activeOfficial = initOfficial;
+    officialButtons.forEach((b) => b.classList.toggle("active", b.dataset.official === initOfficial));
+  }
+  if (initExhibition) {
+    filterExhibition = true;
+    exhibitionBtn?.classList.add("active");
+  }
+  if (initQ || initCat !== "all" || initOfficial !== "all" || initExhibition) applyFilters();
 </script>
