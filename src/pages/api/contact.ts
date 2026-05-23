@@ -14,8 +14,10 @@ export const POST: APIRoute = async ({ request }) => {
   const message = (body?.message ?? '').trim()
 
   if (!name || !email || !message) return json({ error: '請填寫必要欄位（名字、Email、訊息）' }, 400)
+  if (name.length > 100) return json({ error: '名字不得超過 100 字' }, 400)
+  if (email.length > 254) return json({ error: 'Email 不得超過 254 字' }, 400)
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: '請填寫有效的 Email 地址' }, 400)
-  if (subject.length > 100) return json({ error: '主旨不得超過 100 字' }, 400)
+  if (subject.length > 200) return json({ error: '主旨不得超過 200 字' }, 400)
   if (message.length > 2000) return json({ error: '訊息不得超過 2000 字' }, 400)
 
   const db = createServiceClient()
