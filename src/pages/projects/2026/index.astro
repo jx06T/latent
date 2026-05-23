@@ -119,9 +119,9 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
         <div class="flex items-center gap-2">
           <span class="font-mono text-[10px] text-ink-ddim tracking-widest">SORT</span>
           <div id="sort-buttons" class="flex gap-2">
-            <button data-sort="title" class={tagBase}>名稱</button>
-            <button data-sort="updated" class={tagBase}>更新日期</button>
-            <button data-sort="likes" class={tagBase}>按讚數</button>
+            <button data-sort="title" class={tagBase}>名稱<span class="sort-dir"></span></button>
+            <button data-sort="updated" class={tagBase}>更新日期<span class="sort-dir"></span></button>
+            <button data-sort="likes" class={tagBase}>按讚數<span class="sort-dir"></span></button>
           </div>
         </div>
       </div>
@@ -195,6 +195,13 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   let activeOfficial = "all";   // "all" | "true" | "false"
   let filterExhibition = false;
   let activeSort = "";           // "" | "title" | "updated" | "likes"
+  let sortDir: "asc" | "desc" = "asc";
+
+  const defaultDir: Record<string, "asc" | "desc"> = {
+    title: "asc",
+    updated: "desc",
+    likes: "desc",
+  };
 
   function scoreItem(terms: string[], li: HTMLLIElement): number {
     const fields = [
@@ -211,13 +218,14 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   ): number {
     // search score takes priority when a query exists
     if (terms.length > 0 && a.score !== b.score) return b.score - a.score;
+    const d = sortDir === "asc" ? 1 : -1;
     switch (activeSort) {
       case "title":
-        return (a.li.dataset.title ?? "").localeCompare(b.li.dataset.title ?? "");
+        return d * (a.li.dataset.title ?? "").localeCompare(b.li.dataset.title ?? "");
       case "updated":
-        return Number(b.li.dataset.updated ?? 0) - Number(a.li.dataset.updated ?? 0);
+        return d * (Number(a.li.dataset.updated ?? 0) - Number(b.li.dataset.updated ?? 0));
       case "likes":
-        return Number(b.li.dataset.likes ?? 0) - Number(a.li.dataset.likes ?? 0);
+        return d * (Number(a.li.dataset.likes ?? 0) - Number(b.li.dataset.likes ?? 0));
       default:
         return a.i - b.i;
     }
@@ -255,7 +263,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
     if (activeCategory !== "all") params.set("cat", activeCategory);
     if (activeOfficial !== "all") params.set("official", activeOfficial);
     if (filterExhibition) params.set("exhibition", "1");
-    if (activeSort) params.set("sort", activeSort);
+    if (activeSort) { params.set("sort", activeSort); params.set("dir", sortDir); }
     const qs = params.toString();
     history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
   }
@@ -280,12 +288,31 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
     });
   });
 
-  // sort: clicking active button again deactivates (toggle back to default)
+  function updateSortButtons() {
+    sortButtons.forEach((b) => {
+      const s = b.dataset.sort ?? "";
+      const isActive = s === activeSort && activeSort !== "";
+      b.classList.toggle("active", isActive);
+      const indicator = b.querySelector(".sort-dir") as HTMLElement | null;
+      if (indicator) indicator.textContent = isActive ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+    });
+  }
+
+  // sort: 1st click = activate (default dir), 2nd click = flip dir, 3rd click = deactivate
   sortButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const s = btn.dataset.sort ?? "";
-      activeSort = activeSort === s ? "" : s;
-      sortButtons.forEach((b) => b.classList.toggle("active", b.dataset.sort === activeSort && activeSort !== ""));
+      if (activeSort === s) {
+        if (sortDir !== defaultDir[s]) {
+          activeSort = "";
+        } else {
+          sortDir = sortDir === "asc" ? "desc" : "asc";
+        }
+      } else {
+        activeSort = s;
+        sortDir = defaultDir[s] ?? "asc";
+      }
+      updateSortButtons();
       applyFilters();
     });
   });
@@ -303,6 +330,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   const initOfficial = urlParams.get("official") ?? "all";
   const initExhibition = urlParams.get("exhibition") === "1";
   const initSort = urlParams.get("sort") ?? "";
+  const initDir = urlParams.get("dir") as "asc" | "desc" | null;
   if (searchInput && initQ) searchInput.value = initQ;
   if (initCat !== "all") {
     activeCategory = initCat;
@@ -318,7 +346,8 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   }
   if (initSort) {
     activeSort = initSort;
-    sortButtons.forEach((b) => b.classList.toggle("active", b.dataset.sort === initSort));
+    sortDir = (initDir === "asc" || initDir === "desc") ? initDir : (defaultDir[initSort] ?? "asc");
+    updateSortButtons();
   }
   if (initQ || initCat !== "all" || initOfficial !== "all" || initExhibition || initSort) applyFilters();
 </script>
