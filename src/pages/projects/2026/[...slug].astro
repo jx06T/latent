@@ -361,7 +361,8 @@ const similarProjects = ((candidateData ?? []) as any[])
   </div>
 
   <!-- Like button -->
-  <div class="mb-10 w-full flex justify-center">
+  <div class="mb-10 w-full flex flex-col items-center gap-3 justify-center">
+    <span class=" text-ink-muted">幫這個專案投票！</span>
     <LikeButton
       client:load
       projectId={project.id}

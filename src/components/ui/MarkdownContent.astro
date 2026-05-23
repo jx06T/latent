@@ -11,6 +11,9 @@ const { content, class: className = "" } = Astro.props;
 
 const rawHtml = await createMarkedInstance().parse(content || "");
 
+// Rejects any CSS value containing url( — blocks tracking pixels via cursor/background etc.
+const noUrl = /^(?![\s\S]*url\s*\()[\s\S]+$/i;
+
 // 執行安全過濾
 const cleanHtml = sanitizeHtml(rawHtml, {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat([
@@ -21,19 +24,107 @@ const cleanHtml = sanitizeHtml(rawHtml, {
     "span",
     "div",
   ]),
+  allowedIframeDomains: [
+    "youtube.com",
+    "www.youtube.com",
+    "youtube-nocookie.com",
+    "vimeo.com",
+    "player.vimeo.com",
+    "codepen.io",
+    "stackblitz.com",
+    "codesandbox.io",
+  ],
   allowedClasses: {
     div: [
-      "callout", "callout-note", "callout-tip", "callout-warning",
-      "callout-caution", "callout-danger", "callout-important",
-      "callout-title", "callout-icon", "callout-body",
+      "callout",
+      "callout-note",
+      "callout-tip",
+      "callout-warning",
+      "callout-caution",
+      "callout-danger",
+      "callout-important",
+      "callout-title",
+      "callout-icon",
+      "callout-body",
     ],
+  },
+  allowedStyles: {
+    "*": {
+      // 顏色
+      "color":            [noUrl],
+      "background-color": [noUrl],
+      // 字體
+      "font-size": [noUrl],
+      "font-weight": [noUrl],
+      "font-family": [noUrl],
+      "font-style": [noUrl],
+      "line-height": [noUrl],
+      "letter-spacing": [noUrl],
+      // 文字
+      "text-decoration": [noUrl],
+      "text-align": [noUrl],
+      "text-transform": [noUrl],
+      "text-overflow": [noUrl],
+      "text-shadow": [noUrl],
+      "text-indent": [noUrl],
+      "white-space": [noUrl],
+      "word-break": [noUrl],
+      "overflow-wrap": [noUrl],
+      "vertical-align": [noUrl],
+      // 排版
+      display: [noUrl],
+      "align-items": [noUrl],
+      "justify-content": [noUrl],
+      "flex-direction": [noUrl],
+      "flex-wrap": [noUrl],
+      flex: [noUrl],
+      gap: [noUrl],
+      "grid-template-columns": [noUrl],
+      "grid-template-rows": [noUrl],
+      // 間距
+      padding: [noUrl],
+      margin: [noUrl],
+      // 邊框
+      border: [noUrl],
+      "border-radius": [noUrl],
+      "border-color": [noUrl],
+      "border-width": [noUrl],
+      "border-style": [noUrl],
+      // 尺寸（wrapper 層的 overflow-x: hidden 防止撐版）
+      width: [noUrl],
+      height: [noUrl],
+      "max-width": [noUrl],
+      "max-height": [noUrl],
+      "min-width": [noUrl],
+      "min-height": [noUrl],
+      "aspect-ratio": [noUrl],
+      // 圖片
+      "object-fit": [noUrl],
+      "object-position": [noUrl],
+      // 其他
+      cursor: [noUrl],
+      // 不列入：position、z-index、top/right/bottom/left、transform、opacity、background (url)、filter、overflow
+    },
   },
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     "*": ["class", "style"],
-    h1: ["id"], h2: ["id"], h3: ["id"], h4: ["id"], h5: ["id"], h6: ["id"],
+    h1: ["id"],
+    h2: ["id"],
+    h3: ["id"],
+    h4: ["id"],
+    h5: ["id"],
+    h6: ["id"],
     a: ["href", "title", "target", "rel", "class"],
-    img: ["src", "alt", "title", "loading", "class"], // 記得允許 img 的 loading 屬性
+    img: ["src", "alt", "title", "loading", "class"],
+    iframe: [
+      "src",
+      "allowfullscreen",
+      "title",
+      "frameborder",
+      "width",
+      "height",
+    ],
     svg: [
       "xmlns",
       "width",
@@ -52,6 +143,6 @@ const cleanHtml = sanitizeHtml(rawHtml, {
 ---
 
 <div
-  class={`prose prose-invert max-w-none wrap-anywhere ${className}`}
+  class={`prose prose-invert max-w-none wrap-anywhere overflow-x-hidden ${className}`}
   set:html={cleanHtml}
 />
