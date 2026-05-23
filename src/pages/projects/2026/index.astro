@@ -103,27 +103,27 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
         }
       </div>
 
-      <!-- Official tag filters -->
-      <div class="flex items-center justify-start mt-4 gap-3 border-t py-3 border-line">
-        <div id="official-filters" class="flex gap-2">
-          <button data-official="all"
-                      class={tagBase}
-
-          >全部</button>
-          <button data-official="true"
-                      class={tagBase}
-
-          >官方</button>
-          <button data-official="false"
-                     class={tagBase}
-
-          >社區</button>
+      <!-- Official tag filters + sort -->
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t mt-4 py-3 border-line">
+        <!-- left: official / exhibition -->
+        <div class="flex items-center gap-3">
+          <div id="official-filters" class="flex gap-2">
+            <button data-official="all" class={tagBase}>全部</button>
+            <button data-official="true" class={tagBase}>官方</button>
+            <button data-official="false" class={tagBase}>社區</button>
+          </div>
+          <div class="w-px h-5 bg-line shrink-0"></div>
+          <button id="exhibition-filter" class={tagBase}>現場展覽</button>
         </div>
-        <div class="w-px h-6 bg-line-active"></div>
-        <button id="exhibition-filter"
-                    class={tagBase}
-
-        >現場展覽</button>
+        <!-- right: sort -->
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[10px] text-ink-ddim tracking-widest">SORT</span>
+          <div id="sort-buttons" class="flex gap-2">
+            <button data-sort="title" class={tagBase}>名稱</button>
+            <button data-sort="updated" class={tagBase}>更新日期</button>
+            <button data-sort="likes" class={tagBase}>按讚數</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -154,6 +154,8 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
                 data-description={(project.description ?? "").toLowerCase()}
                 data-official={String(project.is_official)}
                 data-exhibition={String(project.is_exhibition)}
+                data-likes={project.like_count}
+                data-updated={new Date(project.updated_at ?? project.created_at).getTime()}
               >
                 <ProjectCard
                   slug={project.slug}
@@ -181,6 +183,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   const searchInput = document.getElementById("search-input") as HTMLInputElement | null;
   const categoryButtons = document.querySelectorAll<HTMLButtonElement>("#category-filters [data-category]");
   const officialButtons = document.querySelectorAll<HTMLButtonElement>("#official-filters [data-official]");
+  const sortButtons = document.querySelectorAll<HTMLButtonElement>("#sort-buttons [data-sort]");
   const exhibitionBtn = document.getElementById("exhibition-filter") as HTMLButtonElement | null;
   const grid = document.getElementById("project-grid");
   const noResults = document.getElementById("no-results");
@@ -191,6 +194,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   let activeCategory = "all";
   let activeOfficial = "all";   // "all" | "true" | "false"
   let filterExhibition = false;
+  let activeSort = "";           // "" | "title" | "updated" | "likes"
 
   function scoreItem(terms: string[], li: HTMLLIElement): number {
     const fields = [
@@ -198,6 +202,25 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
       li.dataset.subtitle, li.dataset.tech, li.dataset.description,
     ];
     return terms.filter((t) => fields.some((f) => (f ?? "").includes(t))).length;
+  }
+
+  function compareItems(
+    a: { li: HTMLLIElement; i: number; score: number },
+    b: { li: HTMLLIElement; i: number; score: number },
+    terms: string[],
+  ): number {
+    // search score takes priority when a query exists
+    if (terms.length > 0 && a.score !== b.score) return b.score - a.score;
+    switch (activeSort) {
+      case "title":
+        return (a.li.dataset.title ?? "").localeCompare(b.li.dataset.title ?? "");
+      case "updated":
+        return Number(b.li.dataset.updated ?? 0) - Number(a.li.dataset.updated ?? 0);
+      case "likes":
+        return Number(b.li.dataset.likes ?? 0) - Number(a.li.dataset.likes ?? 0);
+      default:
+        return a.i - b.i;
+    }
   }
 
   function applyFilters() {
@@ -211,7 +234,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
       exhibition: !filterExhibition || li.dataset.exhibition === "true",
     }));
 
-    scored.sort((a, b) => b.score - a.score || a.i - b.i);
+    scored.sort((a, b) => compareItems(a, b, terms));
     scored.forEach(({ li }) => grid?.appendChild(li));
 
     let visible = 0;
@@ -232,6 +255,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
     if (activeCategory !== "all") params.set("cat", activeCategory);
     if (activeOfficial !== "all") params.set("official", activeOfficial);
     if (filterExhibition) params.set("exhibition", "1");
+    if (activeSort) params.set("sort", activeSort);
     const qs = params.toString();
     history.replaceState(null, "", qs ? `?${qs}` : location.pathname);
   }
@@ -256,6 +280,16 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
     });
   });
 
+  // sort: clicking active button again deactivates (toggle back to default)
+  sortButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const s = btn.dataset.sort ?? "";
+      activeSort = activeSort === s ? "" : s;
+      sortButtons.forEach((b) => b.classList.toggle("active", b.dataset.sort === activeSort && activeSort !== ""));
+      applyFilters();
+    });
+  });
+
   exhibitionBtn?.addEventListener("click", () => {
     filterExhibition = !filterExhibition;
     exhibitionBtn.classList.toggle("active", filterExhibition);
@@ -268,6 +302,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
   const initCat = urlParams.get("cat") ?? "all";
   const initOfficial = urlParams.get("official") ?? "all";
   const initExhibition = urlParams.get("exhibition") === "1";
+  const initSort = urlParams.get("sort") ?? "";
   if (searchInput && initQ) searchInput.value = initQ;
   if (initCat !== "all") {
     activeCategory = initCat;
@@ -281,5 +316,9 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
     filterExhibition = true;
     exhibitionBtn?.classList.add("active");
   }
-  if (initQ || initCat !== "all" || initOfficial !== "all" || initExhibition) applyFilters();
+  if (initSort) {
+    activeSort = initSort;
+    sortButtons.forEach((b) => b.classList.toggle("active", b.dataset.sort === initSort));
+  }
+  if (initQ || initCat !== "all" || initOfficial !== "all" || initExhibition || initSort) applyFilters();
 </script>
