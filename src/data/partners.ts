@@ -12,4 +12,5 @@ export const PARTNERS: Partner[] = [
   { name: "北一資研", role: "主辦", url: "https://www.ckefgisc.org/" },
   { name: "中山資研", role: "協辦" },
   { name: "景美電資", role: "協辦" },
+  { name: "臺北市政府青年局", role: "協辦" },
 ];
