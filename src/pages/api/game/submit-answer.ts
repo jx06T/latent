@@ -113,7 +113,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (solvedIds.has(match.id)) {
-    return json({ status: 'already_solved', puzzle_id: match.id })
+    return json({ status: 'already_solved', message: match.message ?? null, puzzle_id: match.id })
   }
 
   // Correct and unsolved — record progress + submission

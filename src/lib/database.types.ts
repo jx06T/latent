@@ -96,6 +96,170 @@ export type Database = {
         }
         Relationships: []
       }
+      game_puzzles: {
+        Row: {
+          correct_answer: string
+          created_at: string | null
+          id: number
+          message: string | null
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string | null
+          id: number
+          message?: string | null
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string | null
+          id?: number
+          message?: string | null
+        }
+        Relationships: []
+      }
+      game_submissions: {
+        Row: {
+          id: number
+          input_text: string
+          is_correct: boolean
+          matched_puzzle: number | null
+          submitted_at: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          input_text: string
+          is_correct: boolean
+          matched_puzzle?: number | null
+          submitted_at?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: number
+          input_text?: string
+          is_correct?: boolean
+          matched_puzzle?: number | null
+          submitted_at?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_submissions_matched_puzzle_fkey"
+            columns: ["matched_puzzle"]
+            isOneToOne: false
+            referencedRelation: "game_puzzles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_submissions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "game_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_team_members: {
+        Row: {
+          is_first: boolean | null
+          joined_at: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          is_first?: boolean | null
+          joined_at?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          is_first?: boolean | null
+          joined_at?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "game_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_team_progress: {
+        Row: {
+          puzzle_id: number
+          solved_at: string | null
+          solved_by: string
+          team_id: string
+        }
+        Insert: {
+          puzzle_id: number
+          solved_at?: string | null
+          solved_by: string
+          team_id: string
+        }
+        Update: {
+          puzzle_id?: number
+          solved_at?: string | null
+          solved_by?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_team_progress_puzzle_id_fkey"
+            columns: ["puzzle_id"]
+            isOneToOne: false
+            referencedRelation: "game_puzzles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_team_progress_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "game_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_teams: {
+        Row: {
+          activated_at: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_suspended: boolean | null
+          max_members: number | null
+          team_code: string
+          team_name: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_suspended?: boolean | null
+          max_members?: number | null
+          team_code: string
+          team_name?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_suspended?: boolean | null
+          max_members?: number | null
+          team_code?: string
+          team_name?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -356,6 +520,7 @@ export type Database = {
         Args: { arr: string[]; max_length: number }
         Returns: boolean
       }
+      get_user_team_id: { Args: never; Returns: string }
     }
     Enums: {
       status: "draft" | "published" | "processing"

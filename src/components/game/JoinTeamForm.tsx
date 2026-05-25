@@ -4,7 +4,7 @@ import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 interface TeamInfo {
   id: string
   team_code: string
-  group_name: string | null
+  team_name: string | null
   activated_at: string | null
 }
 
@@ -64,7 +64,7 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
 
       setSuccess('成功加入！正在進入研究終端...')
       
-      onJoined?.({ id: data.team_id, team_code: data.team_code, group_name: data.group_name, activated_at: null })
+      onJoined?.({ id: data.team_id, team_code: data.team_code, team_name: data.team_name, activated_at: null })
       
       // 成功加入後，延遲一小段時間讓使用者看見狀態，然後重定向至主遊戲頁面
       setTimeout(() => {

@@ -7,7 +7,7 @@ const TOTAL_PUZZLES = 10
 interface TeamInfo {
   id: string
   team_code: string
-  group_name: string | null
+  team_name: string | null
   activated_at: string | null
 }
 
@@ -121,7 +121,6 @@ export default function GameTerminal({ team }: Props) {
       })
 
       if (data.status === 'correct') {
-        setInputValue('')
         await loadProgress()
       }
     } catch {
@@ -135,22 +134,20 @@ export default function GameTerminal({ team }: Props) {
   const solvedMap = new Map(progress.map(p => [p.puzzle_id, p.solved_at]))
 
   return (
-    <div className="min-h-screen bg-bg font-mono text-sm flex flex-col items-center justify-start p-4 pt-8">
-      <div className="w-full max-w-lg border border-line">
+    <div className=" bg-bg-surface font-mono text-sm flex flex-col items-center justify-start ">
+      <div className="w-full border border-line">
 
         {/* Header */}
-        <div className="border-b border-line px-4 py-2 space-y-0.5">
-          <div className="text-xs text-accent-400 uppercase tracking-widest">
-            LATENT 2026 // RESEARCH TERMINAL
+        <div className="border-b border-line px-4 py-2 space-y-3">
+          <div className="text-lg text-accent-400 uppercase tracking-widest">
+            LATENT 2026 實境解謎
           </div>
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>
-              <span className="text-ink">{team.team_code}</span>
-              {team.group_name && (
-                <span className="ml-2 px-1.5 py-0.5 border border-line text-ink-muted text-[10px]">
-                  {team.group_name}
-                </span>
-              )}
+              <span className="text-ink text-base">{team.team_name}</span>
+              <span className="ml-2 text-ink-dim text-xs">
+                #{team.team_code}
+              </span>
             </span>
             <span className="tabular-nums">
               {activatedAt ? formatElapsed(elapsedSeconds) : '--:--'}
@@ -159,9 +156,14 @@ export default function GameTerminal({ team }: Props) {
         </div>
 
         {/* Puzzle grid */}
-        <div className="px-4 py-3 space-y-1 border-b border-line">
-          <div className="text-[10px] text-ink-muted uppercase tracking-widest mb-2">
-            PUZZLE STATUS
+        <div className="px-4 py-4 space-y-1 border-b border-line">
+          <div className=' flex justify-between my-1'>
+            <span className="text-sm text-ink-dim uppercase tracking-widest mb-2">
+              PUZZLE STATUS
+            </span>
+            <span className="text-xs text-ink-muted uppercase ">
+              {progress.length} / {TOTAL_PUZZLES} solved
+            </span>
           </div>
           {Array.from({ length: TOTAL_PUZZLES }, (_, i) => {
             const id = i + 1
@@ -169,12 +171,12 @@ export default function GameTerminal({ team }: Props) {
             const isSolved = !!solvedAt
 
             return (
-              <div key={id} className="flex items-center gap-3 text-xs">
+              <div key={id} className="flex items-center gap-3 text-sm">
                 <span className="text-ink-muted w-4 text-right">#{String(id).padStart(2, '0')}</span>
                 {isSolved ? (
                   <>
-                    <span className="text-green-400">✓</span>
-                    <span className="text-green-400">SOLVED</span>
+                    <span className="text-success">v</span>
+                    <span className="text-success">SOLVED</span>
                     {activatedAt && solvedAt && (
                       <span className="text-ink-muted ml-auto tabular-nums">
                         {formatRelative(solvedAt, activatedAt)}
@@ -195,7 +197,7 @@ export default function GameTerminal({ team }: Props) {
         {/* Input */}
         <div className="px-4 py-3 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-accent-400 text-xs">{'>'}</span>
+            <span className="text-accent-400 text-base">{'>'}</span>
             <input
               ref={inputRef}
               type="text"
@@ -204,7 +206,7 @@ export default function GameTerminal({ team }: Props) {
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
               placeholder="輸入答案..."
               disabled={isSubmitting}
-              className="flex-1 bg-transparent text-ink text-xs focus:outline-none placeholder:text-ink-muted disabled:opacity-50"
+              className="flex-1 bg-transparent text-ink text-base focus:outline-none placeholder:text-ink-muted disabled:opacity-50"
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
@@ -213,7 +215,7 @@ export default function GameTerminal({ team }: Props) {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !inputValue.trim()}
-              className="text-[10px] uppercase tracking-widest border border-line px-2 py-1 text-ink-muted hover:border-accent-500 hover:text-accent-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-xs uppercase tracking-widest border border-line px-2 py-1 text-ink-muted hover:border-accent-500 hover:text-accent-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {isSubmitting ? '...' : 'SUBMIT'}
             </button>
@@ -224,13 +226,8 @@ export default function GameTerminal({ team }: Props) {
             <ResultLine result={lastResult} />
           )}
         </div>
-
       </div>
 
-      {/* Solved count footer */}
-      <div className="mt-3 text-[10px] text-ink-muted tabular-nums">
-        {progress.length} / {TOTAL_PUZZLES} solved
-      </div>
     </div>
   )
 }
@@ -239,26 +236,32 @@ function ResultLine({ result }: { result: LastResult }) {
   switch (result.status) {
     case 'correct':
       return (
-        <div className="text-xs space-y-0.5">
-          <div className="text-green-400">
-            ✓ CORRECT — #{String(result.puzzle_id).padStart(2, '0')} 解開
+        <div className="text-sm space-y-0.5">
+          <div className="text-success">
+            v CORRECT #{String(result.puzzle_id).padStart(2, '0')}
           </div>
           {result.message && (
-            <div className="text-ink-muted border-l border-green-900 pl-2">{result.message}</div>
+            <div className="text-ink-muted  mt-2 px-3 py-1 bg-bg-overlay">{result.message}</div>
           )}
         </div>
       )
     case 'already_solved':
       return (
-        <div className="text-xs text-yellow-500">
-          ● #{String(result.puzzle_id).padStart(2, '0')} 已解開過了
+        <div className="text-sm space-y-0.5">
+
+          <div className=" text-warning">
+            ✦ #{String(result.puzzle_id).padStart(2, '0')} 已解開過了
+          </div>
+          {result.message && (
+            <div className="text-ink-muted  mt-2 px-3 py-1 bg-bg-overlay">{result.message}</div>
+          )}
         </div>
       )
     case 'incorrect':
-      return <div className="text-xs text-red-400">✗ INCORRECT</div>
+      return <div className="text-sm text-danger">x INCORRECT</div>
     case 'rate_limited':
-      return <div className="text-xs text-red-400">⚠ 太多錯誤嘗試，請稍等一分鐘</div>
+      return <div className="text-sm text-danger">◭ 太多錯誤嘗試，請稍等一分鐘</div>
     case 'error':
-      return <div className="text-xs text-red-400">⚠ 發生錯誤，請稍後再試</div>
+      return <div className="text-sm text-danger">◭ 發生錯誤，請稍後再試</div>
   }
 }
