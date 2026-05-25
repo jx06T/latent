@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 
 interface TeamInfo {
@@ -10,7 +10,7 @@ interface TeamInfo {
 
 interface Props {
   code?: string
-  onJoined: (team: TeamInfo) => void
+  onJoined?: (team: TeamInfo) => void
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -26,9 +26,19 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
   const [inputCode, setInputCode] = useState(code ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const autoJoined = useRef(false)
 
-  async function handleJoin() {
-    const trimmed = inputCode.trim()
+  // 自動處理：若有 code 且已取得 token，則自動觸發
+  useEffect(() => {
+    if (code && accessToken && !autoJoined.current) {
+      autoJoined.current = true
+      handleJoin(code)
+    }
+  }, [code, accessToken])
+
+  async function handleJoin(overrideCode?: string) {
+    const trimmed = (overrideCode ?? inputCode).trim()
     if (!trimmed) return
     if (!accessToken) { setError('登入狀態異常，請重新整理頁面'); return }
 
@@ -52,9 +62,14 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
         return
       }
 
-      // Redirect to /game/ to clear the code param, but pass team data up
-      window.history.replaceState({}, '', '/game/')
-      onJoined({ id: data.team_id, team_code: data.team_code, group_name: data.group_name, activated_at: null })
+      setSuccess('成功加入！正在進入研究終端...')
+      
+      onJoined?.({ id: data.team_id, team_code: data.team_code, group_name: data.group_name, activated_at: null })
+      
+      // 成功加入後，延遲一小段時間讓使用者看見狀態，然後重定向至主遊戲頁面
+      setTimeout(() => {
+        window.location.href = '/game/'
+      }, 1500)
     } catch {
       setError('網路錯誤，請稍後再試')
     } finally {
@@ -69,39 +84,38 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
           LATENT 2026 // JOIN TEAM
         </div>
         <div className="p-6 space-y-4">
-          {code ? (
-            <div className="space-y-1">
-              <p className="text-xs text-ink-muted uppercase tracking-wider">Team Code</p>
-              <p className="text-sm text-accent-400 font-bold">{code}</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              <label htmlFor="team-code" className="text-xs text-ink-muted uppercase tracking-wider">
-                輸入 Team Code
-              </label>
-              <input
-                id="team-code"
-                type="text"
-                value={inputCode}
-                onChange={e => setInputCode(e.target.value.toUpperCase())}
-                onKeyDown={e => e.key === 'Enter' && handleJoin()}
-                placeholder="TEAM-ALPHA"
-                className="w-full bg-transparent border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent-500 uppercase placeholder:normal-case placeholder:text-ink-muted"
-                disabled={loading}
-              />
-            </div>
-          )}
+          <div className="space-y-1">
+            <label htmlFor="team-code" className="text-xs text-ink-muted uppercase tracking-wider">
+              邀請代碼
+            </label>
+            <input
+              id="team-code"
+              type="text"
+              value={inputCode}
+              onChange={e => setInputCode(e.target.value.toUpperCase())}
+              onKeyDown={e => e.key === 'Enter' && handleJoin()}
+              placeholder="TEAM-ALPHA"
+              className="w-full bg-transparent border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent-500 uppercase placeholder:normal-case placeholder:text-ink-muted"
+              disabled={loading || !!success}
+            />
+          </div>
 
           {error && (
             <p className="text-xs text-red-400 border border-red-900 px-3 py-2">{error}</p>
           )}
 
+          {success && (
+            <p className="text-xs text-emerald-400 border border-emerald-900 px-3 py-2 animate-pulse">
+              {success}
+            </p>
+          )}
+
           <button
-            onClick={handleJoin}
-            disabled={loading || !inputCode.trim()}
+            onClick={() => handleJoin()}
+            disabled={loading || !inputCode.trim() || !!success}
             className="w-full border border-line px-4 py-2 text-sm text-ink hover:border-accent-500 hover:text-accent-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? '加入中...' : '加入隊伍 →'}
+            {loading ? '處理中...' : success ? '已登記' : '加入隊伍 →'}
           </button>
         </div>
       </div>
