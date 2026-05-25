@@ -17,25 +17,28 @@ export default function Leaderboard() {
 
     const fetchData = useCallback(async () => {
         setIsSyncing(true)
-        // 1. 獲取所有未停權的隊伍
+        // 1. 獲取公開隊伍資訊視圖 (不含 team_code)
         const { data: teams } = await gameSupabase
-            .from('game_teams')
-            .select('id, team_code, team_name')
-            .eq('is_suspended', false)
+            .from('public_team_info')
+            .select('id, team_name')
+            // 視圖應已過濾 is_suspended = false 的隊伍
 
-        if (!teams) return
+        if (!teams) { setIsSyncing(false); return }
 
         // 2. 獲取所有解題進度 (RLS 允許所有人讀取此表)
         const { data: progress } = await gameSupabase
             .from('game_team_progress')
             .select('team_id, solved_at')
 
-        if (!progress) return
+        if (!progress) { setIsSyncing(false); return }
 
         // 3. 處理統計數據
         const stats: Record<string, { count: number; lastSolved: string | null }> = {}
 
-        teams.forEach(t => {
+        // 過濾掉 id 為空的資料（視圖欄位在型別中可能是 nullable）
+        const validTeams = teams.filter((t): t is typeof t & { id: string } => !!t.id)
+
+        validTeams.forEach(t => {
             stats[t.id] = { count: 0, lastSolved: null }
         })
 
@@ -50,11 +53,11 @@ export default function Leaderboard() {
         })
 
         // 4. 轉換為陣列並排序
-        const result: LeaderboardEntry[] = teams.map(t => ({
+        const result: LeaderboardEntry[] = validTeams.map(t => ({
             teamId: t.id,
-            teamName: t.team_name || t.team_code,
-            solvedCount: stats[t.id].count,
-            lastSolvedAt: stats[t.id].lastSolved
+            teamName: t.team_name || 'Unknown Team', // public_team_info 不含 team_code
+            solvedCount: stats[t.id]?.count || 0,
+            lastSolvedAt: stats[t.id]?.lastSolved || null
         }))
 
         result.sort((a, b) => {

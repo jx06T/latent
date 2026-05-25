@@ -160,6 +160,13 @@ export type Database = {
             referencedRelation: "game_teams"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "game_submissions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "public_team_info"
+            referencedColumns: ["id"]
+          },
         ]
       }
       game_team_members: {
@@ -187,6 +194,13 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "game_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "public_team_info"
             referencedColumns: ["id"]
           },
         ]
@@ -223,6 +237,13 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "game_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_team_progress_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "public_team_info"
             referencedColumns: ["id"]
           },
         ]
@@ -493,6 +514,27 @@ export type Database = {
       }
     }
     Views: {
+      public_team_info: {
+        Row: {
+          id: string | null
+          is_active: boolean | null
+          max_members: number | null
+          team_name: string | null
+        }
+        Insert: {
+          id?: string | null
+          is_active?: boolean | null
+          max_members?: number | null
+          team_name?: string | null
+        }
+        Update: {
+          id?: string | null
+          is_active?: boolean | null
+          max_members?: number | null
+          team_name?: string | null
+        }
+        Relationships: []
+      }
       v_comments: {
         Row: {
           author_avatar_url: string | null
