@@ -88,9 +88,6 @@ export default function GamePage() {
             {/* 右側：排行榜 */}
             <div className="sm:col-span-4 flex flex-col gap-6">
               <div className="border border-line p-5 bg-bg-surface/30">
-                <h3 className="border-b border-line mb-3 pb-1 text-ink/40 uppercase text-[10px] tracking-widest font-bold">
-                  即時排行 // GLOBAL_RANK
-                </h3>
                 <Leaderboard />
               </div>
             </div>
