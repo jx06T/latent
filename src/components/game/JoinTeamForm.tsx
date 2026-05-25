@@ -1,12 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
+import type { Tables } from '@/lib/database.types'
 
-interface TeamInfo {
-  id: string
-  team_code: string
-  team_name: string | null
-  activated_at: string | null
-}
+type TeamInfo = Tables<'game_teams'>
 
 interface Props {
   code?: string
@@ -64,7 +60,13 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
 
       setSuccess('成功加入！正在進入研究終端...')
       
-      onJoined?.({ id: data.team_id, team_code: data.team_code, team_name: data.team_name, activated_at: null })
+      onJoined?.({ 
+        id: data.team_id, 
+        team_code: data.team_code, 
+        team_name: data.team_name, 
+        activated_at: null,
+        is_active: true
+      } as TeamInfo)
       
       // 成功加入後，延遲一小段時間讓使用者看見狀態，然後重定向至主遊戲頁面
       setTimeout(() => {

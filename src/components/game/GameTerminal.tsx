@@ -1,20 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { gameSupabase } from '@/lib/supabase-game'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
+import type { Tables } from '@/lib/database.types'
 
 const TOTAL_PUZZLES = 10
 
-interface TeamInfo {
-  id: string
-  team_code: string
-  team_name: string | null
-  activated_at: string | null
-}
-
-interface ProgressRow {
-  puzzle_id: number
-  solved_at: string
-}
+type TeamInfo = Tables<'game_teams'>
+type ProgressRow = Tables<'game_team_progress'>
 
 type SubmitStatus = 'correct' | 'incorrect' | 'already_solved' | 'rate_limited' | 'error'
 
@@ -53,7 +45,7 @@ export default function GameTerminal({ team }: Props) {
   async function loadProgress() {
     const { data } = await gameSupabase
       .from('game_team_progress')
-      .select('puzzle_id, solved_at')
+      .select('*')
       .eq('team_id', team.id)
     setProgress(data ?? [])
   }
@@ -142,29 +134,25 @@ export default function GameTerminal({ team }: Props) {
           <div className="text-lg text-accent-400 uppercase tracking-widest">
             LATENT 2026 實境解謎
           </div>
-          <div className="flex items-center justify-between text-xs text-ink-muted">
+          <div className=' flex justify-between items-end'>
             <span>
               <span className="text-ink text-base">{team.team_name}</span>
               <span className="ml-2 text-ink-dim text-xs">
                 #{team.team_code}
               </span>
             </span>
-            <span className="tabular-nums">
-              {activatedAt ? formatElapsed(elapsedSeconds) : '--:--'}
+            <span className="text-xs text-ink uppercase ">
+              {progress.length} / {TOTAL_PUZZLES} solved  {activatedAt ? formatElapsed(elapsedSeconds) : '--:--'}
             </span>
           </div>
         </div>
 
         {/* Puzzle grid */}
         <div className="px-4 py-4 space-y-1 border-b border-line">
-          <div className=' flex justify-between my-1'>
-            <span className="text-sm text-ink-dim uppercase tracking-widest mb-2">
-              PUZZLE STATUS
-            </span>
-            <span className="text-xs text-ink-muted uppercase ">
-              {progress.length} / {TOTAL_PUZZLES} solved
-            </span>
+          <div className="text-sm text-ink uppercase tracking-widest mb-3">
+            PUZZLE STATUS
           </div>
+
           {Array.from({ length: TOTAL_PUZZLES }, (_, i) => {
             const id = i + 1
             const solvedAt = solvedMap.get(id)
@@ -228,7 +216,7 @@ export default function GameTerminal({ team }: Props) {
         </div>
       </div>
 
-    </div>
+    </div >
   )
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { gameSupabase } from '@/lib/supabase-game'
+import type { Tables } from '@/lib/database.types'
 
 interface LeaderboardEntry {
   teamId: string
@@ -19,7 +20,7 @@ export default function Leaderboard() {
     // 1. 獲取所有未停權的隊伍
     const { data: teams } = await gameSupabase
       .from('game_teams')
-      .select('id, team_code, group_name')
+      .select('id, team_code, team_name')
       .eq('is_suspended', false)
 
     if (!teams) return
@@ -39,7 +40,7 @@ export default function Leaderboard() {
     })
 
     progress.forEach(p => {
-      if (stats[p.team_id]) {
+      if (stats[p.team_id] && p.solved_at) {
         stats[p.team_id].count++
         // 紀錄該隊伍最後一次解題時間
         if (!stats[p.team_id].lastSolved || p.solved_at > stats[p.team_id].lastSolved!) {
@@ -51,7 +52,7 @@ export default function Leaderboard() {
     // 4. 轉換為陣列並排序
     const result: LeaderboardEntry[] = teams.map(t => ({
       teamId: t.id,
-      teamName: t.group_name || t.team_code,
+      teamName: t.team_name || t.team_code,
       solvedCount: stats[t.id].count,
       lastSolvedAt: stats[t.id].lastSolved
     }))
@@ -110,12 +111,12 @@ export default function Leaderboard() {
             <span className={`text-[10px] ${idx < 3 ? 'text-emerald-500 font-bold' : 'text-ink/30'}`}>
               {String(idx + 1).padStart(2, '0')}
             </span>
-            <span className={`text-xs truncate max-w-[140px] ${entry.solvedCount > 0 ? 'text-ink' : 'text-ink/40'}`}>
+            <span className={`text-xs truncate max-w-35 ${entry.solvedCount > 0 ? 'text-ink' : 'text-ink/40'}`}>
               {entry.teamName}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-[1px] w-8 bg-ink/5 group-hover:w-12 transition-all" />
+            <div className="h-px w-8 bg-ink/5 group-hover:w-12 transition-all" />
             <span className={`text-xs tabular-nums ${entry.solvedCount > 0 ? 'text-emerald-500' : 'text-ink/20'}`}>
               {entry.solvedCount}
             </span>

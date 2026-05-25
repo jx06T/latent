@@ -4,14 +4,10 @@ import { gameSupabase } from '@/lib/supabase-game' // 引入前端 Supabase 客�
 import AuthGate from '@/components/ui/AuthGate' // 引入 AuthGate
 import GameTerminal from './GameTerminal'
 import Leaderboard from './Leaderboard'
+import type { Tables } from '@/lib/database.types'
 
-interface PlayerData {
-  name: string
-  id: string
-  team_code: string
-  team_name: string | null
-  activated_at: string | null
-}
+type TeamRow = Tables<'game_teams'>
+interface PlayerData extends TeamRow { name: string }
 
 export default function GamePage() {
   const { accessToken, user, loading: authLoading, isLoggedIn, signIn, signOut } = useSupabaseAuth()
@@ -30,7 +26,7 @@ export default function GamePage() {
         // 直接從 game_team_members 查詢，RLS 會過濾非本人或非所屬隊伍的資料
         const { data: member, error: memberError } = await gameSupabase
           .from('game_team_members')
-          .select('team_id, game_teams(id, team_code, team_name, activated_at)')
+          .select('team_id, game_teams(*)')
           .eq('user_id', user.id)
           .maybeSingle()
 
@@ -39,14 +35,10 @@ export default function GamePage() {
         if (!member) { 
           window.location.replace('/game/join') // 未授權則直接重定向
         } else {
-          const team = member.game_teams as any
-          // 轉換資料格式以符合 PlayerData
+          const team = member.game_teams as unknown as TeamRow
           const data: PlayerData = {
+            ...team,
             name: user.email?.split('@')[0] || 'RESEARCHER', // 暫時用 email 當名字
-            id: team.id,
-            team_code: team.team_code,
-            team_name: team.team_name,
-            activated_at: team.activated_at
           }
           setPlayerData(data)
           setGameState('ready')
@@ -83,7 +75,7 @@ export default function GamePage() {
               onClick={() => signOut()}
               className="text-[10px] text-ink-muted hover:text-ink transition-colors border border-line px-2 py-1 uppercase tracking-widest"
             >
-              Terminate Session // Sign Out
+              Sign Out
             </button>
           </div>
 
