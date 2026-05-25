@@ -192,7 +192,7 @@ export default function GameTerminal({ team }: Props) {
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder="輸入答案..."
+              placeholder="Awaiting input_"
               disabled={isSubmitting}
               className="flex-1 bg-transparent text-ink text-base focus:outline-none placeholder:text-ink-muted disabled:opacity-50"
               autoComplete="off"
@@ -238,7 +238,7 @@ function ResultLine({ result }: { result: LastResult }) {
         <div className="text-sm space-y-0.5">
 
           <div className=" text-warning">
-            ✦ #{String(result.puzzle_id).padStart(2, '0')} 已解開過了
+            ✦ #{String(result.puzzle_id).padStart(2, '0')} ALREADY SOLVED
           </div>
           {result.message && (
             <div className="text-ink-muted  mt-2 px-3 py-1 bg-bg-overlay">{result.message}</div>
@@ -248,8 +248,8 @@ function ResultLine({ result }: { result: LastResult }) {
     case 'incorrect':
       return <div className="text-sm text-danger">x INCORRECT</div>
     case 'rate_limited':
-      return <div className="text-sm text-danger">◭ 太多錯誤嘗試，請稍等一分鐘</div>
+      return <div className="text-sm text-danger">◭ Too many attempts, please wait one minute.</div>
     case 'error':
-      return <div className="text-sm text-danger">◭ 發生錯誤，請稍後再試</div>
+      return <div className="text-sm text-danger">◭ An error has occurred. Please try again later.</div>
   }
 }
