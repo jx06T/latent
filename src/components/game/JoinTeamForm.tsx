@@ -11,10 +11,10 @@ interface Props {
 
 const ERROR_MESSAGES: Record<string, string> = {
   already_in_team: '你已經加入一支隊伍了',
-  team_not_found:  '找不到這支隊伍，請確認 QR 碼正確',
-  team_suspended:  '這支隊伍已被暫停，請聯繫工作人員',
-  team_full:       '這支隊伍已達人數上限',
-  Unauthorized:    '登入狀態異常，請重新整理頁面',
+  team_not_found: '找不到這支隊伍，請確認 QR 碼正確',
+  team_suspended: '這支隊伍已被暫停，請聯繫工作人員',
+  team_full: '這支隊伍已達人數上限',
+  Unauthorized: '登入狀態異常，請重新整理頁面',
 }
 
 export default function JoinTeamForm({ code, onJoined }: Props) {
@@ -59,21 +59,21 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
       }
 
       setSuccess('成功加入！正在進入研究終端...')
-      
-      onJoined?.({ 
-        id: data.team_id, 
-        team_code: data.team_code, 
-        team_name: data.team_name, 
+
+      onJoined?.({
+        id: data.team_id,
+        team_code: data.team_code,
+        team_name: data.team_name,
         activated_at: null,
         is_active: true
       } as TeamInfo)
-      
+
       // 成功加入後，延遲一小段時間讓使用者看見狀態，然後重定向至主遊戲頁面
       setTimeout(() => {
         window.location.href = '/game/'
       }, 1500)
     } catch {
-      setError('網路錯誤，請稍後再試')
+      setError('請確認代碼正確或稍後再試')
     } finally {
       setLoading(false)
     }
@@ -87,17 +87,17 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
         </div>
         <div className="p-6 space-y-4">
           <div className="space-y-1">
-            <label htmlFor="team-code" className="text-xs text-ink-muted uppercase tracking-wider">
+            <label htmlFor="team-code" className="text-xs text-ink-muted  tracking-wider">
               邀請代碼
             </label>
             <input
               id="team-code"
               type="text"
               value={inputCode}
-              onChange={e => setInputCode(e.target.value.toUpperCase())}
+              onChange={e => setInputCode(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
               placeholder="TEAM-ALPHA"
-              className="w-full bg-transparent border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent-500 uppercase placeholder:normal-case placeholder:text-ink-muted"
+              className="w-full bg-transparent border border-line px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent-500 placeholder:normal-case placeholder:text-ink-muted"
               disabled={loading || !!success}
             />
           </div>

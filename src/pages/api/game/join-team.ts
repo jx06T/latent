@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
   // Find the team
   const { data: team } = await db
     .from('game_teams')
-    .select('id, team_code, group_name, is_suspended, max_members')
+    .select('id, team_code, team_name, is_suspended, max_members')
     .eq('team_code', team_code)
     .maybeSingle()
 
@@ -86,5 +86,5 @@ export const POST: APIRoute = async ({ request }) => {
     if (activateErr) console.error('[game/join-team] activate team failed:', activateErr)
   }
 
-  return json({ team_id: team.id, team_code: team.team_code, group_name: team.group_name })
+  return json({ team_id: team.id, team_code: team.team_code, team_name: team.team_name })
 }
