@@ -1,0 +1,10 @@
+---
+export const prerender = false
+
+import EditorLayout from '@/layouts/EditorLayout.astro'
+import GamePage from '@/components/game/GamePage'
+---
+
+<EditorLayout title="LATENT 2026 // Research Terminal">
+  <GamePage client:only="react" />
+</EditorLayout>

@@ -1,0 +1,10 @@
+---
+// QR codes point to /game/join?code=TEAM-ALPHA
+// This page simply redirects to /game/ preserving the code param so GamePage
+// can pick it up from the URL — EditorLayout (with GIS) only lives at /game/.
+export const prerender = false
+
+const code = Astro.url.searchParams.get('code')
+const target = code ? `/game/?code=${encodeURIComponent(code)}` : '/game/'
+return Astro.redirect(target, 302)
+---
