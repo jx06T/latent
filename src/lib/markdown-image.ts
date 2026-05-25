@@ -13,7 +13,7 @@ export function replaceImageIds(markdown: string, images: ProjectImageRow[]): st
         const src = publishedUrl(img, 'md')
         const srcset = buildSrcset(img)
         const altEsc = String(alt).replace(/"/g, '&quot;')
-        return `<img src="${src}" srcset="${srcset}" sizes="(max-width: 768px) 100vw, 800px" alt="${altEsc}" loading="lazy">`
+        return `<p><img src="${src}" srcset="${srcset}" sizes="(max-width: 768px) 100vw, 800px" alt="${altEsc}" loading="lazy"></p>\n`
     })
 }
 
