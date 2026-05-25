@@ -58,7 +58,7 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
         return
       }
 
-      setSuccess('成功加入！正在進入研究終端...')
+      setSuccess('成功加入！正在進入遊戲頁面...')
 
       onJoined?.({
         id: data.team_id,
@@ -103,7 +103,17 @@ export default function JoinTeamForm({ code, onJoined }: Props) {
           </div>
 
           {error && (
-            <p className="text-xs text-red-400 border border-red-900 px-3 py-2">{error}</p>
+            <div className="space-y-2">
+              <p className="text-xs text-red-400 border border-red-900 px-3 py-2">{error}</p>
+              {error === ERROR_MESSAGES.already_in_team && (
+                <button
+                  onClick={() => window.location.href = '/game/'}
+                  className="w-full border border-line px-4 py-2 text-xs text-ink hover:border-accent-500 hover:text-accent-500 transition-all uppercase tracking-widest"
+                >
+                  回遊戲頁 →
+                </button>
+              )}
+            </div>
           )}
 
           {success && (
