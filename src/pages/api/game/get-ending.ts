@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     // 3. 計算數據
     const startTime = new Date(member.game_teams.activated_at).getTime()
-    const endTime = Math.max(...progress.map(p => new Date(p.solved_at).getTime()))
+    const endTime = Math.max(...progress.map(p => new Date(p.solved_at!).getTime()))
     const diffSeconds = Math.max(0, Math.floor((endTime - startTime) / 1000))
 
     // 格式化 %1: mm:ss
