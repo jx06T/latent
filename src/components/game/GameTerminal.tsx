@@ -3,7 +3,7 @@ import { gameSupabase } from '@/lib/supabase-game'
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth'
 import type { Tables } from '@/lib/database.types'
 
-const TOTAL_PUZZLES = 10
+const TOTAL_PUZZLES = 11
 
 type TeamInfo = Tables<'game_teams'>
 type ProgressRow = Tables<'game_team_progress'>
@@ -40,6 +40,9 @@ export default function GameTerminal({ team }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastResult, setLastResult] = useState<LastResult | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [endingContent, setEndingContent] = useState<string | null>(null)
+
+  const isFinished = progress.length >= TOTAL_PUZZLES
 
   // Load progress from Supabase client (RLS: user can read own team's progress)
   async function loadProgress() {
@@ -67,7 +70,7 @@ export default function GameTerminal({ team }: Props) {
 
   // Elapsed timer
   useEffect(() => {
-    if (!activatedAt) return
+    if (!activatedAt || isFinished) return
     const tick = () => {
       setElapsedSeconds(
         Math.max(0, Math.floor((Date.now() - new Date(activatedAt).getTime()) / 1000))
@@ -76,7 +79,21 @@ export default function GameTerminal({ team }: Props) {
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [activatedAt])
+  }, [activatedAt, isFinished])
+
+  // 當遊戲完成時，自動抓取結局內容
+  useEffect(() => {
+    if (isFinished && accessToken && !endingContent) {
+      fetch('/api/game/get-ending', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.content) setEndingContent(data.content)
+        })
+        .catch(err => console.error('Failed to load ending:', err))
+    }
+  }, [isFinished, accessToken])
 
   async function handleSubmit() {
     const trimmed = inputValue.trim()
@@ -125,6 +142,20 @@ export default function GameTerminal({ team }: Props) {
 
   const solvedMap = new Map(progress.map(p => [p.puzzle_id, p.solved_at]))
 
+  // 判斷是否解開 Bonus (ID 11)，用來決定 UI 顯示的總題數
+  const hasSolvedBonus = solvedMap.has(11)
+  const displayTotal = hasSolvedBonus ? 11 : 10
+
+  // 計算顯示時間：若已完成，則抓取最後一題的解題時間來計算總耗時
+  const displayTime = (isFinished && activatedAt && progress.length > 0)
+    ? formatRelative(
+      new Date(Math.max(...progress.map(p => new Date(p.solved_at!).getTime()))).toISOString(),
+      activatedAt
+    )
+    : activatedAt
+      ? formatElapsed(elapsedSeconds)
+      : '--:--'
+
   return (
     <div className=" bg-bg-surface font-mono text-sm flex flex-col items-center justify-start ">
       <div className="w-full border border-line">
@@ -142,7 +173,13 @@ export default function GameTerminal({ team }: Props) {
               </span>
             </span>
             <span className="text-xs text-ink uppercase ">
-              {progress.length} / {TOTAL_PUZZLES} solved  {activatedAt ? formatElapsed(elapsedSeconds) : '--:--'}
+              {isFinished ? (
+                <span className="text-success">
+                  ALL_DONE IN {displayTime}
+                </span>
+              ) : (
+                <>{progress.length} / {displayTotal} solved {displayTime}</>
+              )}
             </span>
           </div>
         </div>
@@ -158,19 +195,34 @@ export default function GameTerminal({ team }: Props) {
             const solvedAt = solvedMap.get(id)
             const isSolved = !!solvedAt
 
+            // 隱藏加分題邏輯：若 ID 為 11 且尚未解開，則不顯示在清單中
+            if (id === 11 && !isSolved) return null
+
             return (
               <div key={id} className="flex items-center gap-3 text-sm">
                 <span className="text-ink-muted w-4 text-right">#{String(id).padStart(2, '0')}</span>
                 {isSolved ? (
-                  <>
-                    <span className="text-success">v</span>
-                    <span className="text-success">SOLVED</span>
-                    {activatedAt && solvedAt && (
-                      <span className="text-ink-muted ml-auto tabular-nums">
-                        {formatRelative(solvedAt, activatedAt)}
-                      </span>
-                    )}
-                  </>
+                  id === 11 ? (
+                    <>
+                      <span className="text-accent-400 animate-pulse">✦</span>
+                      <span className="text-accent-400 tracking-tighter uppercase">Bonus [ACCESS GRANTED]</span>
+                      {activatedAt && solvedAt && (
+                        <span className="text-ink-muted ml-auto tabular-nums">
+                          {formatRelative(solvedAt, activatedAt)}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-success">v</span>
+                      <span className="text-success">SOLVED</span>
+                      {activatedAt && solvedAt && (
+                        <span className="text-ink-muted ml-auto tabular-nums">
+                          {formatRelative(solvedAt, activatedAt)}
+                        </span>
+                      )}
+                    </>
+                  )
                 ) : (
                   <>
                     <span className="text-ink-muted">─</span>
@@ -181,6 +233,22 @@ export default function GameTerminal({ team }: Props) {
             )
           })}
         </div>
+
+        {/* Ending Content Card - 只有在解開 11 題後顯示 */}
+        {isFinished && endingContent && (
+          <div className="px-4 py-6 bg-accent-400/5 border-b border-accent-400/30 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-accent-400 text-lg">✦</span>
+              <div className="text-accent-400 font-bold tracking-[0.2em] uppercase text-xs">
+                Decrypted_Message
+              </div>
+            </div>
+            <div className="text-ink leading-relaxed whitespace-pre-wrap font-sans text-base pl-6 border-l border-accent-400/20">
+              {endingContent}
+            </div>
+            <div className="mt-4 text-[10px] text-accent-400/50 text-right italic font-mono">End of Transmission _</div>
+          </div>
+        )}
 
         {/* Input */}
         <div className="px-4 py-3 space-y-2">

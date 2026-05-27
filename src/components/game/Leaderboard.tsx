@@ -104,7 +104,7 @@ export default function Leaderboard() {
                     <button
                         onClick={() => fetchData()}
                         disabled={isSyncing}
-                        className={`text-ink-ddim hover:text-success transition-colors ${isSyncing ? 'animate-spin text-success' : ''}`}
+                        className={`text-ink-ddim hover:text-success transition-colors cursor-pointer ${isSyncing ? 'animate-spin text-success' : ''}`}
                         title="Manual Resync"
                     >
                         <RefreshCw size={10} />
