@@ -14,9 +14,9 @@ import { publishedUrl, type ProjectImageRow } from "@/lib/image-paths";
 const { data, error } = await supabase
   .from("projects")
   .select(`
-    slug, title, subtitle, author_handle, category_main, 
-    tech_stack, like_count, is_official, is_exhibition,
-    cover_image_id, created_at, updated_at, keywords, description,
+    id, slug, title, subtitle, author_handle, category_main, 
+    tech_stack, like_count, comment_count, is_official, is_exhibition,
+    created_at, updated_at, keywords, description,
     cover:project_images!projects_cover_image_id_fkey (
       id, project_id, status, source_ext, published_ext, available_sizes
     )
@@ -28,16 +28,26 @@ const { data, error } = await supabase
 if (error) console.error("Fetch error:", error);
 
 // 3. 定義一個專門處理「包含封面與預設值」的 Schema
-const ProjectDisplaySchema = ProjectSchema.extend({
-  // 擴大 Schema 以接收 Supabase Join 進來的 cover 物件
-  cover: z.any().nullable().optional(),
+// 使用 pick 只選擇 UI 真正用到的欄位，這比 partial 更嚴謹
+const ProjectDisplaySchema = ProjectSchema.pick({
+  id: true, slug: true, title: true, subtitle: true, author_handle: true,
+  category_main: true, tech_stack: true, like_count: true, comment_count: true,
+  is_official: true, is_exhibition: true, created_at: true, updated_at: true,
+  keywords: true, description: true
+}).extend({
+  // 明確定義 cover 的結構，取代 z.any()
+  cover: z.object({
+    id: z.string(),
+    project_id: z.string(),
+    status: z.string(),
+    source_ext: z.string(),
+    published_ext: z.string().nullable(),
+    available_sizes: z.array(z.string()).nullable(),
+  }).nullable().optional().catch(null),
 }).transform((p) => {
   let coverUrl: string | null = null;
-  // 防禦性產生 URL：確保產圖邏輯出錯時不影響整頁渲染
   try {
-    if (p.cover && (p.cover as any).id && (p.cover as any).project_id) {
-      coverUrl = publishedUrl(p.cover as any, "md");
-    }
+    if (p.cover) coverUrl = publishedUrl(p.cover as any, "md");
   } catch (e) {
     console.warn(`[ProjectDisplaySchema] Failed to resolve cover for ${p.slug}:`, e);
   }
@@ -47,7 +57,10 @@ const ProjectDisplaySchema = ProjectSchema.extend({
 // 4. 使用 safeParse 避免單一資料錯誤導致整個頁面崩潰
 const parsedResult = z.array(ProjectDisplaySchema).safeParse(data || []);
 if (!parsedResult.success) {
-  console.error("[ProjectPage] Data validation failed:", parsedResult.error);
+  // 在開發環境下，這行能幫你找出是哪個欄位導致 validation 失敗
+  console.error("[ProjectPage] Data validation failed:", 
+    JSON.stringify(parsedResult.error.format(), null, 2)
+  );
 }
 const projects = parsedResult.success ? parsedResult.data : [];
 
