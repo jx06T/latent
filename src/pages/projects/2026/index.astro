@@ -9,32 +9,47 @@ import { SITE_TITLE } from "@/consts";
 import { z } from "zod";
 import { publishedUrl, type ProjectImageRow } from "@/lib/image-paths";
 
+// 1. 合併查詢：利用 Supabase 的關聯查詢功能一次抓完專案與圖片
+// 2. 精確欄位：只抓取 UI 需要的欄位，大幅減少傳輸量
 const { data, error } = await supabase
   .from("projects")
-  .select("*")
+  .select(`
+    slug, title, subtitle, author_handle, category_main, 
+    tech_stack, like_count, is_official, is_exhibition,
+    cover_image_id, created_at, updated_at, keywords, description,
+    cover:project_images!projects_cover_image_id_fkey (
+      id, project_id, status, source_ext, published_ext, available_sizes
+    )
+  `)
   .eq("year", 2026)
   .eq("status", "published")
   .order("created_at", { ascending: false });
 
-if (error) {
-  console.error("Fetch error:", error);
-}
+if (error) console.error("Fetch error:", error);
 
-const projects = z.array(ProjectSchema).parse(data || []);
-
-// Bulk-resolve cover images in a single query
-const coverIds = projects.map(p => p.cover_image_id).filter(Boolean) as string[]
-const coverUrlMap: Record<string, string> = {}
-if (coverIds.length > 0) {
-  const { data: coverImgs } = await supabase
-    .from("project_images")
-    .select("id, project_id, status, source_ext, published_ext, available_sizes")
-    .in("id", coverIds)
-    .eq("status", "published")
-  for (const img of coverImgs ?? []) {
-    try { coverUrlMap[img.id] = publishedUrl(img as unknown as ProjectImageRow, "md") } catch {}
+// 3. 定義一個專門處理「包含封面與預設值」的 Schema
+const ProjectDisplaySchema = ProjectSchema.extend({
+  // 擴大 Schema 以接收 Supabase Join 進來的 cover 物件
+  cover: z.any().nullable().optional(),
+}).transform((p) => {
+  let coverUrl: string | null = null;
+  // 防禦性產生 URL：確保產圖邏輯出錯時不影響整頁渲染
+  try {
+    if (p.cover && (p.cover as any).id && (p.cover as any).project_id) {
+      coverUrl = publishedUrl(p.cover as any, "md");
+    }
+  } catch (e) {
+    console.warn(`[ProjectDisplaySchema] Failed to resolve cover for ${p.slug}:`, e);
   }
+  return { ...p, coverUrl };
+});
+
+// 4. 使用 safeParse 避免單一資料錯誤導致整個頁面崩潰
+const parsedResult = z.array(ProjectDisplaySchema).safeParse(data || []);
+if (!parsedResult.success) {
+  console.error("[ProjectPage] Data validation failed:", parsedResult.error);
 }
+const projects = parsedResult.success ? parsedResult.data : [];
 
 const YEAR = 2026;
 const allCategories = Object.entries(CATEGORIES) as [string, string][];
@@ -149,9 +164,9 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
                 data-author={project.author_handle.toLowerCase()}
                 data-category={project.category_main}
                 data-keywords={project.keywords.join(" ").toLowerCase()}
-                data-subtitle={(project.subtitle ?? "").toLowerCase()}
+                data-subtitle={project.subtitle.toLowerCase()}
                 data-tech={project.tech_stack.join(" ").toLowerCase()}
-                data-description={(project.description ?? "").toLowerCase()}
+                data-description={project.description.toLowerCase()}
                 data-official={String(project.is_official)}
                 data-exhibition={String(project.is_exhibition)}
                 data-likes={project.like_count}
@@ -164,7 +179,7 @@ const tagBase =  `font-mono text-xs px-3 py-1.5 border border-line text-ink-dim
                   subtitle={project.subtitle}
                   author_handle={project.author_handle}
                   category_main={project.category_main}
-                  cover_image={project.cover_image_id ? (coverUrlMap[project.cover_image_id] ?? null) : null}
+                  cover_image={project.coverUrl}
                   tech_stack={project.tech_stack}
                   like_count={project.like_count}
                   is_official={project.is_official}

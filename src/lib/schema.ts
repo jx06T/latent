@@ -9,11 +9,11 @@ export const ProjectSchema = z.object({
   slug: z.string(),
 
   title: z.string(),
-  subtitle: z.string().nullable().optional(),
+  subtitle: z.string().nullable().optional().transform(v => v ?? ""),
   author_handle: z.string(),
   author_id: z.string().uuid(),
 
-  description: z.string().nullable().optional(),
+  description: z.string().nullable().optional().transform(v => v ?? ""),
   content: z.string().nullable().optional(),
 
   category_main: z.number().int().transform((val): CategoryId => {
