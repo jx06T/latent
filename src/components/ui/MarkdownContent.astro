@@ -23,7 +23,32 @@ const cleanHtml = sanitizeHtml(rawHtml, {
     "path",
     "span",
     "div",
+    "video",
+    "source",
   ]),
+  transformTags: {
+    video: (tagName, attribs) => {
+      // 1. 如果有 autoplay，但沒有 muted，我們強制幫它加上
+      if ("autoplay" in attribs && !("muted" in attribs)) {
+        attribs.muted = ""; // 這會在 HTML 中產生 <video autoplay muted>
+      }
+
+      // 在 iOS (iPhone) 上，影片如果有 autoplay，必須同時具備 muted 和 playsinline 才會生效。
+      if ("autoplay" in attribs && !("playsinline" in attribs)) {
+        attribs.playsinline = "";
+      }
+
+      // 2. 關於下一個問題：我們也可以在這裡強制規範 preload 的值
+      if (attribs.preload === "auto") {
+        attribs.preload = "metadata"; // 強制降級，避免消耗流量
+      }
+
+      return {
+        tagName,
+        attribs,
+      };
+    },
+  },
   allowedIframeDomains: [
     "youtube.com",
     "www.youtube.com",
@@ -51,7 +76,7 @@ const cleanHtml = sanitizeHtml(rawHtml, {
   allowedStyles: {
     "*": {
       // 顏色
-      "color":            [noUrl],
+      color: [noUrl],
       "background-color": [noUrl],
       // 字體
       "font-size": [noUrl],
@@ -138,6 +163,19 @@ const cleanHtml = sanitizeHtml(rawHtml, {
       "class",
     ],
     path: ["d"],
+    video: [
+      "src",
+      "controls", // 允許顯示控制條
+      "width",
+      "height",
+      "poster", // 允許影片封面圖
+      "muted", // 允許靜音
+      "loop", // 允許迴圈播放
+      "playsinline", // 確保在 iOS Safari 上不會強制全螢幕
+      "preload", // 可選，建議只允許 "none" 或 "metadata" 以省頻寬
+      "autoplay",
+    ],
+    source: ["src", "type"],
   },
 });
 ---
