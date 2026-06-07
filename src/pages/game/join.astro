@@ -2,14 +2,11 @@
 export const prerender = false
 
 import EditorLayout from '@/layouts/EditorLayout.astro'
-import JoinTeamForm from '@/components/game/JoinTeamForm'
+import JoinPage from '@/components/game/JoinPage'
 
 const code = Astro.url.searchParams.get('code')
 
 ---
 <EditorLayout title="Joining Team...">
-  <div class="flex h-screen items-center justify-center">
-    <JoinTeamForm client:only="react" code={code ?? undefined} />
-  </div>
+  <JoinPage client:only="react" code={code ?? undefined} />
 </EditorLayout>
----
