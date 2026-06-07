@@ -234,7 +234,9 @@ const similarProjects = ((candidateData ?? []) as any[])
       <div class="w-full aspect-video overflow-hidden border border-line mb-8">
         <img
           src={coverImageUrl}
-          alt={project.title}
+          alt={project.title}   
+          fetchpriority="high"
+          loading="eager"
           class="w-full h-full object-cover opacity-80"
         />
       </div>
@@ -377,7 +379,7 @@ const similarProjects = ((candidateData ?? []) as any[])
     <MarkdownContent content={resolvedContent} class="mt-6" />
   </article>
   <!-- Comments -->
-  <CommentsSection client:load projectId={project.id} />
+  <CommentsSection client:visible projectId={project.id} />
 
   <!-- Footer bar -->
   <footer class="mt-16 pt-3 border-t border-line flex items-center justify-between">
