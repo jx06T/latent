@@ -479,6 +479,21 @@ export type Database = {
           },
         ]
       }
+      stats: {
+        Row: {
+          key: string
+          value: number
+        }
+        Insert: {
+          key: string
+          value?: number
+        }
+        Update: {
+          key?: string
+          value?: number
+        }
+        Relationships: []
+      }
       surveys: {
         Row: {
           age_group: string | null
