@@ -9,6 +9,7 @@
 
 ![LATENT Platform](https://assets.exhibit.ckefgisc.org/projects/2764f273-7cae-4fd8-98f4-4862c065b8e6/md/0e2d50b7-437e-4738-827b-82c46a09e7f9.webp)
 
+[網站連結：https://exhibit.ckefgisc.org](https://exhibit.ckefgisc.org)
 ## 核心亮點 (Features)
 
 ### 為開發者而生的寫作體驗
